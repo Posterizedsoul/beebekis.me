@@ -1,0 +1,20 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/typography';
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+html::-webkit-scrollbar {
+    display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox: Copied from somewhere.*/
+html {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+}
+
+body {
+    margin: 0; 
+    font-family: 'Noto Serif', serif;
+    min-height: 100vh; 
+    color: theme('colors.gray.800');
+}

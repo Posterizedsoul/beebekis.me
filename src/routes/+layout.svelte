@@ -1,0 +1,133 @@
+<script lang="ts">
+	import '../app.css';
+	import { page } from '$app/state'; // Import page from $app/state
+	import { PUBLIC_BASE_URL } from '$env/static/public'; // This line needs the .env variable
+
+	let { children } = $props();
+
+	// Reactive check: true if the current path is the homepage '/'
+	const isHomePage = $derived(page.url.pathname === '/');
+	const currentPath = $derived(page.url.pathname); // Store current path
+
+	// Site metadata (adjust as needed)
+	const siteTitle = 'Bibek Bhatta - Portfolio';
+	const siteDescription = 'Personal portfolio, blog, and memories of Bibek Bhatta.';
+	const siteUrl = PUBLIC_BASE_URL || 'https://your-default-domain.com'; // Fallback domain
+	const imageUrl = `${siteUrl}/og-image.png`; // Assumes og-image.png is in static folder
+
+	// Restore $effect for scroll lock, remove background class logic
+	$effect(() => {
+		if (isHomePage) {
+			document.body.style.overflow = 'hidden';
+		} else {
+			document.body.style.overflow = 'auto';
+		}
+
+		// Optional cleanup function
+		return () => {
+			// Reset overflow when component unmounts
+			document.body.style.overflow = 'auto';
+		};
+	});
+</script>
+
+<svelte:head>
+	<!-- Standard Meta Tags -->
+	<title>{siteTitle}</title>
+	<meta name="description" content={siteDescription} />
+
+	<!-- Open Graph / Facebook -->
+	<meta property="og:type" content="website" />
+	<meta property="og:url" content={siteUrl + currentPath} />
+	<meta property="og:title" content={siteTitle} />
+	<meta property="og:description" content={siteDescription} />
+	<meta property="og:image" content={imageUrl} />
+	<meta property="og:image:width" content="1200" />
+	<meta property="og:image:height" content="630" />
+
+	<!-- Twitter -->
+	<meta property="twitter:card" content="summary_large_image" />
+	<meta property="twitter:url" content={siteUrl + currentPath} />
+	<meta property="twitter:title" content={siteTitle} />
+	<meta property="twitter:description" content={siteDescription} />
+	<meta property="twitter:image" content={imageUrl} />
+
+	<!-- Link to your canonical URL -->
+	<link rel="canonical" href={siteUrl + currentPath} />
+</svelte:head>
+
+<!-- Wrapper for foreground content (Navbar + Main). I hate frontend, won't touch this shit again-->
+<div class="relative z-0 bg-white">
+	<!-- Navbar -->
+	<nav
+		class="p-2 flex justify-center fixed bottom-0 left-0 right-0 bg-white shadow-md z-10 md:relative md:bottom-auto md:left-auto md:right-auto md:bg-transparent md:shadow-none md:p-4"
+	>
+		<ul class="flex flex-row space-x-2 md:space-x-4 items-center">
+			<li>
+				<a
+					href="/"
+					class="relative group transition-colors duration-300 text-sm md:text-base {currentPath === '/'
+						? 'text-black' /* Keep active state distinct */
+						: 'hover:text-black'}" 
+				>
+					<span>Home</span>
+					<span
+						class="absolute bottom-0 left-0 block h-0.5 bg-black w-full transform transition-transform duration-300 ease-out origin-left {currentPath === '/'
+							? 'scale-x-100'
+							: 'scale-x-0 group-hover:scale-x-100'}"
+					></span>
+				</a>
+			</li>
+			<li>
+				<a
+					href="/blog"
+					class="relative group transition-colors duration-300 text-sm md:text-base {currentPath === '/blog'
+						? 'text-black' /* Keep active state distinct */
+						: 'hover:text-black'}" 
+				>
+					<span>Blog</span>
+					<span
+						class="absolute bottom-0 left-0 block h-0.5 bg-black w-full transform transition-transform duration-300 ease-out origin-left {currentPath === '/blog'
+							? 'scale-x-100'
+							: 'scale-x-0 group-hover:scale-x-100'}"
+					></span>
+				</a>
+			</li>
+			<li>
+				<a
+					href="/memories"
+					class="relative group transition-colors duration-300 text-sm md:text-base {currentPath === '/memories'
+						? 'text-black' /* Keep active state distinct */
+						: 'hover:text-black'}" 
+				>
+					<span>Memories</span>
+					<span
+						class="absolute bottom-0 left-0 block h-0.5 bg-black w-full transform transition-transform duration-300 ease-out origin-left {currentPath === '/memories'
+							? 'scale-x-100'
+							: 'scale-x-0 group-hover:scale-x-100'}"
+					></span>
+				</a>
+			</li>
+			<li>
+				<a
+					href="/about"
+					class="relative group transition-colors duration-300 text-sm md:text-base {currentPath === '/about'
+						? 'text-black' /* Keep active state distinct */
+						: 'hover:text-black'}" 
+				>
+					<span>About</span>
+					<span
+						class="absolute bottom-0 left-0 block h-0.5 bg-black w-full transform transition-transform duration-300 ease-out origin-left {currentPath === '/about'
+							? 'scale-x-100'
+							: 'scale-x-0 group-hover:scale-x-100'}"
+					></span>
+				</a>
+			</li>
+		</ul>
+	</nav>
+
+	<!-- Main content area - Removed conditional classes -->
+	<main class="p-4 pb-16 md:pb-4 relative z-0">
+		{@render children()}
+	</main>
+</div>

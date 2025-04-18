@@ -1,0 +1,21 @@
+---
+title: 'Chaite Dashain'
+date: '2025-03-25'
+description: 'Last Chaite Dashain in Nepal...'
+coverImage: 'bishnu_mandir.jpg'
+images:
+  - filename: 'angry_monke.jpg'
+    alt: 'Angry Monke'
+  - filename: 'bishnu_mandir_close.jpg'
+    alt: 'Bishnu Mandir in Rautela, Mahendranagar'
+  - filename: 'bridge.jpg'
+    alt: 'Just another bridge'
+  - filename: 'bridge.jpg'
+    alt: 'Just another bridge'
+  - filename: 'bishnu_mandir_close.jpg'
+    alt: 'Closeup shot of the Bishnu Mandir'
+  - filename: 'fish.jpg'
+    alt: 'Fished whom were taken care by the Bishnu Mandir people'
+  - filename: 'stambha.jpg'
+    alt: 'This stambha was at the rautela Shiv mandir Mahendranagar'
+---
