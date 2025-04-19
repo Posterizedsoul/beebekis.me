@@ -22,6 +22,30 @@ interface ImageInfo {
     alt: string;
 }
 
+// Pre-fetch all image modules using import.meta.glob
+const allImageModules = import.meta.glob('/src/lib/assets/Memories/**/*.+(avif|gif|heif|jpeg|jpg|png|tiff|webp)', { eager: true });
+
+// Helper to resolve image URLs safely using the pre-fetched modules
+// Simplified: Removed dynamic import
+async function resolveImageUrl(
+    baseImportPath: string, // e.g., /src/lib/assets/Memories/slug
+    filename: string | null // e.g., image.jpg
+): Promise<string | null> {
+    if (!filename) return null;
+
+    const imageImportPath = `${baseImportPath}/${filename}`; // Construct the full path key
+
+    // Find the module in the glob results
+    const imageModule = allImageModules[imageImportPath] as { default: string } | undefined;
+
+    if (imageModule && imageModule.default) {
+        return imageModule.default; // Return the resolved URL from glob
+    } else {
+        console.warn(`[${baseImportPath.split('/').pop()}] Could not find image module for "${filename}" via glob.`);
+        return null; // Return null if not found in glob results
+    }
+}
+
 export const load: PageServerLoad = async ({ params }) => {
     const { slug } = params;
     const memoirDir = path.join('src/lib/assets/Memories', slug); // Updated directory path
@@ -149,23 +173,5 @@ async function findImageFilenames(dirPath: string, limit: number = Infinity): Pr
     } catch (e) {
         console.warn(`Could not read directory or find images in ${dirPath}:`, e);
         return [];
-    }
-}
-
-// Make sure resolveImageUrl is defined correctly
-async function resolveImageUrl(
-    baseImportPath: string,
-    filename: string | null
-): Promise<string | null> {
-    if (!filename) return null;
-    const imageImportPath = `${baseImportPath}/${filename}`;
-    try {
-        // Use dynamic import with Vite's handling - remove /* @vite-ignore */
-        const imageModule = await import(imageImportPath);
-        return imageModule.default;
-    } catch (imgErr: any) { // Catch specific error
-     
-        console.warn(`[${baseImportPath.split('/').pop()}] Could not load image "${filename}" from "${baseImportPath}". Error: ${imgErr.message || imgErr}`);
-        return null;
     }
 }

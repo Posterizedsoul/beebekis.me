@@ -79,10 +79,10 @@ async function findImageFilenames(dirPath: string, limit: number = Infinity): Pr
 }
 
 // Pre-fetch all image modules using import.meta.glob
-// Use eager: true to load modules immediately, adjust if performance becomes an issue
 const allImageModules = import.meta.glob('/src/lib/assets/Memories/**/*.+(avif|gif|heif|jpeg|jpg|png|tiff|webp)', { eager: true });
 
 // Helper to resolve image URLs safely using the pre-fetched modules
+// Simplified: Removed fallback dynamic import
 async function resolveImageUrl(
     baseImportPath: string, // e.g., /src/lib/assets/Memories/slug
     filename: string | null // e.g., image.jpg
@@ -95,18 +95,10 @@ async function resolveImageUrl(
     const imageModule = allImageModules[imageImportPath] as { default: string } | undefined;
 
     if (imageModule && imageModule.default) {
-        return imageModule.default; // Return the resolved URL
+        return imageModule.default; // Return the resolved URL from glob
     } else {
-        console.warn(`Could not find or load image module for "${imageImportPath}" via glob. Trying fallback dynamic import...`);
-        // Optionally, try a direct import as a fallback
-        try {
-            // Allow Vite to handle this dynamic import if the glob fails
-            const dynamicModule = await import(imageImportPath);
-            return dynamicModule.default;
-        } catch (fallbackErr) {
-            console.warn(`Fallback dynamic import also failed for "${imageImportPath}":`, fallbackErr);
-            return null;
-        }
+        console.warn(`Could not find image module for "${imageImportPath}" via glob.`);
+        return null; // Return null if not found in glob results
     }
 }
 
@@ -171,7 +163,7 @@ export const load: PageServerLoad = async () => {
 
                 // 3. Resolve URLs and combine with alt text
                 const galleryPreviewsPromises = potentialFilenames.map(async (filename) => {
-                    const src = await resolveImageUrl(viteImportPathBase, filename);
+                    const src = await resolveImageUrl(viteImportPathBase, filename); // Uses simplified function
                     if (src) {
                         const alt = altTextMap.get(filename) || generateAltText(filename); // Use specific alt or generate fallback
                         return { src, alt };
