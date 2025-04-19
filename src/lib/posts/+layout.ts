@@ -20,33 +20,43 @@ export const load: LayoutLoad = async ({ params }) => {
 
 	try {
 		// Dynamically import the specific post's module
-		const postModule = await import(/* @vite-ignore */ postModulePath);
+		const postModule = await import(postModulePath);
 
 		// Extract metadata if the module and metadata exist
 		if (postModule && typeof postModule === 'object' && 'metadata' in postModule) {
 			metadata = postModule.metadata as typeof metadata;
 
-			// If featuredImage exists in metadata, try to import it
-			if (metadata.featuredImage) {
-				try {
-					// Image path is relative to the post's directory in src/lib/posts
-					const imageImportPath = `${postDirPath}/${metadata.featuredImage}`;
-					const imageModule = await import(/* @vite-ignore */ imageImportPath);
-					resolvedImageUrl = imageModule.default; // Vite provides the resolved URL as the default export
-				} catch (imgErr) {
-					console.error(`Could not load featured image at ${postDirPath}/${metadata.featuredImage}:`, imgErr);
-					// Keep metadata.featuredImage as the original filename for potential alt text, but URL is null
-					metadata.featuredImage = undefined; // Clear the filename if load failed
+			 // Resolve featured image URL if present in metadata
+			if (metadata.featuredImage && typeof metadata.featuredImage === 'string') {
+				// If it starts with '/', assume it's root-relative (handled by static adapter or base path)
+				if (metadata.featuredImage.startsWith('/')) {
+					resolvedImageUrl = metadata.featuredImage;
+				} else {
+					// Otherwise, assume it's relative to the post's directory
+					try {
+						// Construct the Vite import path for the image relative to the post dir
+						const imageImportPath = `${postDirPath}/${metadata.featuredImage}`;
+						const imageModule = await import(imageImportPath);
+						resolvedImageUrl = imageModule.default;
+					} catch (imgErr) {
+						console.warn(
+							`Could not resolve featured image "${metadata.featuredImage}" relative to post "${slug}":`,
+							imgErr
+						);
+					}
 				}
 			}
+		} else {
+			console.warn(`Metadata not found in module: ${postModulePath}`);
 		}
-	} catch (e) {
-		console.error(`Could not load post module at ${postModulePath}:`, e);
-		// Fallback or error handling if needed
+	} catch (err) {
+		console.error(`Error loading post module ${postModulePath}:`, err);
+		// Consider throwing an error or returning specific error state
+		// For now, it will proceed with default metadata
 	}
 
 	return {
-		metadata: metadata,
-		resolvedImageUrl: resolvedImageUrl // Pass the resolved URL separately
+		metadata,
+		resolvedImageUrl
 	};
 };
