@@ -2,8 +2,7 @@ import type { PageServerLoad } from './$types';
 import { error } from '@sveltejs/kit';
 import fs from 'fs/promises';
 import path from 'path';
-import pkg from 'yaml';
-const { parse } = pkg;
+import { parse } from 'yaml'; // Changed import style
 import { marked } from 'marked'; // For parsing Markdown content
 
 // Define the expected shape of memoir metadata from info.md

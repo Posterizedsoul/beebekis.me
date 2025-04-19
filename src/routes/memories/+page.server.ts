@@ -2,8 +2,7 @@ import type { PageServerLoad } from './$types';
 import { error } from '@sveltejs/kit';
 import fs from 'fs/promises';
 import path from 'path';
-import pkg from 'yaml'; // Import default export
-const { parse } = pkg; // Destructure parse
+import { parse } from 'yaml'; // Changed import style
 
 // Define the expected shape of memoir metadata from info.md
 interface MemoirMetadata {
@@ -55,7 +54,7 @@ async function readMemoirInfo(dirPath: string): Promise<MemoirMetadata | null> {
         const content = await fs.readFile(infoPath, 'utf-8');
         const frontmatterMatch = content.match(/---\s*([\s\S]*?)\s*---/);
         if (frontmatterMatch && frontmatterMatch[1]) {
-            return parse(frontmatterMatch[1]) as MemoirMetadata;
+            return parse(frontmatterMatch[1]) as MemoirMetadata; // Use parse directly
         }
         return null;
     } catch (e) {
