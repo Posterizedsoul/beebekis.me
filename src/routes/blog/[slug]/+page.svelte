@@ -117,7 +117,8 @@
 	<!-- Article Content (wrapper from old layout, rendering from old page) -->
 	<article class="prose prose-neutral lg:prose-lg max-w-none text-justify prose-a:text-blue-600 hover:prose-a:text-blue-800">
 		{#if content}
-			<svelte:component this={content} />
+			<!-- Use @render for dynamic components in Svelte 5 -->
+			{@render content()}
 		{:else}
 			<p>Error loading post content.</p>
 		{/if}
