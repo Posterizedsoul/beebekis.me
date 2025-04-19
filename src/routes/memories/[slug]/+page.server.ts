@@ -3,7 +3,6 @@ import { error } from '@sveltejs/kit';
 import fs from 'fs/promises';
 import path from 'path';
 import yaml from 'yaml'; // Use default import
-const { parse } = yaml; // Destructure 'parse' from the default import
 import { marked } from 'marked'; // For parsing Markdown content
 
 // Define the expected shape of memoir metadata from info.md
@@ -48,24 +47,66 @@ async function resolveImageUrl(
 
 export const load: PageServerLoad = async ({ params }) => {
     const { slug } = params;
-    const memoirDir = path.join('src/lib/assets/Memories', slug); // Updated directory path
-    const viteImportPathBase = `/src/lib/assets/Memories/${slug}`; // Updated Vite import base path
+    const viteImportPathBase = `/src/lib/assets/Memories/${slug}`;
+    const memoirDirRelative = path.join('src/lib/assets/Memories', slug);
     console.log(`[${slug}] Loading memoir...`);
 
+    let metadata: MemoirMetadata | null = null;
+
     try {
-        const metadata = await readMemoirInfo(memoirDir);
+        // --- Metadata Loading using Glob ---
+        const infoMdPath = `/src/lib/assets/Memories/${slug}/info.md`;
+        const infoMdModules = import.meta.glob('/src/lib/assets/Memories/*/info.md', { query: '?raw', import: 'default' });
 
-        if (!metadata) {
-            console.error(`[${slug}] Metadata not found or invalid.`);
-            error(404, `Memoir not found: ${slug}`);
+        const moduleResolver = infoMdModules[infoMdPath];
+
+        if (!moduleResolver) {
+            console.error(`[${slug}] info.md module not found via glob for path: ${infoMdPath}`);
+            error(404, `Memoir metadata file not found: ${slug}`);
         }
-        console.log(`[${slug}] Metadata loaded:`, metadata);
 
-        // --- Image Processing (Revised Logic) ---
+        const fileContent = await moduleResolver() as string;
+        console.log(`[${slug}] Raw info.md content length:`, fileContent?.length);
+
+        // Extract frontmatter block more robustly
+        let frontmatterContent: string | null = null;
+        const parts = fileContent.split('---');
+        if (parts.length >= 3) {
+            // Expecting: ['', frontmatter, rest_of_file_or_empty]
+            frontmatterContent = parts[1]?.trim(); // Get content between the first two '---'
+        } else {
+            console.warn(`[${slug}] Could not split info.md content by '---' as expected.`);
+        }
+
+        if (!frontmatterContent) {
+            console.error(`[${slug}] Frontmatter content could not be extracted.`);
+            error(500, `Could not extract memoir metadata: ${slug}`);
+        }
+
+        console.log(`[${slug}] Extracted frontmatter content:\n---\n${frontmatterContent}\n---`);
+
+        // Parse the extracted frontmatter
+        let parsedMetadata: MemoirMetadata | null = null;
+        try {
+            parsedMetadata = yaml.parse(frontmatterContent) as MemoirMetadata; // Use default import 'yaml.parse'
+        } catch (parseError) {
+            console.error(`[${slug}] Error parsing YAML frontmatter:`, parseError);
+            console.error(`[${slug}] Content attempted to parse:\n---\n${frontmatterContent}\n---`);
+            error(500, `Could not parse memoir metadata: ${slug}`);
+        }
+
+        if (!parsedMetadata || !parsedMetadata.title || !parsedMetadata.date) {
+            console.error(`[${slug}] Invalid or incomplete metadata parsed from info.md. Parsed:`, parsedMetadata);
+            error(404, `Invalid memoir metadata: ${slug}`);
+        }
+        metadata = parsedMetadata;
+        console.log(`[${slug}] Metadata loaded successfully:`, metadata);
+
+        // --- Image Processing ---
 
         // 1. Always find all image filenames in the directory
         console.log(`[${slug}] Finding all image files in directory...`);
-        const allFilenames = await findImageFilenames(memoirDir);
+        const allFilenames = await findImageFilenames(memoirDirRelative);
         console.log(`[${slug}] Found image files:`, allFilenames);
 
         // 2. Create a lookup map for alt text from metadata.images (if it exists)
@@ -112,7 +153,7 @@ export const load: PageServerLoad = async ({ params }) => {
 
         // --- Content Processing ---
         let contentHtml = '';
-        const contentPath = path.join(memoirDir, 'content.md'); // Assuming content is in content.md
+        const contentPath = path.join(memoirDirRelative, 'content.md'); // Assuming content is in content.md
         try {
             const contentMd = await fs.readFile(contentPath, 'utf-8');
             contentHtml = marked.parse(contentMd); // Parse Markdown to HTML
@@ -133,34 +174,12 @@ export const load: PageServerLoad = async ({ params }) => {
 
     } catch (err: any) {
         console.error(`Error loading memoir ${slug}:`, err);
-        // Handle file not found specifically for the directory itself
-        if (err.code === 'ENOENT') {
-            error(404, `Memoir not found: ${slug}`);
+        if (err.status) {
+            throw err;
         }
         error(500, `Could not load memoir ${slug}`);
     }
 };
-
-// Make sure readMemoirInfo is defined correctly if it wasn't already
-async function readMemoirInfo(dirPath: string): Promise<MemoirMetadata | null> {
-    const infoPath = path.join(dirPath, 'info.md');
-    try {
-        const content = await fs.readFile(infoPath, 'utf-8');
-        const frontmatterMatch = content.match(/---\s*([\s\S]*?)\s*---/);
-        if (frontmatterMatch && frontmatterMatch[1]) {
-            return parse(frontmatterMatch[1]) as MemoirMetadata; // Use the destructured 'parse'
-        }
-        return null; // No frontmatter found
-    } catch (e: any) {
-        // If info.md doesn't exist, it's a critical error for this page
-        if (e.code === 'ENOENT') {
-             console.error(`info.md not found in ${dirPath}`);
-             return null;
-        }
-        console.warn(`Could not read or parse info.md in ${dirPath}:`, e);
-        return null;
-    }
-}
 
 // Make sure findImageFilenames is defined correctly
 async function findImageFilenames(dirPath: string, limit: number = Infinity): Promise<string[]> {

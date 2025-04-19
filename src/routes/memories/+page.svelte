@@ -76,7 +76,6 @@
 																		loading="lazy"
 																	/>
 																	<!-- Alt handled by main card link/content -->
-																	<!-- Optional: Add subtle separators if desired -->
 																	{#if i < previews.length - 1}
 																		<div class="absolute top-0 right-0 bottom-0 w-px bg-white/20 z-10"></div>
 																	{/if}
@@ -123,19 +122,6 @@
 </section>
 
 <style>
-	/* Ensure line-clamp works if needed */
-	.line-clamp-3 {
-		display: -webkit-box;
-		-webkit-line-clamp: 3;
-		-webkit-box-orient: vertical;
-		overflow: hidden;
-	}
-	.line-clamp-2 {
-		display: -webkit-box;
-		-webkit-line-clamp: 2;
-		-webkit-box-orient: vertical;
-		overflow: hidden;
-	}
 	/* Make the combined header sticky */
 	section > h2 {
 		position: sticky;
@@ -150,22 +136,6 @@
 	/* Ensure aspect ratio is maintained */
 	.multi-image-card {
 		aspect-ratio: 16 / 9; /* Changed from 3/2 to 16/9 for a wider rectangle */
-	}
-
-	.card-title-clamp,
-	.line-clamp-2 {
-		display: -webkit-box;
-		-webkit-line-clamp: 2;
-		-webkit-box-orient: vertical;
-		overflow: hidden;
-	}
-
-	.card-description-clamp,
-	.line-clamp-3 {
-		display: -webkit-box;
-		-webkit-line-clamp: 3;
-		-webkit-box-orient: vertical;
-		overflow: hidden;
 	}
 
 	ul.grid, ul {
