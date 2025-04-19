@@ -252,8 +252,8 @@ export let data: PageData;
 	{#if galleryImages.length > 0}
 		<h2 class="text-2xl font-semibold mb-6 text-gray-700">Gallery</h2>
 		<div class="image-gallery">
-			{#each galleryImages as image, index (image.src)}
-				{@const fullIndex = index + 1}
+			{#each galleryImages as image, index (index)} 
+				{@const fullIndex = index + (heroImage ? 1 : 0)}
 				{@const _ = console.log(`[Gallery Item ${fullIndex}] Rendering with alt: "${image.alt}"`)}
 				<div
 					class="gallery-item"
@@ -333,17 +333,19 @@ export let data: PageData;
 
 		{#if allImages.length > 1}
 		<div class="thumbnail-strip">
-			{#each allImages as image, index (image.src)}
+			<!-- Use index as the key to ensure uniqueness even if src is duplicated -->
+			{#each allImages as image, index (index)} 
 				<div
 					class="thumbnail-item"
 					class:active={index === selectedImageIndex}
 					on:click|stopPropagation={() => jumpToImage(index)}
 					role="button"
-					aria-label={`Go to image ${index + 1}: ${image.alt || ''}`}
 					tabindex="0"
+					aria-label={`View image ${index + 1}`}
+					title={image.alt || `Image ${index + 1}`}
 					on:keydown={(e) => e.key === 'Enter' && jumpToImage(index)}
 				>
-					<img src={image.src} alt={`Thumbnail ${index + 1}`} loading="lazy" />
+					<img src={image.src} alt={image.alt || `Thumbnail ${index + 1}`} loading="lazy" />
 				</div>
 			{/each}
 		</div>

@@ -100,18 +100,40 @@ export const load: PageServerLoad = async ({ params }) => {
             error(404, `Invalid memoir metadata: ${slug}`);
         }
         metadata = parsedMetadata;
-        console.log(`[${slug}] Metadata loaded successfully:`, metadata);
+        console.log(`[${slug}] Metadata loaded successfully (assigned):`, metadata);
 
         // --- Image Processing ---
 
-        // 1. Always find all image filenames in the directory
-        console.log(`[${slug}] Finding all image files in directory...`);
-        const allFilenames = await findImageFilenames(memoirDirRelative);
-        console.log(`[${slug}] Found image files:`, allFilenames);
+        // 1. Determine image filenames
+        console.log(`[${slug}] Determining image filenames...`);
+        let allFilenames: string[] = [];
+
+        // *** Add detailed logging here ***
+        console.log(`[${slug}] Checking metadata.images:`, metadata?.images);
+        console.log(`[${slug}] Type of metadata.images:`, typeof metadata?.images);
+        console.log(`[${slug}] Is metadata.images an array?`, Array.isArray(metadata?.images));
+        console.log(`[${slug}] Length of metadata.images:`, metadata?.images?.length);
+        console.log(`[${slug}] Condition check (metadata.images && metadata.images.length > 0):`, !!(metadata?.images && metadata.images.length > 0));
+        // *** End of added logging ***
+
+        if (metadata?.images && metadata.images.length > 0) {
+             // Prioritize filenames listed in metadata
+             allFilenames = metadata.images.map(img => img.filename);
+             console.log(`[${slug}] Using image filenames from metadata.images.`);
+        } else {
+             // Fallback: Try reading directory (THIS SHOULD NOT HAPPEN for Chaite_Dashain)
+             console.warn(`[${slug}] No valid 'images' array found in metadata, falling back to reading directory (may fail in deployment). Metadata was:`, metadata);
+             // We know this fails, so let's prevent the error for now if the fallback is hit unexpectedly.
+             // allFilenames = await findImageFilenames(memoirDirRelative);
+             console.error(`[${slug}] Fallback triggered unexpectedly. Preventing fs.readdir call.`);
+             allFilenames = []; // Set to empty to avoid the ENOENT error during debugging
+        }
+        console.log(`[${slug}] Determined filenames to process:`, allFilenames);
 
         // 2. Create a lookup map for alt text from metadata.images (if it exists)
         const altTextMap = new Map<string, string>();
-        if (metadata.images && metadata.images.length > 0) {
+        // Ensure metadata and metadata.images exist before trying to iterate
+        if (metadata?.images && metadata.images.length > 0) {
             console.log(`[${slug}] Processing alt text from metadata.images...`);
             metadata.images.forEach(img => {
                 if (img.filename && img.alt) {
@@ -119,16 +141,15 @@ export const load: PageServerLoad = async ({ params }) => {
                 }
             });
         } else {
-            console.log(`[${slug}] No metadata.images array found, will use fallback alt text.`);
+            console.log(`[${slug}] No metadata.images array found or empty, skipping alt text map creation.`);
         }
 
         // 3. Create imageInfos by combining found files and alt text lookup
         const imageInfos: { filename: string; alt: string }[] = allFilenames.map(filename => {
             const specificAlt = altTextMap.get(filename);
-            const alt = specificAlt || metadata.title || 'Memoir image'; // Use specific alt, or fallback to title
+            const alt = specificAlt || metadata?.title || 'Memoir image'; // Use optional chaining for metadata?.title
             return { filename, alt };
         });
-
         console.log(`[${slug}] Image infos to resolve (combined):`, imageInfos);
 
         // 4. Resolve all image URLs
