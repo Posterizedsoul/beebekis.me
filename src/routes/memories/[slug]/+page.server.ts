@@ -11,6 +11,7 @@ interface MemoirMetadata {
     date: string;
     description?: string;
     coverImage?: string; // Can be used as fallback hero
+    heroImage?: string; // Optional specific hero image filename
     images?: { filename: string; alt?: string }[];
     [key: string]: any; // Allow other properties
 }
@@ -19,6 +20,7 @@ interface MemoirMetadata {
 interface ImageInfo {
     src: string;
     alt: string;
+    filename: string; // Keep filename for matching
 }
 
 // Pre-fetch all image modules using import.meta.glob
@@ -108,31 +110,18 @@ export const load: PageServerLoad = async ({ params }) => {
         console.log(`[${slug}] Determining image filenames...`);
         let allFilenames: string[] = [];
 
-        // *** Add detailed logging here ***
-        console.log(`[${slug}] Checking metadata.images:`, metadata?.images);
-        console.log(`[${slug}] Type of metadata.images:`, typeof metadata?.images);
-        console.log(`[${slug}] Is metadata.images an array?`, Array.isArray(metadata?.images));
-        console.log(`[${slug}] Length of metadata.images:`, metadata?.images?.length);
-        console.log(`[${slug}] Condition check (metadata.images && metadata.images.length > 0):`, !!(metadata?.images && metadata.images.length > 0));
-        // *** End of added logging ***
-
         if (metadata?.images && metadata.images.length > 0) {
              // Prioritize filenames listed in metadata
              allFilenames = metadata.images.map(img => img.filename);
              console.log(`[${slug}] Using image filenames from metadata.images.`);
         } else {
-             // Fallback: Try reading directory (THIS SHOULD NOT HAPPEN for Chaite_Dashain)
              console.warn(`[${slug}] No valid 'images' array found in metadata, falling back to reading directory (may fail in deployment). Metadata was:`, metadata);
-             // We know this fails, so let's prevent the error for now if the fallback is hit unexpectedly.
-             // allFilenames = await findImageFilenames(memoirDirRelative);
-             console.error(`[${slug}] Fallback triggered unexpectedly. Preventing fs.readdir call.`);
-             allFilenames = []; // Set to empty to avoid the ENOENT error during debugging
+             allFilenames = [];
         }
         console.log(`[${slug}] Determined filenames to process:`, allFilenames);
 
         // 2. Create a lookup map for alt text from metadata.images (if it exists)
         const altTextMap = new Map<string, string>();
-        // Ensure metadata and metadata.images exist before trying to iterate
         if (metadata?.images && metadata.images.length > 0) {
             console.log(`[${slug}] Processing alt text from metadata.images...`);
             metadata.images.forEach(img => {
@@ -147,7 +136,7 @@ export const load: PageServerLoad = async ({ params }) => {
         // 3. Create imageInfos by combining found files and alt text lookup
         const imageInfos: { filename: string; alt: string }[] = allFilenames.map(filename => {
             const specificAlt = altTextMap.get(filename);
-            const alt = specificAlt || metadata?.title || 'Memoir image'; // Use optional chaining for metadata?.title
+            const alt = specificAlt || metadata?.title || 'Memoir image';
             return { filename, alt };
         });
         console.log(`[${slug}] Image infos to resolve (combined):`, imageInfos);
@@ -157,7 +146,7 @@ export const load: PageServerLoad = async ({ params }) => {
             imageInfos.map(async (info) => {
                 const src = await resolveImageUrl(viteImportPathBase, info.filename);
                 if (src) {
-                    return { src, alt: info.alt };
+                    return { src, alt: info.alt, filename: info.filename };
                 }
                 return null;
             })
@@ -166,18 +155,37 @@ export const load: PageServerLoad = async ({ params }) => {
         const allImages = resolvedImages.filter((img): img is ImageInfo => img !== null);
         console.log(`[${slug}] All resolved images (for lightbox):`, allImages);
 
-        // 5. Separate Hero and Gallery images (no change here)
-        const heroImage = allImages.length > 0 ? allImages[0] : null;
-        const galleryImages = allImages.length > 1 ? allImages.slice(1) : [];
+        // 5. Separate Hero and Gallery images
+        let heroImage: ImageInfo | null = null;
+        let galleryImages: ImageInfo[] = [];
+
+        if (allImages.length > 0) {
+            if (metadata.heroImage) {
+                heroImage = allImages.find(img => img.filename === metadata.heroImage) || null;
+                if (heroImage) {
+                    console.log(`[${slug}] Found specified hero image: ${metadata.heroImage}`);
+                } else {
+                    console.warn(`[${slug}] Specified hero image "${metadata.heroImage}" not found in resolved images. Falling back to first image.`);
+                }
+            }
+
+            if (!heroImage) {
+                heroImage = allImages[0];
+                console.log(`[${slug}] Using first image as hero: ${heroImage.filename}`);
+            }
+
+            galleryImages = allImages.filter(img => img.src !== heroImage?.src);
+        }
+
         console.log(`[${slug}] Hero image:`, heroImage);
         console.log(`[${slug}] Gallery images (for masonry):`, galleryImages);
 
         // --- Content Processing ---
         let contentHtml = '';
-        const contentPath = path.join(memoirDirRelative, 'content.md'); // Assuming content is in content.md
+        const contentPath = path.join(memoirDirRelative, 'content.md');
         try {
             const contentMd = await fs.readFile(contentPath, 'utf-8');
-            contentHtml = marked.parse(contentMd); // Parse Markdown to HTML
+            contentHtml = marked.parse(contentMd);
         } catch (e) {
             console.warn(`[${slug}] No content.md found or error parsing.`);
         }
@@ -187,8 +195,8 @@ export const load: PageServerLoad = async ({ params }) => {
             title: metadata.title,
             date: metadata.date,
             description: metadata.description,
-            heroImage: heroImage,       // The first image for the hero section
-            galleryImages: galleryImages, // The rest for the masonry grid
+            heroImage: heroImage,       // The determined hero image object
+            galleryImages: galleryImages, // The remaining images for the gallery
             allImages: allImages,       // All images for the lightbox
             contentHtml: contentHtml    // Parsed HTML content
         };

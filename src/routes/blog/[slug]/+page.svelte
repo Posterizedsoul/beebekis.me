@@ -21,15 +21,17 @@
 	// Extract the content component and explicitly type it
 	const content: typeof SvelteComponent | undefined = data.content;
 
-	const postUrl = `${PUBLIC_BASE_URL || 'https://www.beebekis.me/'}${page.url.pathname}`; // Construct full URL for this post
+	// Construct URLs and descriptions for meta tags
+	const baseUrl = PUBLIC_BASE_URL || 'https://www.beebekis.me'; // Use env variable or fallback
+	const postUrl = `${baseUrl}${page.url.pathname}`; // Construct full URL for this post
 	const postDescription = metadata.excerpt || 'Read this blog post by Bibek Bhatta.'; // Use excerpt or fallback
 
 	// Ensure resolvedImageUrl is absolute
 	const absoluteImageUrl = resolvedImageUrl
 		? resolvedImageUrl.startsWith('http')
 			? resolvedImageUrl
-			: `${PUBLIC_BASE_URL || 'https://www.beebekis.me/'}${resolvedImageUrl}`
-		: `${PUBLIC_BASE_URL || 'https://www.beebekis.me/'}/b.png`; // Fallback image
+			: `${baseUrl}${resolvedImageUrl.startsWith('/') ? '' : '/'}${resolvedImageUrl}` // Ensure leading slash if relative
+		: `${baseUrl}/b.png`; // Fallback image
 
 	// --- Debugging Logs ---
 	console.log(`[Blog Meta Debug] Title: ${metadata.title}`);
@@ -57,34 +59,34 @@
 
 <svelte:head>
 	<title>{metadata.title} - Blog</title>
-	<meta name="description" content={postDescription} />
+	<meta name="description" content={postDescription} key="description" />
 
 	<!-- Open Graph / Facebook -->
-	<meta property="og:type" content="article" />
-	<meta property="og:url" content={postUrl} />
-	<meta property="og:title" content={metadata.title} />
-	<meta property="og:description" content={postDescription} />
-	<meta property="og:image" content={absoluteImageUrl} />
+	<meta property="og:type" content="article" key="og:type" />
+	<meta property="og:url" content={postUrl} key="og:url" />
+	<meta property="og:title" content={metadata.title} key="og:title" />
+	<meta property="og:description" content={postDescription} key="og:description" />
+	<meta property="og:image" content={absoluteImageUrl} key="og:image" />
 	{#if metadata.date}
-		<meta property="article:published_time" content={new Date(metadata.date).toISOString()} />
+		<meta property="article:published_time" content={new Date(metadata.date).toISOString()} key="article:published_time" />
 	{/if}
 	{#if metadata.edited}
 		{@const lastEdited = Array.isArray(metadata.edited) ? metadata.edited[metadata.edited.length - 1] : metadata.edited}
 		{#if lastEdited}
-			<meta property="article:modified_time" content={new Date(lastEdited).toISOString()} />
+			<meta property="article:modified_time" content={new Date(lastEdited).toISOString()} key="article:modified_time" />
 		{/if}
 	{/if}
 	<!-- Add author, tags etc. if available -->
 
 	<!-- Twitter -->
-	<meta property="twitter:card" content="summary_large_image" />
-	<meta property="twitter:url" content={postUrl} />
-	<meta property="twitter:title" content={metadata.title} />
-	<meta property="twitter:description" content={postDescription} />
-	<meta property="twitter:image" content={absoluteImageUrl} />
+	<meta property="twitter:card" content="summary_large_image" key="twitter:card" />
+	<meta property="twitter:url" content={postUrl} key="twitter:url" />
+	<meta property="twitter:title" content={metadata.title} key="twitter:title" />
+	<meta property="twitter:description" content={postDescription} key="twitter:description" />
+	<meta property="twitter:image" content={absoluteImageUrl} key="twitter:image" />
 
 	<!-- Link to your canonical URL -->
-	<link rel="canonical" href={postUrl} />
+	<link rel="canonical" href={postUrl} key="canonical" />
 	<!-- Add other meta tags like Open Graph if needed -->
 </svelte:head>
 

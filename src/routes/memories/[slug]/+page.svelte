@@ -18,13 +18,14 @@
 	const heroImage = data.heroImage;
 
 	// Construct URLs and descriptions for meta tags
-	const memoryUrl = `${PUBLIC_BASE_URL || 'http://localhost:5173'}${page.url.pathname}`;
+	const baseUrl = PUBLIC_BASE_URL || 'https://www.beebekis.me'; // Use env variable or fallback
+	const memoryUrl = `${baseUrl}${page.url.pathname}`;
 	const memoryDescription = data.description || `A gallery of memories: ${data.title}`;
 	const memoryImageUrl = heroImage?.src
 		? heroImage.src.startsWith('http')
 			? heroImage.src
-			: `${PUBLIC_BASE_URL || 'http://localhost:5173'}${heroImage.src}`
-		: `${PUBLIC_BASE_URL || 'http://localhost:5173'}/b.png`; // Updated Fallback image
+			: `${baseUrl}${heroImage.src.startsWith('/') ? '' : '/'}${heroImage.src}` // Ensure leading slash if relative
+		: `${baseUrl}/b.png`; // Updated Fallback image
 
 	// --- Debugging Logs ---
 	console.log(`[Memory Meta Debug] Title: ${data.title || 'Memoir Gallery'}`);
