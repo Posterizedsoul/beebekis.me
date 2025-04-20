@@ -1,19 +1,18 @@
 <script lang="ts">
 	import '../app.css';
 	import { page } from '$app/state'; // Import page from $app/state
-	import { PUBLIC_BASE_URL } from '$env/static/public'; // This line needs the .env variable
+	import { PUBLIC_BASE_URL } from '$env/static/public';
 
 	let { children } = $props();
 
 	// Reactive check: true if the current path is the homepage '/'
 	const isHomePage = $derived(page.url.pathname === '/');
-	const currentPath = $derived(page.url.pathname); // Store current path
 
 	// Site metadata (adjust as needed)
 	const siteTitle = 'Bibek Bhatta - Portfolio';
 	const siteDescription = 'Personal portfolio, blog, and memories of Bibek Bhatta.';
 	const siteUrl = PUBLIC_BASE_URL || 'https://your-default-domain.com'; // Fallback domain
-	const imageUrl = `${siteUrl}/og-image.png`; // Assumes og-image.png is in static folder
+	const defaultImageUrl = `${siteUrl}/og-image.png`; // Assumes og-image.png is in static folder
 
 	// Restore $effect for scroll lock, remove background class logic
 	$effect(() => {
@@ -38,22 +37,20 @@
 
 	<!-- Open Graph / Facebook -->
 	<meta property="og:type" content="website" />
-	<meta property="og:url" content={siteUrl + currentPath} />
+	<meta property="og:url" content={`${siteUrl}${page.url.pathname}`} />
 	<meta property="og:title" content={siteTitle} />
 	<meta property="og:description" content={siteDescription} />
-	<meta property="og:image" content={imageUrl} />
-	<meta property="og:image:width" content="1200" />
-	<meta property="og:image:height" content="630" />
+	<meta property="og:image" content={defaultImageUrl} />
 
 	<!-- Twitter -->
 	<meta property="twitter:card" content="summary_large_image" />
-	<meta property="twitter:url" content={siteUrl + currentPath} />
+	<meta property="twitter:url" content={`${siteUrl}${page.url.pathname}`} />
 	<meta property="twitter:title" content={siteTitle} />
 	<meta property="twitter:description" content={siteDescription} />
-	<meta property="twitter:image" content={imageUrl} />
+	<meta property="twitter:image" content={defaultImageUrl} />
 
 	<!-- Link to your canonical URL -->
-	<link rel="canonical" href={siteUrl + currentPath} />
+	<link rel="canonical" href={`${siteUrl}${page.url.pathname}`} />
 </svelte:head>
 
 <!-- Wrapper for foreground content (Navbar + Main). I hate frontend, won't touch this shit again-->
@@ -66,60 +63,44 @@
 			<li>
 				<a
 					href="/"
-					class="relative group transition-colors duration-300 text-sm md:text-base {currentPath === '/'
-						? 'text-black' /* Keep active state distinct */
-						: 'hover:text-black'}" 
+					class="relative group transition-colors duration-300 text-sm md:text-base {page.url.pathname === '/' ? 'text-black' : 'hover:text-black'}"
 				>
 					<span>Home</span>
 					<span
-						class="absolute bottom-0 left-0 block h-0.5 bg-black w-full transform transition-transform duration-300 ease-out origin-left {currentPath === '/'
-							? 'scale-x-100'
-							: 'scale-x-0 group-hover:scale-x-100'}"
+						class="absolute bottom-0 left-0 block h-0.5 bg-black w-full transform transition-transform duration-300 ease-out origin-left {page.url.pathname === '/' ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}"
 					></span>
 				</a>
 			</li>
 			<li>
 				<a
 					href="/blog"
-					class="relative group transition-colors duration-300 text-sm md:text-base {currentPath === '/blog'
-						? 'text-black' /* Keep active state distinct */
-						: 'hover:text-black'}" 
+					class="relative group transition-colors duration-300 text-sm md:text-base {page.url.pathname === '/blog' ? 'text-black' : 'hover:text-black'}"
 				>
 					<span>Blog</span>
 					<span
-						class="absolute bottom-0 left-0 block h-0.5 bg-black w-full transform transition-transform duration-300 ease-out origin-left {currentPath === '/blog'
-							? 'scale-x-100'
-							: 'scale-x-0 group-hover:scale-x-100'}"
+						class="absolute bottom-0 left-0 block h-0.5 bg-black w-full transform transition-transform duration-300 ease-out origin-left {page.url.pathname === '/blog' ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}"
 					></span>
 				</a>
 			</li>
 			<li>
 				<a
 					href="/memories"
-					class="relative group transition-colors duration-300 text-sm md:text-base {currentPath === '/memories'
-						? 'text-black' /* Keep active state distinct */
-						: 'hover:text-black'}" 
+					class="relative group transition-colors duration-300 text-sm md:text-base {page.url.pathname === '/memories' ? 'text-black' : 'hover:text-black'}"
 				>
 					<span>Memories</span>
 					<span
-						class="absolute bottom-0 left-0 block h-0.5 bg-black w-full transform transition-transform duration-300 ease-out origin-left {currentPath === '/memories'
-							? 'scale-x-100'
-							: 'scale-x-0 group-hover:scale-x-100'}"
+						class="absolute bottom-0 left-0 block h-0.5 bg-black w-full transform transition-transform duration-300 ease-out origin-left {page.url.pathname === '/memories' ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}"
 					></span>
 				</a>
 			</li>
 			<li>
 				<a
 					href="/about"
-					class="relative group transition-colors duration-300 text-sm md:text-base {currentPath === '/about'
-						? 'text-black' /* Keep active state distinct */
-						: 'hover:text-black'}" 
+					class="relative group transition-colors duration-300 text-sm md:text-base {page.url.pathname === '/about' ? 'text-black' : 'hover:text-black'}"
 				>
 					<span>About</span>
 					<span
-						class="absolute bottom-0 left-0 block h-0.5 bg-black w-full transform transition-transform duration-300 ease-out origin-left {currentPath === '/about'
-							? 'scale-x-100'
-							: 'scale-x-0 group-hover:scale-x-100'}"
+						class="absolute bottom-0 left-0 block h-0.5 bg-black w-full transform transition-transform duration-300 ease-out origin-left {page.url.pathname === '/about' ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}"
 					></span>
 				</a>
 			</li>

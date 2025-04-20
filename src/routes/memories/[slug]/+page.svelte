@@ -4,8 +4,10 @@
 	import { Tween } from 'svelte/motion';
 	import { cubicOut, cubicIn } from 'svelte/easing';
 	import { onMount, onDestroy } from 'svelte';
+	import { PUBLIC_BASE_URL } from '$env/static/public'; // Import base URL
+	import { page } from '$app/state'; // Import page from $app/state
 
-export let data: PageData;
+	export let data: PageData;
 
 	// Use the FULL images array from loaded data for lightbox
 	const allImages = data.allImages || [];
@@ -14,6 +16,15 @@ export let data: PageData;
 	// Separate gallery images for masonry
 	const galleryImages = data.galleryImages || [];
 	const heroImage = data.heroImage;
+
+	// Construct URLs and descriptions for meta tags
+	const memoryUrl = `${PUBLIC_BASE_URL || 'http://localhost:5173'}${page.url.pathname}`;
+	const memoryDescription = data.description || `A gallery of memories: ${data.title}`;
+	const memoryImageUrl = heroImage?.src
+		? heroImage.src.startsWith('http')
+			? heroImage.src
+			: `${PUBLIC_BASE_URL || 'http://localhost:5173'}${heroImage.src}`
+		: `${PUBLIC_BASE_URL || 'http://localhost:5173'}/image.png`; // Fallback image
 
 	// Lightbox state
 	let lightboxOpen = false;
@@ -196,7 +207,27 @@ export let data: PageData;
 
 <svelte:head>
 	<title>{data.title || 'Memoir Gallery'}</title>
-	<meta name="description" content={data.description || `A gallery of memories: ${data.title}`} />
+	<meta name="description" content={memoryDescription} />
+
+	<!-- Open Graph / Facebook -->
+	<meta property="og:type" content="article" /> <!-- Or 'website' if more appropriate -->
+	<meta property="og:url" content={memoryUrl} />
+	<meta property="og:title" content={data.title || 'Memoir Gallery'} />
+	<meta property="og:description" content={memoryDescription} />
+	<meta property="og:image" content={memoryImageUrl} />
+	{#if data.date}
+		<meta property="article:published_time" content={new Date(data.date).toISOString()} />
+	{/if}
+
+	<!-- Twitter -->
+	<meta property="twitter:card" content="summary_large_image" />
+	<meta property="twitter:url" content={memoryUrl} />
+	<meta property="twitter:title" content={data.title || 'Memoir Gallery'} />
+	<meta property="twitter:description" content={memoryDescription} />
+	<meta property="twitter:image" content={memoryImageUrl} />
+
+	<!-- Link to your canonical URL -->
+	<link rel="canonical" href={memoryUrl} />
 </svelte:head>
 
 <!-- Hero Section -->

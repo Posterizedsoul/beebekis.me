@@ -113,7 +113,7 @@ export const load: PageServerLoad = async () => {
     let memoirSummaries: (MemoirSummary | null)[] = [];
 
     try {
-        const memoirInfoFiles = import.meta.glob('/src/lib/assets/Memories/*/info.md', { as: 'raw' });
+        const memoirInfoFiles = import.meta.glob('/src/lib/assets/Memories/*/info.md', { query: '?raw', import: 'default' });
 
         memoirSummaries = await Promise.all(
             Object.entries(memoirInfoFiles).map(async ([filePath, contentResolver]) => {

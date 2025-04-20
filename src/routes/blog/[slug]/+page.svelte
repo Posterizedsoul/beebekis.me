@@ -1,13 +1,38 @@
 <script lang="ts">
 	import type { PageData } from './$types';
+	import type { SvelteComponent } from 'svelte'; // Import SvelteComponent type
 	import BackToTop from '$lib/components/BackToTop.svelte'; // Import the new component
+	import { PUBLIC_BASE_URL } from '$env/static/public'; // Import base URL
+	import { page } from '$app/state'; // Import page from $app/state
 
 	// Get all loaded data using $props()
-	const { data } = $props<{ data: PageData }>();
-	const { content, metadata, resolvedImageUrl } = data;
+	let { data }: { data: PageData } = $props();
+
+	// Extract metadata or provide defaults
+	const metadata = data.metadata || {
+		title: 'Untitled Post',
+		date: '',
+		excerpt: '',
+		featuredImage: '',
+		edited: undefined // Ensure edited exists for checks
+	};
+	// Get the resolved image URL from data
+	const resolvedImageUrl = data.resolvedImageUrl;
+	// Extract the content component and explicitly type it
+	const content: typeof SvelteComponent | undefined = data.content;
+
+	const postUrl = `${PUBLIC_BASE_URL || 'http://localhost:5173'}${page.url.pathname}`; // Construct full URL for this post
+	const postDescription = metadata.excerpt || 'Read this blog post by Bibek Bhatta.'; // Use excerpt or fallback
+
+	// Ensure resolvedImageUrl is absolute
+	const absoluteImageUrl = resolvedImageUrl
+		? resolvedImageUrl.startsWith('http')
+			? resolvedImageUrl
+			: `${PUBLIC_BASE_URL || 'http://localhost:5173'}${resolvedImageUrl}`
+		: `${PUBLIC_BASE_URL || 'http://localhost:5173'}/og-image.png`; // Fallback image
 
 	// Helper function to format date (copied from old layout)
-	function formatDate(dateString: string): string {
+	function formatDate(dateString: string | undefined): string {
 		if (!dateString) return '';
 		try {
 			return new Date(dateString).toLocaleDateString('en-US', {
@@ -26,10 +51,35 @@
 </script>
 
 <svelte:head>
-	<title>{metadata.title || 'Blog Post'}</title>
-	{#if metadata.excerpt}
-		<meta name="description" content={metadata.excerpt} />
+	<title>{metadata.title} - Blog</title>
+	<meta name="description" content={postDescription} />
+
+	<!-- Open Graph / Facebook -->
+	<meta property="og:type" content="article" />
+	<meta property="og:url" content={postUrl} />
+	<meta property="og:title" content={metadata.title} />
+	<meta property="og:description" content={postDescription} />
+	<meta property="og:image" content={absoluteImageUrl} />
+	{#if metadata.date}
+		<meta property="article:published_time" content={new Date(metadata.date).toISOString()} />
 	{/if}
+	{#if metadata.edited}
+		{@const lastEdited = Array.isArray(metadata.edited) ? metadata.edited[metadata.edited.length - 1] : metadata.edited}
+		{#if lastEdited}
+			<meta property="article:modified_time" content={new Date(lastEdited).toISOString()} />
+		{/if}
+	{/if}
+	<!-- Add author, tags etc. if available -->
+
+	<!-- Twitter -->
+	<meta property="twitter:card" content="summary_large_image" />
+	<meta property="twitter:url" content={postUrl} />
+	<meta property="twitter:title" content={metadata.title} />
+	<meta property="twitter:description" content={postDescription} />
+	<meta property="twitter:image" content={absoluteImageUrl} />
+
+	<!-- Link to your canonical URL -->
+	<link rel="canonical" href={postUrl} />
 	<!-- Add other meta tags like Open Graph if needed -->
 </svelte:head>
 
@@ -116,8 +166,8 @@
 
 	<!-- Article Content (wrapper from old layout, rendering from old page) -->
 	<article class="prose prose-neutral lg:prose-lg max-w-none text-justify prose-a:text-blue-600 hover:prose-a:text-blue-800">
-		{#if content}
-			<!-- Use @render for dynamic components in Svelte 5 -->
+		{#if content} <!-- Check the local content variable -->
+			<!-- Use @render with the local content variable -->
 			{@render content()}
 		{:else}
 			<p>Error loading post content.</p>
