@@ -1,4 +1,4 @@
-import adapter from '@sveltejs/adapter-auto';
+import adapter from '@sveltejs/adapter-cloudflare'; // <-- Change this line
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import { mdsvex } from 'mdsvex';
 import { codeToHtml } from 'shiki'; // <-- Import codeToHtml directly
@@ -38,7 +38,13 @@ const config = {
     preprocess: [mdsvex(mdsvexOptions), vitePreprocess()],
 
     kit: {
-        adapter: adapter()
+        adapter: adapter({
+            // See documentation for options: https://kit.svelte.dev/docs/adapter-cloudflare
+            routes: {
+                include: ['/*'],
+                exclude: ['<all>']
+            }
+        })
         // ... other kit options
     }
 };
