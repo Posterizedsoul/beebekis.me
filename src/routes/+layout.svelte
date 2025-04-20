@@ -12,7 +12,7 @@
 	const siteTitle = 'Bibek Bhatta - Portfolio';
 	const siteDescription = 'Personal portfolio, blog, and memories of Bibek Bhatta.';
 	const siteUrl = PUBLIC_BASE_URL || 'https://your-default-domain.com'; // Fallback domain
-	const defaultImageUrl = `${siteUrl}/og-image.png`; // Assumes og-image.png is in static folder
+	const defaultImageUrl = `${siteUrl}/b.png`; // Assumes b.png is in static folder
 
 	// Restore $effect for scroll lock, remove background class logic
 	$effect(() => {

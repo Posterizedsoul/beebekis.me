@@ -21,15 +21,15 @@
 	// Extract the content component and explicitly type it
 	const content: typeof SvelteComponent | undefined = data.content;
 
-	const postUrl = `${PUBLIC_BASE_URL || 'http://localhost:5173'}${page.url.pathname}`; // Construct full URL for this post
+	const postUrl = `${PUBLIC_BASE_URL || 'https://www.beebekis.me/'}${page.url.pathname}`; // Construct full URL for this post
 	const postDescription = metadata.excerpt || 'Read this blog post by Bibek Bhatta.'; // Use excerpt or fallback
 
 	// Ensure resolvedImageUrl is absolute
 	const absoluteImageUrl = resolvedImageUrl
 		? resolvedImageUrl.startsWith('http')
 			? resolvedImageUrl
-			: `${PUBLIC_BASE_URL || 'http://localhost:5173'}${resolvedImageUrl}`
-		: `${PUBLIC_BASE_URL || 'http://localhost:5173'}/og-image.png`; // Fallback image
+			: `${PUBLIC_BASE_URL || 'https://www.beebekis.me/'}${resolvedImageUrl}`
+		: `${PUBLIC_BASE_URL || 'https://www.beebekis.me/'}/b.png`; // Fallback image
 
 	// Helper function to format date (copied from old layout)
 	function formatDate(dateString: string | undefined): string {
