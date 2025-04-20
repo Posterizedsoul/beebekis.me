@@ -1,6 +1,8 @@
-name = "bb" # Replace with your Cloudflare Pages project name if different
-compatibility_date = "2025-04-20" 
+name = "bb-portfolio"
+main = "./.cloudflare/worker.js"         # entrypoint produced by adapter-cloudflare
+compatibility_date = "2025-04-20"        # today’s date or later
 
 # The [site] configuration is removed as it's deprecated and not needed 
 # for adapter-cloudflare which builds specifically for Cloudflare Pages/Workers.
 # Cloudflare Pages automatically detects the build output from the adapter.
+# The [assets] configuration suggested by the log hint is NOT needed for adapter-cloudflare.

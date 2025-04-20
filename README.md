@@ -63,15 +63,42 @@ To create a production version of your app:
 bun run build
 ```
 
-The build output will be generated in the `.cloudflare` directory (or as configured by the adapter), ready for deployment.
+The build output will be generated in the `.cloudflare` directory (or as configured by the adapter), ready for deployment to Cloudflare Pages.
 
 You can preview the production build locally using Wrangler:
 
 ```bash
 # Make sure wrangler is installed (npm install -g wrangler or bun install -g wrangler)
 # You might need to log in: wrangler login
-wrangler pages dev .cloudflare/worker --compatibility-date=2025-04-20
-# Adjust the directory if your adapter outputs elsewhere
+# Preview the Pages build output directory
+wrangler pages dev .cloudflare --compatibility-date=2025-04-20
+# Note: The adapter output structure might change; adjust the directory if needed.
 ```
 
-> **Note:** This project is configured for deployment to [Cloudflare Pages](https://pages.cloudflare.com/) using `@sveltejs/adapter-cloudflare`. Check the `svelte.config.js` file for adapter configuration. Feel free to put up any pull request. Only tested on Linux Mint with Google Chrome and Firefox. I don't and don't have a way to know how it will look up in the Safari. Don't look for incremental upgrades, this is most likely a final version, although I am thinking of putting up a daily journal too. Not addition of dark mode is intentional. I don't care about license, you are free to use this repo however you like just replace my personal files.
+## Deployment (Cloudflare Pages)
+
+This project is configured for deployment to [Cloudflare Pages](https://pages.cloudflare.com/) using `@sveltejs/adapter-cloudflare`.
+
+**Deployment Steps:**
+
+1.  **Connect Repository:** Connect your Git repository (GitHub, GitLab) to Cloudflare Pages.
+2.  **Configure Build Settings:**
+    - **Framework preset:** SvelteKit
+    - **Build command:** `bun run build`
+    - **Build output directory:** `.cloudflare`
+    - **Environment variables:** Add any necessary variables (e.g., `PUBLIC_BASE_URL`).
+    - **Root directory:** `/` (or specify if your project is in a subdirectory).
+    - **Deployment command:** Leave this **blank**. Cloudflare Pages handles deployment automatically.
+3.  **Deploy:** Save the settings. Cloudflare Pages will build and deploy your site upon pushes to your configured branch.
+
+Alternatively, you can deploy manually using Wrangler CLI:
+
+```bash
+# Build the project first
+bun run build
+
+# Deploy the contents of the output directory
+wrangler pages deploy .cloudflare
+```
+
+> **Note:** Check the `svelte.config.js` file for adapter configuration. Feel free to put up any pull request. Only tested on Linux Mint with Google Chrome and Firefox. I don't and don't have a way to know how it will look up in the Safari. Don't look for incremental upgrades, this is most likely a final version, although I am thinking of putting up a daily journal too. Not addition of dark mode is intentional. I don't care about license, you are free to use this repo however you like just replace my personal files.
