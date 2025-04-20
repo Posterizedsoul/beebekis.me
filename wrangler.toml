@@ -1,8 +1,6 @@
 name = "bb-portfolio"
-main = ".svelte-kit/output/_worker.js"   # Correct path to the adapter's output worker
-compatibility_date = "2025-04-20"        # today’s date or later
+main = ".cloudflare/_worker.js"   # Ensure this points to the worker script inside your actual build output directory
+compatibility_date = "2025-04-20"        # Use your desired date
 
-# The [site] configuration is removed as it's deprecated and not needed
-# for adapter-cloudflare which builds specifically for Cloudflare Pages/Workers.
-# Cloudflare Pages automatically detects the build output from the adapter.
-# The [assets] configuration suggested by the log hint is NOT needed for adapter-cloudflare.
+# Remove the [site] section if it exists, it's not needed for adapter-cloudflare.
+# The adapter output structure is designed for Cloudflare Pages.
