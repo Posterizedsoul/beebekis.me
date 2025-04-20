@@ -1,5 +1,5 @@
 name = "bb-portfolio"
-main = ".cloudflare/_worker.js"   # Ensure this points to the worker script inside your actual build output directory
+main = ".svelte-kit/cloudflare/_worker.js"   # Ensure this points to the worker script inside your actual build output directory
 compatibility_date = "2025-04-20"        # Use your desired date
 
 # Remove the [site] section if it exists, it's not needed for adapter-cloudflare.
