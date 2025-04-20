@@ -1,6 +1,6 @@
 name = "bb" # Replace with your Cloudflare Pages project name if different
 compatibility_date = "2025-04-20" 
 
-# Configuration for Cloudflare Pages
-[site]
-bucket = ".cloudflare" # The directory where adapter-cloudflare outputs the build
+# The [site] configuration is removed as it's deprecated and not needed 
+# for adapter-cloudflare which builds specifically for Cloudflare Pages/Workers.
+# Cloudflare Pages automatically detects the build output from the adapter.

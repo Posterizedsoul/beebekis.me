@@ -63,10 +63,15 @@ To create a production version of your app:
 bun run build
 ```
 
-You can preview the production build locally with:
+The build output will be generated in the `.cloudflare` directory (or as configured by the adapter), ready for deployment.
+
+You can preview the production build locally using Wrangler:
 
 ```bash
-bun run preview
+# Make sure wrangler is installed (npm install -g wrangler or bun install -g wrangler)
+# You might need to log in: wrangler login
+wrangler pages dev .cloudflare/worker --compatibility-date=2025-04-20
+# Adjust the directory if your adapter outputs elsewhere
 ```
 
-> **Note:** To deploy your app, you might need to install and configure a SvelteKit [adapter](https://kit.svelte.dev/docs/adapters) suitable for your target deployment environment (e.g., Vercel, Netlify, Node server). Check the `svelte.config.js` file for the current adapter configuration. I am hosting on Vercel. Feel free to put up any pull request. Only tested on Linux Mint with Google Chrome and Firefox. I don't and don't have a way to know how it will look up in the Safari. Don't look for incremental upgrades, this is most likely a final version, although I am thinking of putting up a daily journal too. Not addition of dark mode is intentional. I don't care about license, you are free to use this repo however you like just replace my personal files.
+> **Note:** This project is configured for deployment to [Cloudflare Pages](https://pages.cloudflare.com/) using `@sveltejs/adapter-cloudflare`. Check the `svelte.config.js` file for adapter configuration. Feel free to put up any pull request. Only tested on Linux Mint with Google Chrome and Firefox. I don't and don't have a way to know how it will look up in the Safari. Don't look for incremental upgrades, this is most likely a final version, although I am thinking of putting up a daily journal too. Not addition of dark mode is intentional. I don't care about license, you are free to use this repo however you like just replace my personal files.
