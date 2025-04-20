@@ -31,6 +31,11 @@
 			: `${PUBLIC_BASE_URL || 'https://www.beebekis.me/'}${resolvedImageUrl}`
 		: `${PUBLIC_BASE_URL || 'https://www.beebekis.me/'}/b.png`; // Fallback image
 
+	// --- Debugging Logs ---
+	console.log(`[Blog Meta Debug] Title: ${metadata.title}`);
+	console.log(`[Blog Meta Debug] Resolved Image URL (for meta tags): ${absoluteImageUrl}`);
+	// --- End Debugging Logs ---
+
 	// Helper function to format date (copied from old layout)
 	function formatDate(dateString: string | undefined): string {
 		if (!dateString) return '';

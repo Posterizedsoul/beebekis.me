@@ -24,7 +24,12 @@
 		? heroImage.src.startsWith('http')
 			? heroImage.src
 			: `${PUBLIC_BASE_URL || 'http://localhost:5173'}${heroImage.src}`
-		: `${PUBLIC_BASE_URL || 'http://localhost:5173'}/image.png`; // Fallback image
+		: `${PUBLIC_BASE_URL || 'http://localhost:5173'}/b.png`; // Updated Fallback image
+
+	// --- Debugging Logs ---
+	console.log(`[Memory Meta Debug] Title: ${data.title || 'Memoir Gallery'}`);
+	console.log(`[Memory Meta Debug] Resolved Image URL (for meta tags): ${memoryImageUrl}`);
+	// --- End Debugging Logs ---
 
 	// Lightbox state
 	let lightboxOpen = false;
