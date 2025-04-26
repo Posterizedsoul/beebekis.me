@@ -32,9 +32,9 @@ Plant diseases pose a serious challenge to global food security and agricultural
 
 - Example of Plant Disease Images from the NPDD Dataset
 
-| Grape Leaf Blight                                           | Grape Healthy                                           | Corn Common Rust                                          | Corn Healthy                                          |
-| ----------------------------------------------------------- | ------------------------------------------------------- | --------------------------------------------------------- | ----------------------------------------------------- |
-| ![Grape Leaf Blight](/src/lib/posts/paper/img/ds_grape.JPG) | ![Grape Healthy](/src/lib/posts/paper/img/he_grape.JPG) | ![Corn Common Rust](/src/lib/posts/paper/img/de_corn.JPG) | ![Corn Healthy](/src/lib/posts/paper/img/he_corn.jpg) |
+| Grape Leaf Blight                                   | Grape Healthy                                   | Corn Common Rust                                  | Corn Healthy                                  |
+| --------------------------------------------------- | ----------------------------------------------- | ------------------------------------------------- | --------------------------------------------- |
+| ![Grape Leaf Blight](/posts/paper/img/ds_grape.JPG) | ![Grape Healthy](/posts/paper/img/he_grape.JPG) | ![Corn Common Rust](/posts/paper/img/de_corn.JPG) | ![Corn Healthy](/posts/paper/img/he_corn.jpg) |
 
 <div style="text-align: justify">
 
