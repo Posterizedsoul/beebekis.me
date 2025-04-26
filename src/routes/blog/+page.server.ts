@@ -21,6 +21,30 @@ interface GroupedPosts {
 	[year: number]: Post[];
 }
 
+// Pre-fetch all featured images in each post's img/ subfolder
+const allImageModules = import.meta.glob(
+	'/src/lib/posts/*/img/*.+(avif|gif|heif|jpeg|jpg|png|tiff|webp)',
+	{ eager: true }
+);
+
+function resolveBlogImageUrl(slug: string, filename: string): string | null {
+	// Construct the key assuming filename already includes 'img/' prefix
+	// e.g., filename is 'img/ag.jpg', slug is 'paper'
+	// key becomes '/src/lib/posts/paper/img/ag.jpg'
+	const key = `/src/lib/posts/${slug}/${filename}`;
+	const mod = allImageModules[key] as { default: string } | undefined;
+	if (mod?.default) return mod.default;
+
+	// --- Debugging ---
+	console.warn(`[Blog Index] Could not resolve "${filename}" for post "${slug}" using key "${key}".`);
+	// Log available keys only if resolution fails and maybe limit the output
+	const availableKeys = Object.keys(allImageModules);
+	console.log(`[Blog Index Debug] Available image keys (${availableKeys.length}):`, availableKeys.slice(0, 10)); // Log first 10 keys
+	// --- End Debugging ---
+
+	return null;
+}
+
 export const load: PageServerLoad = async () => {
 	try {
 		// Get all post markdown files from the new location
@@ -41,13 +65,20 @@ export const load: PageServerLoad = async () => {
 				const metadata = (postModule?.metadata ?? {}) as PostMetadata;
 
 				let resolvedImageUrl: string | null = null;
-				// If featuredImage exists and starts with '/', assume it's a root-relative path to the static dir
-				if (metadata.featuredImage && typeof metadata.featuredImage === 'string' && metadata.featuredImage.startsWith('/')) {
-					// The path itself is the URL we need for static assets
-					resolvedImageUrl = metadata.featuredImage;
-				} else if (metadata.featuredImage) {
-					// Log a warning if the path doesn't look like a root-relative path for static assets
-					console.warn(`Featured image path "${metadata.featuredImage}" for post "${slug}" does not start with '/'. It might not resolve correctly if placed in 'static'.`);
+				if (metadata.featuredImage) {
+					if (metadata.featuredImage.startsWith('/')) {
+						// The path itself is the URL we need for static assets
+						resolvedImageUrl = metadata.featuredImage;
+					} else {
+						// Attempt to resolve via Vite glob
+						const imgUrl = resolveBlogImageUrl(slug, metadata.featuredImage);
+						if (imgUrl) {
+							resolvedImageUrl = imgUrl;
+						} else {
+							// Log failure here as well
+							console.error(`Featured image path "${metadata.featuredImage}" for post "${slug}" could not be resolved.`);
+						}
+					}
 				}
 
 				// Ensure date is valid before proceeding

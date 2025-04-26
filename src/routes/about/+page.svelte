@@ -1,4 +1,5 @@
 <script>
+	// Icons are needed again
 	import { Mail, Github, Linkedin, Instagram, Facebook } from 'lucide-svelte';
 </script>
 
@@ -7,73 +8,99 @@
 	<meta name="description" content="Learn more about Bibek Bhatta." />
 </svelte:head>
 
-<div class="max-w-3xl mx-auto px-4 py-8 md:py-16 text-center">
-	<h1 class="text-3xl md:text-4xl font-semibold mb-6 text-gray-800">About Me</h1>
-
-	<section class="mb-8">
-		<p class="text-lg text-gray-700 leading-relaxed mb-4">
-			Hello! I'm Bibek Bhatta. Welcome to my personal space on the web.
+<!-- Main container with grid background - Ensure justify-center -->
+<div
+	class="min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-12 py-16 md:py-24 bg-gray-100 text-black relative grid-bg"
+>
+	<!-- Large Stacked Text -->
+	<div class="z-10">
+		<!-- Use a bold serif font, very large size, tight leading -->
+		<h1 class="font-serif font-bold text-6xl sm:text-8xl md:text-9xl lg:text-[9rem] xl:text-[10rem] leading-none uppercase">
+			MECHANICAL
+		</h1>
+		<h1 class="font-serif font-bold text-6xl sm:text-8xl md:text-9xl lg:text-[9rem] xl:text-[10rem] leading-none uppercase">
+			ENGINEER
+		</h1>
+		
+		<p class="font-serif text-base sm:text-lg md:text-xl font-medium max-w-xl text-gray-700 mt-4">
+			I mostly break things... but sometimes they work.	
 		</p>
-		<p class="text-lg text-gray-700 leading-relaxed mb-4">
-			This is where I share my thoughts, projects, and memories. I like learning whatever I can get my hands on. Currently, I am a Freshman at Mississippi State University, majoring in Mechanical Engineering. 
-		</p>
-	</section>
 
-	<section class="mt-12">
-		<h2 class="text-2xl font-semibold mb-6 text-gray-700">Connect with Me</h2>
-		<div class="flex justify-center items-center space-x-6">
+		<!-- Social Links Container - Restored here -->
+		<div class="social-links mt-8 flex space-x-5">
 			<a
 				href="mailto:beebekismee@gmail.com"
 				aria-label="Email"
-				class="text-gray-600 hover:text-blue-600 transition-colors duration-200"
+				class="icon-link text-black hover:opacity-75"
 			>
-				<Mail size={28} />
+				<Mail size={24} />
 			</a>
 			<a
 				href="https://github.com/Posterizedsoul/"
 				target="_blank"
 				rel="noopener noreferrer"
 				aria-label="GitHub (Posterizedsoul)"
-				class="text-gray-600 hover:text-gray-900 transition-colors duration-200"
+				class="icon-link text-black hover:opacity-75"
 			>
-				<Github size={28} />
+				<Github size={24} />
 			</a>
 			<a
 				href="https://github.com/beebekisme"
 				target="_blank"
 				rel="noopener noreferrer"
 				aria-label="GitHub (beebekisme)"
-				class="text-gray-600 hover:text-gray-900 transition-colors duration-200"
+				class="icon-link text-black hover:opacity-75"
 			>
-				<Github size={28} />
+				<Github size={24} />
 			</a>
 			<a
 				href="https://www.linkedin.com/in/beebekisme/"
 				target="_blank"
 				rel="noopener noreferrer"
 				aria-label="LinkedIn"
-				class="text-gray-600 hover:text-blue-700 transition-colors duration-200"
+				class="icon-link text-black hover:opacity-75"
 			>
-				<Linkedin size={28} />
+				<Linkedin size={24} />
 			</a>
 			<a
 				href="https://www.instagram.com/beebekisme/"
 				target="_blank"
 				rel="noopener noreferrer"
 				aria-label="Instagram"
-				class="text-gray-600 hover:text-pink-600 transition-colors duration-200"
+				class="icon-link text-black hover:opacity-75"
 			>
-				<Instagram size={28} />
+				<Instagram size={24} />
 			</a>
 			<a
 				href="https://www.facebook.com/BeebekBhatt/"
 				target="_blank"
 				rel="noopener noreferrer"
 				aria-label="Facebook"
-				class="text-gray-600 hover:text-blue-800 transition-colors duration-200"
+				class="icon-link text-black hover:opacity-75"
 			>
-				<Facebook size={28} />
+				<Facebook size={24} />
 			</a>
 		</div>
-	</section>
+	</div>
 </div>
+
+<style>
+	/* Grid Background */
+	.grid-bg {
+		/* Adjust grid color and size as needed */
+		/* Use CSS variables */
+		--grid-color: var(--tw-color-gray-300); 
+		--grid-size: 40px; /* Size of the grid squares */
+		/* Use CSS variable */
+		background-color: var(--tw-color-gray-100); /* Base background */
+		background-image:
+			linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
+			linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px);
+		background-size: var(--grid-size) var(--grid-size);
+	}
+
+	/* Style for social icons - Restored */
+	.icon-link {
+		transition: opacity 0.2s ease-in-out; 
+	}
+</style>

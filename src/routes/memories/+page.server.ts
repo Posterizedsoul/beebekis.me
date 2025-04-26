@@ -77,16 +77,17 @@ async function findImageFilenames(dirPath: string, limit: number = Infinity): Pr
     }
 }
 
-// Pre-fetch all image modules using import.meta.glob
-const allImageModules = import.meta.glob('/src/lib/assets/Memories/**/*.+(avif|gif|heif|jpeg|jpg|png|tiff|webp)', { eager: true });
+// Pre-fetch all image modules using import.meta.glob, looking inside 'img' subdirectories
+const allImageModules = import.meta.glob('/src/lib/assets/Memories/**/img/*.+(avif|gif|heif|jpeg|jpg|png|tiff|webp)', { eager: true });
 
 // Helper to resolve image URLs safely using the pre-fetched modules
 async function resolveImageUrl(
-    baseImportPath: string,
-    filename: string | null
+    baseImportPath: string, // e.g., /src/lib/assets/Memories/slug
+    filename: string | null // e.g., img/image.jpg
 ): Promise<string | null> {
     if (!filename) return null;
 
+    // Construct the full path key including the 'img' subdirectory if present in filename
     const imageImportPath = `${baseImportPath}/${filename}`;
 
     const imageModule = allImageModules[imageImportPath] as { default: string } | undefined;
@@ -95,16 +96,27 @@ async function resolveImageUrl(
         return imageModule.default;
     } else {
         console.warn(`Could not find image module for "${imageImportPath}" via glob. Available keys nearby:`, Object.keys(allImageModules).filter(k => k.startsWith(baseImportPath)));
+        // Attempt fallback without base path if filename already looks absolute (less likely needed with glob)
+        const fallbackModule = allImageModules[filename] as { default: string } | undefined;
+        if (fallbackModule && fallbackModule.default) {
+            console.log(`Resolved using fallback key: ${filename}`);
+            return fallbackModule.default;
+        }
+        console.warn(`Still could not resolve image: ${filename}`);
         return null;
     }
 }
 
-// Helper function to generate alt text from filename
+// Helper function to generate alt text from filename (removes 'img/' prefix if present)
 function generateAltText(filename: string): string {
-    let name = filename.substring(0, filename.lastIndexOf('.')) || filename;
-    name = name.replace(/[_-]/g, ' ');
-    name = name.replace(/\b\w/g, char => char.toUpperCase());
-    return name.trim();
+    // Remove 'img/' prefix if it exists
+    let nameOnly = filename.startsWith('img/') ? filename.substring(4) : filename;
+    // Remove extension
+    nameOnly = nameOnly.substring(0, nameOnly.lastIndexOf('.')) || nameOnly;
+    // Replace separators and capitalize
+    nameOnly = nameOnly.replace(/[_-]/g, ' ');
+    nameOnly = nameOnly.replace(/\b\w/g, char => char.toUpperCase());
+    return nameOnly.trim();
 }
 
 // Load function for the landing page /memories

@@ -4,7 +4,7 @@ date: '2023-09-10'
 edited: '' # Optional: Add the last edited date here
 description: 'Technical Demonstration of CNN based image classification technique.'
 excerpt: 'Plant diseases pose a serious challenge to global food security. This post details a deep learning approach using CNNs for accurate plant disease detection, achieving 95% accuracy on the NPDD dataset.'
-featuredImage: '/assets/posts/paper/ag.jpg'
+featuredImage: 'img/ag.jpg' # Updated path
 ---
 
 ## Table of Contents
@@ -19,41 +19,71 @@ featuredImage: '/assets/posts/paper/ag.jpg'
 7. [Training the Model](#train)
 8. [Training and Validation Accuracy and Pickling the Model](#train_val)
 9. [Conclusion](#conclusion)
+10. [References](#references)
+11. [Acknowledgements](#acknowledgements)
 
-## Abstract <a name="abstract"></a>
+## Abstract <a name="abstract" aria-label="Section: Abstract"></a>
 
 <div style="text-align: justify">  
 Plant diseases pose a serious challenge to global food security and agricultural productivity. The Food and Agriculture Organization (FAO) estimates that plant diseases cause 10-16% of crop losses every year, affecting the livelihoods of millions of farmers and the food security of billions of people. To prevent crop losses and reduce the use of harmful pesticides, it is essential to detect plant diseases early and accurately. However, the traditional methods of plant disease detection, such as visual inspection, laboratory testing, and expert consultation, are often slow, expensive, and unreliable. Therefore, there is a need for fast, reliable, and low-cost methods of plant disease detection that can be easily deployed and used by farmers and researchers. In recent years, deep learning has emerged as a powerful technique for solving various problems in computer vision, such as image classification, object detection, and segmentation. Deep learning models, such as convolutional neural networks (CNNs), can learn complex and high-level features from large amounts of data and achieve state-of-the-art performance on various vision tasks. However, applying deep learning to plant disease detection poses several challenges, such as the scarcity and diversity of plant disease images, the variability and complexity of plant disease symptoms, and the generalization and robustness of the models. In this paper, we present a deep learning-based approach for plant disease detection using convolutional neural networks (CNNs). We use a large and diverse dataset of plant images with different diseases and augment it with various image transformations. We design and train a CNN model that can classify plant images into 38 disease categories with high accuracy. This paper demonstrates the potential of deep learning for plant disease detection and provides a useful tool for farmers and researchers.
 </div>
 
-## Dataset and Data Augmentation <a name="Dataset"></a>
+## Dataset and Data Augmentation <a name="Dataset" aria-label="Section: Dataset and Data Augmentation"></a>
 
 - Example of Plant Disease Images from the NPDD Dataset
 
-| Grape Leaf Blight                            | Grape Healthy                                | Corn Common Rust                            | Corn Healthy                                |
-| -------------------------------------------- | -------------------------------------------- | ------------------------------------------- | ------------------------------------------- |
-| ![Image 1](/assets/posts/paper/ds_grape.JPG) | ![Image 2](/assets/posts/paper/he_grape.JPG) | ![Image 3](/assets/posts/paper/de_corn.JPG) | ![Image 4](/assets/posts/paper/he_corn.jpg) |
+| Grape Leaf Blight                                           | Grape Healthy                                           | Corn Common Rust                                          | Corn Healthy                                          |
+| ----------------------------------------------------------- | ------------------------------------------------------- | --------------------------------------------------------- | ----------------------------------------------------- |
+| ![Grape Leaf Blight](/src/lib/posts/paper/img/ds_grape.JPG) | ![Grape Healthy](/src/lib/posts/paper/img/he_grape.JPG) | ![Corn Common Rust](/src/lib/posts/paper/img/de_corn.JPG) | ![Corn Healthy](/src/lib/posts/paper/img/he_corn.jpg) |
 
 <div style="text-align: justify">
 
 The dataset that we use for our paper is the <b>New Plant Diseases Dataset (NPDD)</b>, which is a publicly available dataset of plant images with different diseases. The NPDD contains 87,848 images of healthy and diseased plant leaves, belonging to 38 classes of 14 crop species. The crop species are apple, blueberry, cherry, corn, grape, orange, peach, bell pepper, potato, raspberry, soybean, squash, strawberry, and tomato. The images are in JPEG format and have a resolution of 256 x 256 pixels. The images are collected under controlled conditions, with uniform backgrounds and lighting. The images are labeled with the crop species and the disease name, such as `Apple___Apple_scab` or `Corn___Common_rust`. The **NPDD** is one of the largest and most diverse datasets of plant disease images available to date.
 
-### NPDD Dataset Overview <a name="NPDD"></a>
+### NPDD Dataset Overview <a name="NPDD" aria-label="Subsection: NPDD Dataset Overview"></a>
 
-<div style="overflow-x: auto;">
+The dataset comprises images categorized by plant type and health status (healthy or diseased). Here's a summary of the categories:
 
-| <span style="color:#1F2937">**Category**</span> | Disease/Condition               | <span style="color:#1F2937">**Category**</span> | Disease/Condition   | <span style="color:#1F2937">**Category**</span> | Disease/Condition                   | <span style="color:#1F2937">**Category**</span> | Disease/Condition                    | <span style="color:#1F2937">**Category**</span> | Disease/Condition    |
-| ----------------------------------------------- | ------------------------------- | ----------------------------------------------- | ------------------- | ----------------------------------------------- | ----------------------------------- | ----------------------------------------------- | ------------------------------------ | ----------------------------------------------- | -------------------- |
-| **Apple**                                       | Apple scab                      | **Apple**                                       | Black rot           | **Apple**                                       | Cedar apple rust                    | **Apple**                                       | healthy                              | **Blueberry**                                   | healthy              |
-| **Cherry (including sour)**                     | Powdery mildew                  | **Cherry (including sour)**                     | healthy             | **Corn (maize)**                                | Cercospora leaf spot Gray leaf spot | **Corn (maize)**                                | Common rust                          | **Corn (maize)**                                | Northern Leaf Blight |
-| **Corn (maize)**                                | healthy                         | **Grape**                                       | Black rot           | **Grape**                                       | Esca (Black Measles)                | **Grape**                                       | Leaf blight (Isariopsis Leaf Spot)   | **Grape**                                       | healthy              |
-| **Orange**                                      | Haunglongbing (Citrus greening) | **Peach**                                       | Bacterial spot      | **Peach**                                       | healthy                             | **Pepper bell**                                 | Bacterial spot                       | **Pepper, bell**                                | healthy              |
-| **Potato**                                      | Early blight                    | **Potato**                                      | Late blight         | **Potato**                                      | healthy                             | **Raspberry**                                   | healthy                              | **Soybean**                                     | healthy              |
-| **Squash**                                      | Powdery mildew                  | **Strawberry**                                  | Leaf scorch         | **Strawberry**                                  | healthy                             | **Tomato**                                      | Bacterial spot                       | **Tomato**                                      | Early blight         |
-| **Tomato**                                      | Late blight                     | **Tomato**                                      | Leaf Mold           | **Tomato**                                      | Septoria leaf spot                  | **Tomato**                                      | Spider mites Two-spotted spider mite | **Tomato**                                      | Target Spot          |
-| **Tomato**                                      | Tomato Yellow Leaf Curl Virus   | **Tomato**                                      | Tomato mosaic virus | **Tomato**                                      | healthy                             |                                                 |                                      |                                                 |                      |
-
-</div>
+| Plant                   | Condition                            |
+| :---------------------- | :----------------------------------- |
+| Apple                   | Apple scab                           |
+| Apple                   | Black rot                            |
+| Apple                   | Cedar apple rust                     |
+| Apple                   | healthy                              |
+| Blueberry               | healthy                              |
+| Cherry (including sour) | Powdery mildew                       |
+| Cherry (including sour) | healthy                              |
+| Corn (maize)            | Cercospora leaf spot Gray leaf spot  |
+| Corn (maize)            | Common rust                          |
+| Corn (maize)            | Northern Leaf Blight                 |
+| Corn (maize)            | healthy                              |
+| Grape                   | Black rot                            |
+| Grape                   | Esca (Black Measles)                 |
+| Grape                   | Leaf blight (Isariopsis Leaf Spot)   |
+| Grape                   | healthy                              |
+| Orange                  | Haunglongbing (Citrus greening)      |
+| Peach                   | Bacterial spot                       |
+| Peach                   | healthy                              |
+| Pepper, bell            | Bacterial spot                       |
+| Pepper, bell            | healthy                              |
+| Potato                  | Early blight                         |
+| Potato                  | Late blight                          |
+| Potato                  | healthy                              |
+| Raspberry               | healthy                              |
+| Soybean                 | healthy                              |
+| Squash                  | Powdery mildew                       |
+| Strawberry              | Leaf scorch                          |
+| Strawberry              | healthy                              |
+| Tomato                  | Bacterial spot                       |
+| Tomato                  | Early blight                         |
+| Tomato                  | Late blight                          |
+| Tomato                  | Leaf Mold                            |
+| Tomato                  | Septoria leaf spot                   |
+| Tomato                  | Spider mites Two-spotted spider mite |
+| Tomato                  | Target Spot                          |
+| Tomato                  | Tomato Yellow Leaf Curl Virus        |
+| Tomato                  | Tomato mosaic virus                  |
+| Tomato                  | healthy                              |
 
 To increase the size and diversity of the dataset, we apply various data augmentation techniques to the original images. Data augmentation is a common practice in deep learning, which aims to generate new and realistic images from the existing ones by applying some image transformations, such as rotation, zoom, shear, and flip. Data augmentation can help improve the performance and the generalization of the models by reducing the risk of overfitting and increasing the data variability. We use the ImageDataGenerator class from the Keras library to implement the data augmentation techniques. We randomly apply the following image transformations to each image in the dataset:
 

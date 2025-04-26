@@ -266,7 +266,7 @@
 		</header>
 	{:else}
 		<header class="text-center py-16 px-4">
-			<h1 class="text-3xl md:text-4xl font-semibold mb-2">{data.title}</h1>
+			<h1 class="text-3xl md:text-4xl font-semibold mb-2 text-gray-900">{data.title}</h1>
 			{#if data.date}
 				<p class="text-md text-gray-600">{formatDate(data.date)}</p>
 			{/if}

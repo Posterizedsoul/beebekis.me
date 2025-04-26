@@ -68,7 +68,6 @@
 		justify-content: center;
 		cursor: pointer;
 		z-index: 1000;
-		 /* Add back opacity/visibility transition for fade */
 		transition: background-color 0.2s ease, transform 0.2s ease, opacity 0.3s ease, visibility 0.3s ease;
 		box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 	}

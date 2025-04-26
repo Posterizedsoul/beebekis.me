@@ -28,7 +28,8 @@
   Main container for the post content + metadata.
   Adjusted max-width for potentially wider image display.
 -->
-<div class="max-w-6xl mx-auto px-4 py-8 md:py-16">
+<!-- Changed max-w-6xl to max-w-7xl -->
+<div class="max-w-7xl mx-auto px-4 py-8 md:py-16">
 	<!-- Post Header with Featured Image -->
 	<header class="mb-8 relative text-center overflow-hidden rounded-lg">
 		<!-- Use resolvedImageUrl if available -->
@@ -72,19 +73,8 @@
 		</blockquote>
 	{/if}
 
-	<!-- 
-    Apply Tailwind typography styles to the rendered Markdown content.
-    - Added `max-w-none` to override the default prose width limit.
-    - `prose`: Base typography styles.
-    - `prose-neutral`: Use the neutral color theme (adjust if needed, e.g., prose-slate).
-    - `lg:prose-lg`: Increase font size slightly on larger screens.
-    - `text-justify`: For justified text alignment.
-    - `prose-a:text-blue-600 hover:prose-a:text-blue-800`: Example of customizing link colors.
-    - Removed prose-pre:rounded. Shiki handles pre tag styling.
-  -->
-	<article
-		class="prose prose-neutral lg:prose-lg max-w-none text-justify prose-a:text-blue-600 hover:prose-a:text-blue-800"
-	>
+	<!-- Removed prose classes from this article tag -->
+	<article>
 		{@render children()}
 	</article>
 </div>

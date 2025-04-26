@@ -1,14 +1,14 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import type { SvelteComponent } from 'svelte'; // Import SvelteComponent type
-	import BackToTop from '$lib/components/BackToTop.svelte'; // Import the new component
-	import { PUBLIC_BASE_URL } from '$env/static/public'; // Import base URL
-	import { page } from '$app/state'; // Import page from $app/state
+	import type { SvelteComponent } from 'svelte';
+	import BackToTop from '$lib/components/BackToTop.svelte';
+	import DiaryTimeline from '$lib/components/DiaryTimeline.svelte'; // Import the timeline
+	import { PUBLIC_BASE_URL } from '$env/static/public';
+	import { page } from '$app/state';
 
-	// Get all loaded data using $props()
 	let { data }: { data: PageData } = $props();
 
-	// Extract metadata or provide defaults
+	// Blog post specific data
 	const metadata = data.metadata || {
 		title: 'Untitled Post',
 		date: '',

@@ -1,9 +1,9 @@
-import type { PageServerLoad } from './$types';
-import { error } from '@sveltejs/kit';
-import fs from 'fs/promises';
 import path from 'path';
-import yaml from 'yaml'; // Use default import
-import { marked } from 'marked'; // For parsing Markdown content
+import fs from 'fs/promises';
+import yaml from 'js-yaml';
+import { error } from '@sveltejs/kit';
+import { marked } from 'marked';
+import type { PageServerLoad } from './$types';
 
 // Define the expected shape of memoir metadata from info.md
 interface MemoirMetadata {
@@ -23,18 +23,19 @@ interface ImageInfo {
     filename: string; // Keep filename for matching
 }
 
-// Pre-fetch all image modules using import.meta.glob
-const allImageModules = import.meta.glob('/src/lib/assets/Memories/**/*.+(avif|gif|heif|jpeg|jpg|png|tiff|webp)', { eager: true });
+// Pre-fetch all image modules using import.meta.glob, looking inside 'img' subdirectories
+const allImageModules = import.meta.glob('/src/lib/assets/Memories/**/img/*.+(avif|gif|heif|jpeg|jpg|png|tiff|webp)', { eager: true });
 
 // Helper to resolve image URLs safely using the pre-fetched modules
 // Simplified: Removed dynamic import
 async function resolveImageUrl(
     baseImportPath: string, // e.g., /src/lib/assets/Memories/slug
-    filename: string | null // e.g., image.jpg
+    filename: string | null // e.g., img/image.jpg
 ): Promise<string | null> {
     if (!filename) return null;
 
-    const imageImportPath = `${baseImportPath}/${filename}`; // Construct the full path key
+    // Construct the full path key including the 'img' subdirectory if present in filename
+    const imageImportPath = `${baseImportPath}/${filename}`; // e.g., /src/lib/assets/Memories/slug/img/image.jpg
 
     // Find the module in the glob results
     const imageModule = allImageModules[imageImportPath] as { default: string } | undefined;
@@ -42,85 +43,94 @@ async function resolveImageUrl(
     if (imageModule && imageModule.default) {
         return imageModule.default; // Return the resolved URL from glob
     } else {
-        console.warn(`[${baseImportPath.split('/').pop()}] Could not find image module for "${filename}" via glob.`);
+        console.warn(`[${baseImportPath.split('/').pop()}] Could not find image module for "${filename}" via glob key "${imageImportPath}".`);
+        // Attempt fallback without base path if filename already looks absolute (less likely needed with glob)
+        const fallbackModule = allImageModules[filename] as { default: string } | undefined;
+        if (fallbackModule && fallbackModule.default) {
+            console.log(`Resolved using fallback key: ${filename}`);
+            return fallbackModule.default;
+        }
+        console.warn(`Still could not resolve image: ${filename}`);
         return null; // Return null if not found in glob results
     }
 }
 
+// Helper function to generate alt text from filename (removes 'img/' prefix if present)
+function generateAltText(filename: string): string {
+    // Remove 'img/' prefix if it exists
+    let nameOnly = filename.startsWith('img/') ? filename.substring(4) : filename;
+    // Remove extension
+    nameOnly = nameOnly.substring(0, nameOnly.lastIndexOf('.')) || nameOnly;
+    // Replace separators and capitalize
+    nameOnly = nameOnly.replace(/[_-]/g, ' ');
+    nameOnly = nameOnly.replace(/\b\w/g, char => char.toUpperCase());
+    return nameOnly.trim();
+}
+
 export const load: PageServerLoad = async ({ params }) => {
     const { slug } = params;
-    const viteImportPathBase = `/src/lib/assets/Memories/${slug}`;
-    const memoirDirRelative = path.join('src/lib/assets/Memories', slug);
-    console.log(`[${slug}] Loading memoir...`);
+    const memoirDirRelative = path.join('src', 'lib', 'assets', 'Memories', slug);
+    const memoirDirAbsolute = path.resolve(memoirDirRelative);
+    const infoPath = path.join(memoirDirAbsolute, 'info.md');
+    // Vite needs POSIX paths relative to the project root for glob keys
+    const viteImportPathBase = `/src/lib/assets/Memories/${slug}`; // Base path for resolving images
 
-    let metadata: MemoirMetadata | null = null;
+    console.log(`[${slug}] Loading memoir data...`);
 
     try {
-        // --- Metadata Loading using Glob ---
-        const infoMdPath = `/src/lib/assets/Memories/${slug}/info.md`;
-        const infoMdModules = import.meta.glob('/src/lib/assets/Memories/*/info.md', { query: '?raw', import: 'default' });
-
-        const moduleResolver = infoMdModules[infoMdPath];
-
-        if (!moduleResolver) {
-            console.error(`[${slug}] info.md module not found via glob for path: ${infoMdPath}`);
-            error(404, `Memoir metadata file not found: ${slug}`);
-        }
-
-        const fileContent = await moduleResolver() as string;
-        console.log(`[${slug}] Raw info.md content length:`, fileContent?.length);
-
-        // Extract frontmatter block more robustly
-        let frontmatterContent: string | null = null;
-        const parts = fileContent.split('---');
-        if (parts.length >= 3) {
-            // Expecting: ['', frontmatter, rest_of_file_or_empty]
-            frontmatterContent = parts[1]?.trim(); // Get content between the first two '---'
-        } else {
-            console.warn(`[${slug}] Could not split info.md content by '---' as expected.`);
-        }
-
-        if (!frontmatterContent) {
-            console.error(`[${slug}] Frontmatter content could not be extracted.`);
-            error(500, `Could not extract memoir metadata: ${slug}`);
-        }
-
-        console.log(`[${slug}] Extracted frontmatter content:\n---\n${frontmatterContent}\n---`);
-
-        // Parse the extracted frontmatter
-        let parsedMetadata: MemoirMetadata | null = null;
+        // 1. Read and parse info.md
+        let metadata: MemoirMetadata;
         try {
-            parsedMetadata = yaml.parse(frontmatterContent) as MemoirMetadata; // Use default import 'yaml.parse'
-        } catch (parseError) {
-            console.error(`[${slug}] Error parsing YAML frontmatter:`, parseError);
-            console.error(`[${slug}] Content attempted to parse:\n---\n${frontmatterContent}\n---`);
-            error(500, `Could not parse memoir metadata: ${slug}`);
+            const fileContent = await fs.readFile(infoPath, 'utf-8');
+            let frontmatterContent: string | null = null;
+            const parts = fileContent.split('---');
+            if (parts.length >= 3) {
+                frontmatterContent = parts[1]?.trim();
+            } else {
+                console.warn(`[${slug}] Could not split info.md content by '---' as expected.`);
+            }
+
+            if (!frontmatterContent) {
+                console.error(`[${slug}] Frontmatter content could not be extracted.`);
+                error(500, `Could not extract memoir metadata: ${slug}`);
+            }
+
+            metadata = yaml.load(frontmatterContent) as MemoirMetadata;
+
+            if (!metadata || !metadata.title || !metadata.date) {
+                console.error(`[${slug}] Invalid or incomplete metadata parsed from info.md. Parsed:`, metadata);
+                error(404, `Invalid memoir metadata: ${slug}`);
+            }
+        } catch (err: any) {
+            console.error(`[${slug}] Error reading or parsing ${infoPath}:`, err);
+            error(404, `Memoir metadata not found or invalid: ${slug}`);
         }
 
-        if (!parsedMetadata || !parsedMetadata.title || !parsedMetadata.date) {
-            console.error(`[${slug}] Invalid or incomplete metadata parsed from info.md. Parsed:`, parsedMetadata);
-            error(404, `Invalid memoir metadata: ${slug}`);
-        }
-        metadata = parsedMetadata;
-        console.log(`[${slug}] Metadata loaded successfully (assigned):`, metadata);
-
-        // --- Image Processing ---
-
-        // 1. Determine image filenames
-        console.log(`[${slug}] Determining image filenames...`);
+        // 2. Determine filenames to process (primarily from metadata)
         let allFilenames: string[] = [];
-
-        if (metadata?.images && metadata.images.length > 0) {
-             // Prioritize filenames listed in metadata
-             allFilenames = metadata.images.map(img => img.filename);
-             console.log(`[${slug}] Using image filenames from metadata.images.`);
+        if (metadata.images && Array.isArray(metadata.images) && metadata.images.length > 0) {
+            allFilenames = metadata.images
+                .map(img => img?.filename)
+                .filter((filename): filename is string => typeof filename === 'string' && filename.trim() !== '');
+            console.log(`[${slug}] Using image filenames from metadata.images.`);
         } else {
-             console.warn(`[${slug}] No valid 'images' array found in metadata, falling back to reading directory (may fail in deployment). Metadata was:`, metadata);
-             allFilenames = [];
+            console.warn(`[${slug}] No valid 'images' array found in metadata. No images will be loaded unless specified in heroImage/coverImage.`);
+            allFilenames = [];
         }
-        console.log(`[${slug}] Determined filenames to process:`, allFilenames);
+        console.log(`[${slug}] Determined filenames to process from metadata:`, allFilenames);
 
-        // 2. Create a lookup map for alt text from metadata.images (if it exists)
+        // Add heroImage and coverImage to the list if they exist and aren't already included
+        if (metadata.heroImage && !allFilenames.includes(metadata.heroImage)) {
+            allFilenames.push(metadata.heroImage);
+        }
+        if (metadata.coverImage && !allFilenames.includes(metadata.coverImage)) {
+            allFilenames.push(metadata.coverImage);
+        }
+        // Remove duplicates just in case
+        allFilenames = [...new Set(allFilenames)];
+        console.log(`[${slug}] Final list of unique filenames to resolve:`, allFilenames);
+
+        // 3. Create a lookup map for alt text from metadata.images
         const altTextMap = new Map<string, string>();
         if (metadata?.images && metadata.images.length > 0) {
             console.log(`[${slug}] Processing alt text from metadata.images...`);
@@ -133,21 +143,22 @@ export const load: PageServerLoad = async ({ params }) => {
             console.log(`[${slug}] No metadata.images array found or empty, skipping alt text map creation.`);
         }
 
-        // 3. Create imageInfos by combining found files and alt text lookup
+        // 4. Create imageInfos by combining found files and alt text lookup
         const imageInfos: { filename: string; alt: string }[] = allFilenames.map(filename => {
             const specificAlt = altTextMap.get(filename);
-            const alt = specificAlt || metadata?.title || 'Memoir image';
+            const alt = specificAlt || generateAltText(filename) || metadata?.title || 'Memoir image';
             return { filename, alt };
         });
         console.log(`[${slug}] Image infos to resolve (combined):`, imageInfos);
 
-        // 4. Resolve all image URLs
+        // 5. Resolve all image URLs
         const resolvedImages: (ImageInfo | null)[] = await Promise.all(
             imageInfos.map(async (info) => {
                 const src = await resolveImageUrl(viteImportPathBase, info.filename);
                 if (src) {
                     return { src, alt: info.alt, filename: info.filename };
                 }
+                console.warn(`[${slug}] Failed to resolve URL for filename: ${info.filename}`);
                 return null;
             })
         );
@@ -155,7 +166,7 @@ export const load: PageServerLoad = async ({ params }) => {
         const allImages = resolvedImages.filter((img): img is ImageInfo => img !== null);
         console.log(`[${slug}] All resolved images (for lightbox):`, allImages);
 
-        // 5. Separate Hero and Gallery images
+        // 6. Separate Hero and Gallery images
         let heroImage: ImageInfo | null = null;
         let galleryImages: ImageInfo[] = [];
 
@@ -165,13 +176,13 @@ export const load: PageServerLoad = async ({ params }) => {
                 if (heroImage) {
                     console.log(`[${slug}] Found specified hero image: ${metadata.heroImage}`);
                 } else {
-                    console.warn(`[${slug}] Specified hero image "${metadata.heroImage}" not found in resolved images. Falling back to first image.`);
+                    console.warn(`[${slug}] Specified hero image "${metadata.heroImage}" not found in resolved images. Falling back to first image if available.`);
                 }
             }
 
-            if (!heroImage) {
+            if (!heroImage && allImages.length > 0) {
                 heroImage = allImages[0];
-                console.log(`[${slug}] Using first image as hero: ${heroImage.filename}`);
+                console.log(`[${slug}] Using first available image as hero: ${heroImage.filename}`);
             }
 
             galleryImages = allImages.filter(img => img.src !== heroImage?.src);
@@ -195,31 +206,14 @@ export const load: PageServerLoad = async ({ params }) => {
             title: metadata.title,
             date: metadata.date,
             description: metadata.description,
-            heroImage: heroImage,       // The determined hero image object
-            galleryImages: galleryImages, // The remaining images for the gallery
-            allImages: allImages,       // All images for the lightbox
-            contentHtml: contentHtml    // Parsed HTML content
+            heroImage: heroImage,
+            galleryImages: galleryImages,
+            allImages: allImages,
+            contentHtml: contentHtml
         };
 
     } catch (err: any) {
-        console.error(`Error loading memoir ${slug}:`, err);
-        if (err.status) {
-            throw err;
-        }
-        error(500, `Could not load memoir ${slug}`);
+        console.error(`[${slug}] Failed to load memoir page:`, err);
+        error(500, `Failed to load memoir: ${slug}`);
     }
 };
-
-// Make sure findImageFilenames is defined correctly
-async function findImageFilenames(dirPath: string, limit: number = Infinity): Promise<string[]> {
-    try {
-        const files = await fs.readdir(dirPath);
-        const imageFiles = files.filter((file) =>
-            /\.(avif|gif|heif|jpeg|jpg|png|tiff|webp)$/i.test(file)
-        );
-        return imageFiles.slice(0, limit);
-    } catch (e) {
-        console.warn(`Could not read directory or find images in ${dirPath}:`, e);
-        return [];
-    }
-}
