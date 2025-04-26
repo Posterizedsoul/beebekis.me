@@ -27,15 +27,15 @@
 	const postDescription = metadata.excerpt || 'Read this blog post by Bibek Bhatta.'; // Use excerpt or fallback
 
 	// Ensure resolvedImageUrl is absolute
+	// The resolvedImageUrl from glob should be the correct root-relative path
 	const absoluteImageUrl = resolvedImageUrl
-		? resolvedImageUrl.startsWith('http')
-			? resolvedImageUrl
-			: `${baseUrl}${resolvedImageUrl.startsWith('/') ? '' : '/'}${resolvedImageUrl}` // Ensure leading slash if relative
+		? `${baseUrl}${resolvedImageUrl}` // Prepend base URL directly
 		: `${baseUrl}/b.png`; // Fallback image
 
 	// --- Debugging Logs ---
-	console.log(`[Blog Meta Debug] Title: ${metadata.title}`);
-	console.log(`[Blog Meta Debug] Resolved Image URL (for meta tags): ${absoluteImageUrl}`);
+	console.log(`[Blog Meta Debug] Base URL: ${baseUrl}`);
+	console.log(`[Blog Meta Debug] Resolved Image URL (from load): ${resolvedImageUrl}`);
+	console.log(`[Blog Meta Debug] Final Absolute Image URL (for meta tags): ${absoluteImageUrl}`);
 	// --- End Debugging Logs ---
 
 	// Helper function to format date (copied from old layout)

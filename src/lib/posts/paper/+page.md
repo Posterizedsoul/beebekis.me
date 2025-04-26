@@ -22,13 +22,13 @@ featuredImage: 'img/ag.jpg' # Updated path
 10. [References](#references)
 11. [Acknowledgements](#acknowledgements)
 
-## Abstract <a name="abstract" aria-label="Section: Abstract"></a>
+<h2 id="abstract">Abstract</h2>
 
 <div style="text-align: justify">  
 Plant diseases pose a serious challenge to global food security and agricultural productivity. The Food and Agriculture Organization (FAO) estimates that plant diseases cause 10-16% of crop losses every year, affecting the livelihoods of millions of farmers and the food security of billions of people. To prevent crop losses and reduce the use of harmful pesticides, it is essential to detect plant diseases early and accurately. However, the traditional methods of plant disease detection, such as visual inspection, laboratory testing, and expert consultation, are often slow, expensive, and unreliable. Therefore, there is a need for fast, reliable, and low-cost methods of plant disease detection that can be easily deployed and used by farmers and researchers. In recent years, deep learning has emerged as a powerful technique for solving various problems in computer vision, such as image classification, object detection, and segmentation. Deep learning models, such as convolutional neural networks (CNNs), can learn complex and high-level features from large amounts of data and achieve state-of-the-art performance on various vision tasks. However, applying deep learning to plant disease detection poses several challenges, such as the scarcity and diversity of plant disease images, the variability and complexity of plant disease symptoms, and the generalization and robustness of the models. In this paper, we present a deep learning-based approach for plant disease detection using convolutional neural networks (CNNs). We use a large and diverse dataset of plant images with different diseases and augment it with various image transformations. We design and train a CNN model that can classify plant images into 38 disease categories with high accuracy. This paper demonstrates the potential of deep learning for plant disease detection and provides a useful tool for farmers and researchers.
 </div>
 
-## Dataset and Data Augmentation <a name="Dataset" aria-label="Section: Dataset and Data Augmentation"></a>
+<h2 id="Dataset">Dataset and Data Augmentation</h2>
 
 - Example of Plant Disease Images from the NPDD Dataset
 
@@ -40,7 +40,7 @@ Plant diseases pose a serious challenge to global food security and agricultural
 
 The dataset that we use for our paper is the <b>New Plant Diseases Dataset (NPDD)</b>, which is a publicly available dataset of plant images with different diseases. The NPDD contains 87,848 images of healthy and diseased plant leaves, belonging to 38 classes of 14 crop species. The crop species are apple, blueberry, cherry, corn, grape, orange, peach, bell pepper, potato, raspberry, soybean, squash, strawberry, and tomato. The images are in JPEG format and have a resolution of 256 x 256 pixels. The images are collected under controlled conditions, with uniform backgrounds and lighting. The images are labeled with the crop species and the disease name, such as `Apple___Apple_scab` or `Corn___Common_rust`. The **NPDD** is one of the largest and most diverse datasets of plant disease images available to date.
 
-### NPDD Dataset Overview <a name="NPDD" aria-label="Subsection: NPDD Dataset Overview"></a>
+<h3 id="NPDD">NPDD Dataset Overview</h3>
 
 The dataset comprises images categorized by plant type and health status (healthy or diseased). Here's a summary of the categories:
 
@@ -98,7 +98,7 @@ To increase the size and diversity of the dataset, we apply various data augment
 ```py
 import cv2
 import random
-import numpy as np
+import np
 from keras.preprocessing.image import ImageDataGenerator
 from keras.preprocessing.image import img_to_array
 import random
@@ -136,7 +136,7 @@ def convert_image_to_array(image_dir: str, DEFAULT_IMAGE_SIZE: tuple):
         return None
 ```
 
-## Seperating the Labels and Images <a name="sep"></a>
+<h2 id="sep">Seperating the Labels and Images</h2>
 
 <div style="text-align: justify">
 
@@ -193,7 +193,7 @@ print("Total number of images: ", image_len)
 [INFO] Image loading completed
 ```
 
-## Label Binarizer <a name="lab_bin"></a>
+<h2 id="lab_bin">Label Binarizer</h2>
 
 <div style="text-align: justify">
 
@@ -216,7 +216,7 @@ print("Total number of classes: ", n_classes)
 
 ```
 
-## CNN Model Architecture <a name="CNN"></a>
+<h2 id="CNN">CNN Model Architecture</h2>
 
 <div style="text-align: justify">  
 This is a convolutional neural network (CNN) model for image classification with 33 classes. A CNN is a type of deep learning model that can automatically learn spatial features from grid-like data, such as images. The model consists of several layers that sequentially process the input images.
@@ -323,7 +323,7 @@ Non-trainable params: 2,880
 
 </div>
 
-## Training the Model <a name="train"></a>
+<h2 id="train">Training the Model</h2>
 
 <div style="text-align: justify">
 
@@ -359,7 +359,7 @@ Epoch 5/15
 
 </div>
 
-## Training and Validation Accuracy and Pickling the Model <a name="train_val"></a>
+<h2 id="train_val">Training and Validation Accuracy and Pickling the Model</h2>
 
 <div style="text-align: justify">
 
@@ -393,7 +393,7 @@ Test Accuracy: 95.1578947
 
 ```
 
-## Conclusion <a name="conclusion"></a>
+<h2 id="conclusion">Conclusion</h2>
 
 <div style="text-align: justify">
 In this paper, we have presented a deep learning-based approach for plant disease detection using convolutional neural networks (CNNs). We have used a large and diverse dataset of plant images with different diseases and augmented it with various image transformations. We have designed and trained a CNN model that can classify plant images into 38 disease categories with high accuracy. The model has achieved a test accuracy of 95.15%. This paper demonstrates the potential of deep learning for plant disease detection and provides a useful tool for farmers and researchers. The model can be used to detect plant diseases early and accurately, prevent crop losses, and reduce the use of harmful pesticides. We used it for production at Agrisense software suite and it showed great potential with faster test results.
@@ -404,11 +404,11 @@ However, this model was designed and made during Microsoft Imagine Cup and was s
 
 </div>
 
-## References
+<h2 id="references">References</h2>
 
 - [Deep Learning for Plant Disease Detection and Diagnosis](https://www.frontiersin.org/articles/10.3389/fpls.2016.01419/full)
 
-## Acknowledgements
+<h2 id="acknowledgements">Acknowledgements</h2>
 
 - [NPDD Dataset](https://www.kaggle.com/vipoooool/new-plant-diseases-dataset)
 - [Microsoft Imagine Cup](https://imaginecup.microsoft.com/en-us)
