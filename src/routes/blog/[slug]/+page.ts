@@ -1,66 +1,66 @@
 import { error } from '@sveltejs/kit';
 import type { PageLoad } from './$types';
-
-// Define the expected shape of post metadata (can be imported if shared)
 interface PostMetadata {
 	title: string;
 	date: string;
-	edited?: string | string[]; // Allow single date, array of dates, or undefined
+	edited?: string | string[]; 
 	excerpt?: string;
 	featuredImage?: string;
 	[key: string]: any;
 }
 
+// Import all potential featured images using glob
+// Ensure this matches the structure, e.g., images are often in an 'img' subdirectory
+const allImageModules = import.meta.glob('/src/lib/posts/**/img/*.+(avif|gif|heif|jpeg|jpg|png|tiff|webp)', { eager: true });
+
 export const load: PageLoad = async ({ params }) => {
 	const { slug } = params;
+
 	try {
-		// Dynamically import the specific post's module from /src/lib/posts
-		// Use /* @vite-ignore */ to allow constructing the path dynamically if needed,
-		// though Vite often handles template literals well.
+		// Dynamically import the Svelte component for the post
+		// Adjust the path as necessary based on your project structure
+		// Using .md here assuming your posts are Markdown files processed by mdsvex or similar
 		const postModule = await import(`../../../lib/posts/${slug}/+page.md`);
 
-		// Ensure the module and its default export (the component) exist
-		if (!postModule || !postModule.default) {
-			error(404, `Post not found: ${slug}`);
-		}
-
-		// Extract metadata, providing defaults
-		const metadata = (postModule.metadata ?? {
+		// Extract metadata and content
+		const metadata = postModule.metadata ?? {
 			title: 'Untitled Post',
 			date: '',
 			excerpt: '',
 			featuredImage: ''
-		}) as PostMetadata;
+		} as PostMetadata;
+		const content = postModule.default; // The Svelte component compiled from Markdown
 
-		// Get the Svelte component from the module's default export
-		const content = postModule.default;
+		if (!metadata || !content) {
+			console.error(`[${slug}] Post module loaded but missing metadata or default export.`);
+			error(404, `Post not found or invalid: ${slug}`);
+		}
 
-		// Resolve the featured image URL (logic adapted from old +layout.ts)
+		// Resolve the featured image URL using glob results
 		let resolvedImageUrl: string | null = null;
 		if (metadata.featuredImage && typeof metadata.featuredImage === 'string') {
 			// If it starts with '/', assume it's root-relative (handled by static adapter or base path)
 			if (metadata.featuredImage.startsWith('/')) {
 				resolvedImageUrl = metadata.featuredImage;
+				console.log(`[${slug}] Using root-relative featured image: ${resolvedImageUrl}`);
 			} else {
-				// Otherwise, assume it's relative to the post's directory and try to import
-				try {
-					// Construct the Vite import path for the image relative to the post dir
-					// The path needs to be relative to *this* file (+page.ts)
-					const imageImportPath = `../../../lib/posts/${slug}/${metadata.featuredImage}`;
-					// Vite's dynamic import handles resolving the actual URL
-					const imageModule = await import(/* @vite-ignore */ imageImportPath);
-					resolvedImageUrl = imageModule.default; // The default export should be the resolved URL string
-					console.log(`[${slug}] Resolved relative featured image "${metadata.featuredImage}" to: ${resolvedImageUrl}`);
-				} catch (imgErr) {
+				// Otherwise, assume it's relative to the post's directory and look in glob results
+				// Construct the Vite glob key for the image relative to the project root
+				const imageGlobKey = `/src/lib/posts/${slug}/${metadata.featuredImage}`; // e.g., /src/lib/posts/my-post/img/hero.jpg
+
+				const imageModule = allImageModules[imageGlobKey] as { default: string } | undefined;
+
+				if (imageModule && imageModule.default) {
+					resolvedImageUrl = imageModule.default; // The default export is the resolved URL string
+					console.log(`[${slug}] Resolved featured image "${metadata.featuredImage}" via glob to: ${resolvedImageUrl}`);
+				} else {
 					console.warn(
-						`[${slug}] Could not resolve featured image "${metadata.featuredImage}" relative to post directory. Is the path correct and the image included in the build? Error:`,
-						imgErr
+						`[${slug}] Could not resolve featured image "${metadata.featuredImage}" via glob key "${imageGlobKey}". Is the path correct in frontmatter and the image included?`
 					);
-					// Keep resolvedImageUrl as null if resolution fails
+					// console.log(`Available keys near /src/lib/posts/${slug}/:`, Object.keys(allImageModules).filter(k => k.startsWith(`/src/lib/posts/${slug}/`)));
 				}
 			}
 		} else if (metadata.featuredImage) {
-			// Log if featuredImage is present but not a string (unexpected format)
 			console.warn(`[${slug}] featuredImage metadata is not a string:`, metadata.featuredImage);
 		}
 
@@ -70,9 +70,13 @@ export const load: PageLoad = async ({ params }) => {
 			metadata,
 			resolvedImageUrl // This will be null if resolution failed or no image was specified
 		};
-	} catch (e) {
+	} catch (e: any) {
 		console.error(`Error loading post ${slug}:`, e);
-		// Throw a 404 if the import fails (likely post doesn't exist)
-		error(404, `Post not found: ${slug}`);
+		// Throw a 404 if the import fails (likely post doesn't exist or path is wrong)
+		// Check if the error indicates a module not found specifically for the .md file
+		if (e.message?.includes('Unknown variable') || e.code === 'ERR_MODULE_NOT_FOUND') {
+			error(404, `Post not found: ${slug}`);
+		}
+		error(500, `Failed to load post: ${slug}`);
 	}
 };
