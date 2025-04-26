@@ -60,7 +60,7 @@
 											<li class="flex">
 												<a
 													href="/memories/{memoir.slug}"
-													class="multi-image-card group relative block w-full aspect-[3/2] rounded-lg shadow-md overflow-hidden border border-gray-100 transition-all duration-300 ease-in-out hover:shadow-lg hover:border-gray-200"
+													class="multi-image-card group relative block w-full aspect-[16/9] rounded-lg shadow-md overflow-hidden border border-gray-100 transition-all duration-300 ease-in-out hover:shadow-lg hover:border-gray-200"
 													style="text-decoration: none;"
 												>
 													<!-- Background Image Container -->
@@ -68,14 +68,13 @@
 														{#if previews.length > 0}
 															{#each previews as preview, i (preview.src)}
 																<div class="relative flex-1 h-full overflow-hidden">
-																	<img
+																	<enhanced:img
 																		src={preview.src}
-																		
 																		alt=""
 																		class="absolute inset-0 w-full h-full object-cover transition-transform duration-300 ease-in-out group-hover:scale-105"
 																		loading="lazy"
+																		sizes="(min-width: 768px) {Math.round(100 / previews.length)}vw, {Math.round(100 / previews.length)}vw"
 																	/>
-																	<!-- Alt handled by main card link/content -->
 																	{#if i < previews.length - 1}
 																		<div class="absolute top-0 right-0 bottom-0 w-px bg-white/20 z-10"></div>
 																	{/if}
@@ -141,5 +140,19 @@
 	ul.grid, ul {
 		list-style: none;
 		padding-left: 0;
+	}
+
+	/* Add global selector for enhanced image within the card */
+	.multi-image-card :global(img) {
+		/* Ensure the image covers its container */
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		transition: transform 0.3s ease-in-out;
+	}
+	.multi-image-card:hover :global(img) {
+		transform: scale(1.05);
 	}
 </style>
