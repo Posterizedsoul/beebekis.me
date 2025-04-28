@@ -91,45 +91,46 @@
 </svelte:head>
 
 <!-- Post Header - Moved outside the max-width container -->
-<header class="relative text-center overflow-hidden">
+<header class="relative text-center overflow-hidden mb-8 md:mb-12">
 	{#if resolvedImageUrl}
 		<!-- Header with Image -->
-		<!-- Removed rounded-lg from header, apply to image container if needed -->
-		<div class="w-full h-64 md:h-96">
+		<!-- Make image container full width, remove max-width and rounding -->
+		<div class="w-full h-[60vh] relative overflow-hidden">
 			<img
 				src={resolvedImageUrl}
 				alt={metadata.title || 'Featured image'}
 				class="w-full h-full object-cover"
 				loading="eager"
 			/>
-			<!-- Load header image eagerly -->
+				<!-- Overlay -->
 			<div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent"></div>
-		</div>
-		<div class="absolute bottom-0 left-0 right-0 p-6 md:p-8 text-white">
-			<h1 class="text-3xl md:text-5xl font-semibold mb-2 text-shadow">{metadata.title}</h1>
-			{#if metadata.date}
-				<p class="text-sm md:text-base opacity-90 text-shadow mb-0">
-					{formatDate(metadata.date)}
-				</p>
-			{/if}
-			{#if metadata.edited}
-				{#if Array.isArray(metadata.edited)}
-					{#if metadata.edited.length > 0}
-						<div class="text-sm md:text-base opacity-80 text-shadow mt-1">
-							<span class="">🛈 Edited:</span>
-							<ul class="list-none p-0 m-0 inline-block ml-1">
-								{#each metadata.edited as editDate, i (editDate)}
-									<li class="inline">{formatDate(editDate)} {#if i < metadata.edited.length - 1} |{/if}</li>
-								{/each}
-							</ul>
-						</div>
-					{/if}
-				{:else}
-					<p class="text-sm md:text-base opacity-80 text-shadow mt-1">
-						<span class="">🛈 edited {formatDate(metadata.edited)}</span>
+			<!-- Text Content -->
+			<div class="absolute bottom-0 left-0 right-0 p-6 md:p-8 text-white">
+				<h1 class="text-3xl md:text-5xl font-semibold mb-2 text-shadow">{metadata.title}</h1>
+				{#if metadata.date}
+					<p class="text-sm md:text-base opacity-90 text-shadow mb-0">
+						{formatDate(metadata.date)}
 					</p>
 				{/if}
-			{/if}
+				{#if metadata.edited}
+					{#if Array.isArray(metadata.edited)}
+						{#if metadata.edited.length > 0}
+							<div class="text-sm md:text-base opacity-80 text-shadow mt-1">
+								<span class="">🛈 Edited:</span>
+								<ul class="list-none p-0 m-0 inline-block ml-1">
+									{#each metadata.edited as editDate, i (editDate)}
+										<li class="inline">{formatDate(editDate)} {#if i < metadata.edited.length - 1} |{/if}</li>
+									{/each}
+								</ul>
+							</div>
+						{/if}
+					{:else}
+						<p class="text-sm md:text-base opacity-80 text-shadow mt-1">
+							<span class="">🛈 edited {formatDate(metadata.edited)}</span>
+						</p>
+					{/if}
+				{/if}
+			</div>
 		</div>
 	{:else}
 		<!-- Fallback Header (no image) - Needs padding if it's the first element -->
@@ -162,8 +163,7 @@
 	{/if}
 </header>
 
-<!-- Main content container - Removed top padding, added margin-top -->
-<div class="max-w-6xl mx-auto px-4 pb-8 md:pb-16 mt-8 md:mt-12">
+<div class="max-w-6xl mx-auto px-4 pb-8 md:pb-16"> 
 	<!-- Excerpt (from old layout) -->
 	{#if metadata.excerpt}
 		<blockquote class="my-10 md:my-12 text-center text-lg md:text-xl italic text-gray-600 border-none p-0 max-w-3xl mx-auto">
