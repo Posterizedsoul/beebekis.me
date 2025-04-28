@@ -1,9 +1,9 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: ['./src/**/*.{html,js,svelte,ts,md}'], // Ensure .md files are scanned
+  content: ['./src/**/*.{html,js,svelte,ts}'],
   theme: {
     extend: {
-      // Customize the Tailwind Typography plugin
+      // Restore the typography customization block
       typography: ({ theme }) => ({
         DEFAULT: { // Target the default 'prose' class
           css: {
@@ -29,6 +29,6 @@ export default {
     },
   },
   plugins: [
-    require('@tailwindcss/typography'), // Include the typography plugin
+    require('@tailwindcss/typography'), // Restore the typography plugin
   ],
 }

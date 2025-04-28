@@ -7,6 +7,7 @@ interface PostMetadata {
 	date: string;
 	description?: string;
 	featuredImage?: string; // Add featuredImage
+	tags?: string[]; // Add optional tags array
 	[key: string]: any; // Allow other properties
 }
 
@@ -87,9 +88,13 @@ export const load: PageServerLoad = async () => {
 					return null; // Skip posts with invalid dates
 				}
 
+				// Ensure tags is an array if it exists, otherwise default to empty array
+				const tags = Array.isArray(metadata.tags) ? metadata.tags : [];
+
 				return {
 					slug,
 					...metadata,
+					tags, // Ensure tags is always an array
 					resolvedImageUrl // Add the resolved URL (which is the path itself)
 				};
 			})
@@ -100,7 +105,20 @@ export const load: PageServerLoad = async () => {
 			.filter((post): post is Post => post !== null)
 			.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-		// Group posts by year
+		// Extract all unique tags
+		const allTags = [
+			...new Set(validPosts.flatMap(post => post.tags || [])) // Use tags array safely
+		].sort(); // Sort tags alphabetically
+
+		 // --- Debugging Logs ---
+		console.log(`[Blog Server Load] Found ${validPosts.length} valid posts.`);
+		console.log(`[Blog Server Load] Extracted tags:`, allTags);
+		if (validPosts.length > 0) {
+			console.log(`[Blog Server Load] Example post tags:`, validPosts[0].tags);
+		}
+		// --- End Debugging Logs ---
+
+		// Group posts by year (optional, keep for potential future use if needed)
 		const groupedPosts: GroupedPosts = validPosts.reduce((acc, post) => {
 			const year = new Date(post.date).getFullYear();
 			if (!acc[year]) {
@@ -115,8 +133,11 @@ export const load: PageServerLoad = async () => {
 			.map(Number)
 			.sort((a, b) => b - a);
 
+		// Return the flat list of posts and the unique tags for the component
 		return {
-			// Pass both the grouped object and the sorted year keys
+			posts: validPosts, // Pass the flat, sorted list
+			allTags: allTags, // Pass the unique tags
+			// Keep grouped data if needed elsewhere, but not primary for the list
 			groupedPosts: groupedPosts,
 			sortedYears: sortedYears
 		};

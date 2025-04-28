@@ -3,12 +3,13 @@
 
     export let data: PageData; // Receives groupedPosts and sortedYears
 
-    function formatDate(dateString: string): string {
-        // Updated to show only month and day
-        return new Date(dateString).toLocaleDateString('en-US', {
-            day: 'numeric', // e.g., 24
-            month: 'long' // e.g., November
-        });
+    // Updated to return an object with month and day
+    function formatDate(dateString: string): { month: string; day: string } {
+        const date = new Date(dateString);
+        return {
+            month: date.toLocaleDateString('en-US', { month: 'long' }), // e.g., November
+            day: date.toLocaleDateString('en-US', { day: 'numeric' }) // e.g., 24
+        };
     }
 </script>
 
@@ -30,10 +31,16 @@
                 <div class="w-full md:w-3/4 lg:w-4/5">
                     <ul class="space-y-8 sm:space-y-10">
                         {#each data.groupedPosts[year] as post (post.slug)}
+                            {@const formatted = formatDate(post.date)}
                             <li class="flex flex-col sm:flex-row gap-4 sm:gap-6 group">
-                                <!-- Date Column - Changed text color back -->
-                                <div class="flex-shrink-0 sm:w-28 text-sm text-gray-500 pt-1.5">
-                                    {formatDate(post.date)}
+                                <!-- Date Column - Updated Font Sizes -->
+                                <div class="flex-shrink-0 sm:w-32 flex sm:flex-col items-baseline sm:items-center pt-1"> 
+                                    <span class="text-base font-medium text-gray-500 group-hover:text-orange-600 transition-colors duration-300 sm:mb-0 sm:text-center w-full">
+                                        {formatted.month}
+                                    </span>
+                                    <span class="text-6xl font-bold text-gray-700 group-hover:text-orange-600 transition-colors duration-300 leading-none">
+                                        {formatted.day}
+                                    </span>
                                 </div>
 
                                 <!-- Main Post Content Area -->

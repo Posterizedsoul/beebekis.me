@@ -5,6 +5,7 @@ edited: '' # Optional: Add the last edited date here
 description: 'Technical Demonstration of CNN based image classification technique.'
 excerpt: 'Plant diseases pose a serious challenge to global food security. This post details a deep learning approach using CNNs for accurate plant disease detection, achieving 95% accuracy on the NPDD dataset.'
 featuredImage: 'img/ag.jpg' # Updated path
+tags: ['Tech'] # Add empty tags array
 ---
 
 ## Table of Contents
