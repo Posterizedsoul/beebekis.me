@@ -93,23 +93,79 @@ export async function load({ params }) {
 		// 4. Find the content.md file (optional)
 		const contentGlobPath = `/src/lib/assets/Memories/${slug}/content.md`;
 
-		// 5. Resolve image paths and gather alt text using enhanced modules
-		const resolvedImages: (EnhancedImageInfo | null)[] = metadata.images.map((imgMeta) => {
-			const imageGlobPath = `/src/lib/assets/Memories/${slug}/${imgMeta.filename}`;
+		// 5. Auto-discover all images and create alt text mapping
+		const imageMetaFromInfo = metadata.images || [];
+		const altTextMap = new Map<string, string>();
+
+		imageMetaFromInfo.forEach(img => {
+			if (img.filename && img.alt) {
+				altTextMap.set(img.filename, img.alt);
+			}
+		});
+
+		// Auto-discover all images in the folder
+		const slugImagePrefix = `/src/lib/assets/Memories/${slug}/`;
+		const discoveredImageFullPaths = Object.keys(allImageModules)
+			.filter(path => path.startsWith(slugImagePrefix));
+		
+		const autoDiscoveredFilenames = discoveredImageFullPaths.map(path => path.substring(slugImagePrefix.length));
+		console.log(`[${slug}] Auto-discovered filenames:`, JSON.stringify(autoDiscoveredFilenames));
+
+		let collectedFilenames: string[] = [];
+		const coverImageFilename = metadata.coverImage;
+		const heroImageFilename = metadata.heroImage;
+
+		if (imageMetaFromInfo.length > 0) {
+			// Use explicit order from info.md, but include all discovered files
+			const explicitFilenames = imageMetaFromInfo.map(img => img.filename).filter(Boolean);
+			collectedFilenames = [...explicitFilenames];
+			autoDiscoveredFilenames.forEach(filename => {
+				if (!collectedFilenames.includes(filename)) {
+					collectedFilenames.push(filename);
+				}
+			});
+		} else {
+			// No explicit images array - use all auto-discovered files
+			collectedFilenames = autoDiscoveredFilenames;
+		}
+
+		// Ensure heroImage and coverImage are included
+		if (heroImageFilename && !collectedFilenames.includes(heroImageFilename)) {
+			collectedFilenames.push(heroImageFilename);
+		}
+		if (coverImageFilename && !collectedFilenames.includes(coverImageFilename)) {
+			collectedFilenames.push(coverImageFilename);
+		}
+
+		const uniqueFilenames = [...new Set(collectedFilenames.filter(Boolean))];
+
+		// Helper function to generate alt text from filename
+		function generateAltText(filename: string): string {
+			if (!filename) return 'Image';
+			const baseFilename = filename.includes('/') ? filename.substring(filename.lastIndexOf('/') + 1) : filename;
+			const nameWithoutExtension = baseFilename.substring(0, baseFilename.lastIndexOf('.')) || baseFilename;
+			return nameWithoutExtension
+				.replace(/[_-]/g, ' ')
+				.replace(/\b\w/g, (char) => char.toUpperCase());
+		}
+
+		// Resolve image paths and gather alt text using enhanced modules
+		const resolvedImages: (EnhancedImageInfo | null)[] = uniqueFilenames.map((filename) => {
+			const imageGlobPath = `/src/lib/assets/Memories/${slug}/${filename}`;
 			const module = allImageModules[imageGlobPath] as EnhancedImageModule | undefined;
 
 			if (module && module.default) {
-				console.log(`[${slug}] Resolved enhanced image: ${imgMeta.filename}`);
+				console.log(`[${slug}] Resolved enhanced image: ${filename}`);
+				const alt = altTextMap.get(filename) || generateAltText(filename);
 				return {
 					src: module.default, // Pass the enhanced object
-					alt: imgMeta.alt || '',
-					filename: imgMeta.filename
+					alt: alt,
+					filename: filename
 				};
 			} else {
 				console.warn(
-					`[${slug}] Image module not found or invalid for "${imgMeta.filename}" at path: ${imageGlobPath}`
+					`[${slug}] Image module not found or invalid for "${filename}" at path: ${imageGlobPath}`
 				);
-				// console.log('Available image module keys:', Object.keys(allImageModules));
 				return null;
 			}
 		});
