@@ -98,14 +98,11 @@
 														{#if previews.length > 0}
 															{#each previews as preview, i (preview.src)}
 																<div class="relative h-full flex-1 overflow-hidden">
-																	<enhanced:img
+																	<img
 																		src={preview.src}
 																		alt=""
 																		class="absolute inset-0 h-full w-full object-cover transition-transform duration-300 ease-in-out group-hover:scale-105"
 																		loading="lazy"
-																		sizes="(min-width: 768px) {Math.round(
-																			100 / previews.length
-																		)}vw, {Math.round(100 / previews.length)}vw"
 																	/>
 																	{#if i < previews.length - 1}
 																		<div

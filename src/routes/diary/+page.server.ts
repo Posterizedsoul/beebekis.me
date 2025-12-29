@@ -1,21 +1,18 @@
 import type { PageServerLoad } from './$types';
 import { error } from '@sveltejs/kit';
+import { db } from '$lib/firebase';
+import { collection, getDocs, query, orderBy, where } from 'firebase/firestore';
 
-// Define the expected shape of diary entry metadata
-interface DiaryMetadata {
-	title: string;
-	date: string; // Expecting 'YYYY-MM-DD'
-	edited?: string | string[]; // Optional: Last edited date(s)
-	description?: string; // Short description for the index page
-	excerpt?: string; // Longer excerpt for the entry page meta
-	featuredImage?: string; // Optional path relative to entry's img/ folder or root-relative
-	[key: string]: any; // Allow other properties
-}
-
-// Define the shape of the diary entry object we'll return
-interface DiaryEntry extends DiaryMetadata {
+// Define the shape of diary entry metadata
+interface DiaryEntry {
 	slug: string;
-	resolvedImageUrl: string | null; // Resolved URL for the featured image
+	title: string;
+	date: string; // ISO string
+	description?: string;
+	excerpt?: string;
+	featuredImage?: string;
+	resolvedImageUrl?: string | null;
+	isPublished?: boolean;
 }
 
 // Define the shape of the grouped diary entries object
@@ -23,86 +20,37 @@ interface GroupedDiaries {
 	[year: number]: DiaryEntry[];
 }
 
-// Pre-fetch all featured images in each diary entry's img/ subfolder
-const allImageModules = import.meta.glob(
-	'/src/lib/diary/*/img/*.+(avif|gif|heif|jpeg|jpg|png|tiff|webp)',
-	{ eager: true }
-);
-
-function resolveDiaryImageUrl(slug: string, filename: string): string | null {
-	// Construct the key assuming filename includes 'img/' prefix or is just the filename
-	// e.g., filename is 'img/photo.jpg' or 'photo.jpg', slug is 'first-entry'
-	// key becomes '/src/lib/diary/first-entry/img/photo.jpg'
-	const key = `/src/lib/diary/${slug}/${filename.startsWith('img/') ? '' : 'img/'}${filename}`;
-	const mod = allImageModules[key] as { default: string } | undefined;
-	if (mod?.default) return mod.default;
-
-	// --- Debugging ---
-	console.warn(`[Diary Index] Could not resolve "${filename}" for entry "${slug}" using key "${key}".`);
-	const availableKeys = Object.keys(allImageModules);
-	console.log(`[Diary Index Debug] Available image keys (${availableKeys.length}):`, availableKeys.slice(0, 10));
-	// --- End Debugging ---
-
-	return null;
-}
-
 export const load: PageServerLoad = async () => {
 	try {
-		// Get all diary entry markdown files
-		const diaryFiles = import.meta.glob('/src/lib/diary/*/+page.md');
+		console.log('Loading diary entries from Firestore...');
 
-		const entries: DiaryEntry[] = await Promise.all(
-			Object.entries(diaryFiles).map(async ([path, resolver]) => {
-				// Extract slug from the path structure
-				const slugMatch = path.match(/\/lib\/diary\/([^/]+)\/\+page\.md$/);
-				if (!slugMatch) {
-					console.warn(`Could not extract slug from path: ${path}`);
-					return null; // Skip if slug extraction fails
-				}
-				const slug = slugMatch[1];
+		// Fetch published diary entries sorted by date
+		// Note: 'isPublished' filter might need a composite index in Firestore.
+		// If it fails initially, we might need to create that index via clicking the link in console.
+		// For development, we'll try querying all and filtering in memory if index is missing is an issue,
+		// but 'where' clause is better.
+		const q = query(
+			collection(db, 'diary_entries'),
+			where('isPublished', '==', true),
+			orderBy('date', 'desc')
+		);
 
-				// Resolve the module to get metadata
-				const entryModule = (await resolver()) as any; // Cast to any for simplicity
-				const metadata = (entryModule?.metadata ?? {}) as DiaryMetadata;
+		const querySnapshot = await getDocs(q);
 
-				// Basic validation
-				if (!metadata.title || !metadata.date) {
-					console.warn(`Skipping entry "${slug}" due to missing title or date.`);
-					return null;
-				}
+		const entries: DiaryEntry[] = querySnapshot.docs.map(doc => {
+			const data = doc.data();
+			// Firestore Timestamp to Date -> ISO string
+			const dateObj = data.date?.toDate ? data.date.toDate() : new Date(data.date);
 
-				let resolvedImageUrl: string | null = null;
-				if (metadata.featuredImage) {
-					if (metadata.featuredImage.startsWith('/')) {
-						// Root-relative path
-						resolvedImageUrl = metadata.featuredImage;
-					} else {
-						// Attempt to resolve via Vite glob (relative to entry's img/ folder)
-						const imgUrl = resolveDiaryImageUrl(slug, metadata.featuredImage);
-						if (imgUrl) {
-							resolvedImageUrl = imgUrl;
-						} else {
-							console.error(`Featured image path "${metadata.featuredImage}" for entry "${slug}" could not be resolved.`);
-						}
-					}
-				}
-
-				// Validate date format before creating Date object
-				if (isNaN(new Date(metadata.date).getTime())) {
-					console.warn(`Skipping entry "${slug}" due to invalid date format: ${metadata.date}`);
-					return null;
-				}
-
-				return {
-					...metadata,
-					slug,
-					resolvedImageUrl
-				};
-			})
-		).then(results => results.filter((entry): entry is DiaryEntry => entry !== null)); // Filter out nulls
-
-		// Sort entries by date, newest first
-		entries.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+			return {
+				slug: data.slug,
+				title: data.title,
+				date: dateObj.toISOString().split('T')[0], // YYYY-MM-DD
+				description: data.description,
+				featuredImage: data.featuredImage,
+				resolvedImageUrl: data.featuredImage || null
+			};
+		});
 
 		// Group entries by year
 		const groupedDiaries: GroupedDiaries = entries.reduce((acc, entry) => {
@@ -115,12 +63,23 @@ export const load: PageServerLoad = async () => {
 		}, {} as GroupedDiaries);
 
 		return {
-			groupedDiaries, // Keep grouped data
-			sortedEntries: entries // Add the flat, sorted array
+			groupedDiaries,
+			sortedEntries: entries
 		};
 
-	} catch (err) {
+	} catch (err: any) {
 		console.error('Failed to load diary entries:', err);
-		error(500, 'Failed to load diary entries');
+		if (err.code === 'permission-denied') {
+			console.error('[Diary Loader] Permission denied. Check Firestore Security Rules.');
+		} else if (err.code === 'unavailable') {
+			console.error('[Diary Loader] Firestore unavailable. Check network/config.');
+		} else if (err.code === 'failed-precondition') {
+			console.error('[Diary Loader] Failed precondition (likely missing index):', err.message);
+		}
+
+		return {
+			groupedDiaries: {},
+			sortedEntries: []
+		};
 	}
 };

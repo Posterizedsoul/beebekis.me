@@ -1,12 +1,14 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import type { SvelteComponent } from 'svelte';
+	import AdminEditButton from '$lib/components/AdminEditButton.svelte';
 
 	// Use $props() for runes mode
 	let { data }: { data: PageData } = $props();
 
 	// Reactive assignment: these will update when `data` changes
-	let content: typeof SvelteComponent | undefined = $derived(data.content);
+	// content -> contentHtml (string)
+	let contentHtml: string | undefined = $derived(data.contentHtml);
 	let metadata = $derived(data.metadata || { title: 'Untitled Entry', date: '' });
 
 	function formatDate(dateString: string): string {
@@ -30,18 +32,23 @@
 	{/if}
 </svelte:head>
 
-<header class="entry-header text-center mb-5 md:mb-6 pt-1">
-	<h1 class="text-4xl md:text-4xl font-semibold !mb-2 text-gray-900">{formatDate(metadata.date)}</h1>
-	<p class="text-xl md:text-xl text-gray-800 !mt-0">{metadata.title}</p>
-	<hr class="mx-auto mt-2 mb-0 border-gray-200" />
+<header class="entry-header mb-5 pt-1 text-center md:mb-6">
+	<h1 class="!mb-2 text-4xl font-semibold text-gray-900 md:text-4xl">
+		{formatDate(metadata.date)}
+	</h1>
+	<p class="!mt-0 text-xl text-gray-800 md:text-xl">{metadata.title}</p>
+	<hr class="mx-auto mb-0 mt-2 border-gray-200" />
 </header>
 
-{#if content}
+{#if contentHtml}
 	<!-- Removed wrapping div and prose classes from article -->
 	<!-- The layout now handles max-width and prose styling -->
 	<article>
-		{@render content()}
+		{@html contentHtml}
 	</article>
 {:else}
 	<p class="text-red-500">Error: Could not load diary entry content.</p>
 {/if}
+
+<!-- Edit button for logged-in users -->
+<AdminEditButton href="/admin/diary/{data.id}" label="Edit Entry" />

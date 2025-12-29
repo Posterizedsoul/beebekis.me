@@ -1,0 +1,8 @@
+Checking blog post: paper
+Featured Image Found? [0m[33mtrue[0m
+Featured Image URL: https://firebasestorage.googleapis.com/v0/b/beebek-3e3e.firebasestorage.app/o/blog%2Fpaper%2Fag.jpg?alt=media&token=81bbfeab-5423-4e5c-a9fd-7748c0d85913
+Image Fetch Status: 200
+Content Length: [0m[33m28566[0m
+Attempting marked compilation...
+Compiled Code Length: [0m[33m29330[0m
+Compilation success!

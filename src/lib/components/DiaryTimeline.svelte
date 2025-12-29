@@ -40,16 +40,21 @@
 				? entries.slice(0, entryLimit)
 				: entries;
 
-		groupedEntries = entriesToProcess.reduce((acc, entry) => {
-			const year = getYear(entry.date);
-			if (!acc[year]) {
-				acc[year] = [];
-			}
-			acc[year].push(entry); // Keep original order within year
-			return acc;
-		}, {} as { [year: number]: DiaryEntry[] });
+		groupedEntries = entriesToProcess.reduce(
+			(acc, entry) => {
+				const year = getYear(entry.date);
+				if (!acc[year]) {
+					acc[year] = [];
+				}
+				acc[year].push(entry); // Keep original order within year
+				return acc;
+			},
+			{} as { [year: number]: DiaryEntry[] }
+		);
 		// Sort years descending
-		sortedYears = Object.keys(groupedEntries).map(Number).sort((a, b) => b - a);
+		sortedYears = Object.keys(groupedEntries)
+			.map(Number)
+			.sort((a, b) => b - a);
 	}
 
 	// Scroll active item into view on mount/update
@@ -57,7 +62,7 @@
 		activeItemRef.scrollIntoView({
 			behavior: 'smooth',
 			block: layout === 'vertical' ? 'center' : 'nearest',
-			inline: layout === 'horizontal' ? 'center' : 'nearest' 
+			inline: layout === 'horizontal' ? 'center' : 'nearest'
 		});
 	}
 </script>
@@ -97,22 +102,32 @@
 							'group timeline-item transition-[width,background-color] duration-300 ease-out rounded-md overflow-hidden flex-shrink-0 h-[calc(100%-1rem)]'}
 						{@const itemWidthClass = isActive ? 'w-40' : 'w-16 hover:w-40'}
 						{@const linkPaddingClass = isActive ? 'p-3' : 'p-2 group-hover:p-3'}
-						{@const linkJustifyClass = isActive ? 'justify-between' : 'justify-center group-hover:justify-between'}
-						{@const dateAlignClass = isActive ? 'text-left mb-1' : 'text-center mb-0 group-hover:text-left group-hover:mb-1'}
-						{@const titleOpacityClass = isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}
+						{@const linkJustifyClass = isActive
+							? 'justify-between'
+							: 'justify-center group-hover:justify-between'}
+						{@const dateAlignClass = isActive
+							? 'text-left mb-1'
+							: 'text-center mb-0 group-hover:text-left group-hover:mb-1'}
+						{@const titleOpacityClass = isActive
+							? 'opacity-100'
+							: 'opacity-0 group-hover:opacity-100'}
 
 						{#if isActive}
 							<li
 								bind:this={activeItemRef}
-								class="{itemBaseClass} {itemWidthClass} bg-gray-800 text-white shadow-md ml-2 md:ml-4"
+								class="{itemBaseClass} {itemWidthClass} ml-2 border-l-4 border-yellow-400 bg-gray-800 text-white shadow-md md:ml-4"
 							>
-								<a href="/diary/{entry.slug}" class="block h-full flex flex-col {linkPaddingClass} {linkJustifyClass}">
-									<span class="block text-sm font-semibold {dateAlignClass} text-gray-300 transition-colors duration-200">
+								<a
+									href="/diary/{entry.slug}"
+									class="block flex h-full flex-col {linkPaddingClass} {linkJustifyClass}"
+								>
+									<span
+										class="block text-sm font-semibold {dateAlignClass} text-gray-300 transition-colors duration-200"
+									>
 										{formatDate(entry.date)}
 									</span>
-									<!-- Apply title styles directly, transition only opacity -->
 									<span
-										class="block text-sm font-semibold leading-tight line-clamp-3 {titleOpacityClass} transition-opacity duration-200 ease-out"
+										class="line-clamp-3 block text-sm font-semibold leading-tight {titleOpacityClass} text-white transition-opacity duration-200 ease-out"
 									>
 										{entry.title}
 									</span>
@@ -120,14 +135,19 @@
 							</li>
 						{:else}
 							<li
-								class="{itemBaseClass} {itemWidthClass} bg-white text-gray-700 hover:bg-gray-100 border border-gray-200 ml-2 md:ml-4"
+								class="{itemBaseClass} {itemWidthClass} ml-2 border border-gray-200 bg-white text-gray-700 hover:bg-gray-100 md:ml-4"
 							>
-								<a href="/diary/{entry.slug}" class="block h-full flex flex-col {linkPaddingClass} {linkJustifyClass}">
-									<span class="block text-sm font-semibold {dateAlignClass} text-gray-500 transition-colors duration-200">
+								<a
+									href="/diary/{entry.slug}"
+									class="block flex h-full flex-col {linkPaddingClass} {linkJustifyClass}"
+								>
+									<span
+										class="block text-sm font-semibold {dateAlignClass} text-gray-500 transition-colors duration-200"
+									>
 										{formatDate(entry.date)}
 									</span>
 									<span
-										class="block text-sm font-semibold leading-tight line-clamp-3 {titleOpacityClass} transition-opacity duration-200 ease-out"
+										class="line-clamp-3 block text-sm font-semibold leading-tight {titleOpacityClass} transition-opacity duration-200 ease-out"
 									>
 										{entry.title}
 									</span>
@@ -147,26 +167,28 @@
 					{#if isActive}
 						<li
 							bind:this={activeItemRef}
-							class="{itemBaseClass} {itemLayoutClass} bg-gray-800 text-white shadow-md"
+							class="{itemBaseClass} {itemLayoutClass} border-l-4 border-yellow-400 bg-gray-800 text-white shadow-md"
 						>
 							<a href="/diary/{entry.slug}" class="{linkBaseClass} {linkLayoutClass}">
-								<span class="block text-base font-bold mb-1 text-gray-200">
+								<span class="mb-1 block text-base font-bold text-gray-300">
 									{formatDate(entry.date)}
 								</span>
-								<span class="block text-sm font-semibold leading-tight line-clamp-3">
+								<span class="line-clamp-3 block text-sm font-semibold leading-tight">
 									{entry.title}
 								</span>
 							</a>
 						</li>
 					{:else}
 						<li
-							class="{itemBaseClass} {itemLayoutClass} bg-white text-gray-700 hover:bg-gray-100 border border-gray-200"
+							class="{itemBaseClass} {itemLayoutClass} border border-gray-200 bg-white text-gray-700 hover:bg-gray-100"
 						>
 							<a href="/diary/{entry.slug}" class="{linkBaseClass} {linkLayoutClass}">
-								<span class="block text-base font-bold mb-1 text-gray-500 group-hover:text-gray-600">
+								<span
+									class="mb-1 block text-base font-bold text-gray-500 group-hover:text-gray-600"
+								>
 									{formatDate(entry.date)}
 								</span>
-								<span class="block text-sm font-semibold leading-tight line-clamp-3">
+								<span class="line-clamp-3 block text-sm font-semibold leading-tight">
 									{entry.title}
 								</span>
 							</a>
@@ -175,7 +197,7 @@
 				{/each}
 			{/if}
 		{:else}
-			<li class="text-center text-gray-500 italic px-4">No diary entries found.</li>
+			<li class="px-4 text-center italic text-gray-500">No diary entries found.</li>
 		{/if}
 	</ul>
 </div>

@@ -2,6 +2,7 @@
 	import type { PageData } from './$types';
 	import type { SvelteComponent } from 'svelte';
 	import BackToTop from '$lib/components/BackToTop.svelte';
+	import AdminEditButton from '$lib/components/AdminEditButton.svelte';
 	import DiaryTimeline from '$lib/components/DiaryTimeline.svelte'; // Import the timeline
 	import { PUBLIC_BASE_URL } from '$env/static/public';
 	import { page } from '$app/state';
@@ -17,26 +18,20 @@
 		edited: undefined // Ensure edited exists for checks
 	};
 	// Get the resolved image URL from data
-	const resolvedImageUrl = data.resolvedImageUrl;
-	// Extract the content component and explicitly type it
-	const content: typeof SvelteComponent | undefined = data.content;
+	// The loader now returns 'featuredImage' directly from Firestore
+	const featuredImage = metadata.featuredImage;
+	// Extract the content HTML string (marked returns string)
+	const contentHtml = data.contentHtml;
 
 	// Construct URLs and descriptions for meta tags
 	const baseUrl = PUBLIC_BASE_URL || 'https://www.beebekis.me'; // Use env variable or fallback
 	const postUrl = `${baseUrl}${page.url.pathname}`; // Construct full URL for this post
 	const postDescription = metadata.excerpt || 'Read this blog post by Bibek Bhatta.'; // Use excerpt or fallback
 
-	// Ensure resolvedImageUrl is absolute
-	// The resolvedImageUrl from glob should be the correct root-relative path
-	const absoluteImageUrl = resolvedImageUrl
-		? `${baseUrl}${resolvedImageUrl}` // Prepend base URL directly
-		: `${baseUrl}/b.png`; // Fallback image
-
-	// --- Debugging Logs ---
-	console.log(`[Blog Meta Debug] Base URL: ${baseUrl}`);
-	console.log(`[Blog Meta Debug] Resolved Image URL (from load): ${resolvedImageUrl}`);
-	console.log(`[Blog Meta Debug] Final Absolute Image URL (for meta tags): ${absoluteImageUrl}`);
-	// --- End Debugging Logs ---
+	// Ensure featuredImage is absolute if possible, or relative
+	// Firestore URLs are absolute (https://...), so we don't need to prepend baseUrl usually
+	// But if it was a local path, we might. For now assume absolute if from Firestore.
+	const absoluteImageUrl = featuredImage || `${baseUrl}/b.png`;
 
 	// Helper function to format date (copied from old layout)
 	function formatDate(dateString: string | undefined): string {
@@ -54,7 +49,6 @@
 	}
 
 	// No longer need getLatestEditDate or derived values for it
-
 </script>
 
 <svelte:head>
@@ -68,12 +62,22 @@
 	<meta property="og:description" content={postDescription} key="og:description" />
 	<meta property="og:image" content={absoluteImageUrl} key="og:image" />
 	{#if metadata.date}
-		<meta property="article:published_time" content={new Date(metadata.date).toISOString()} key="article:published_time" />
+		<meta
+			property="article:published_time"
+			content={new Date(metadata.date).toISOString()}
+			key="article:published_time"
+		/>
 	{/if}
 	{#if metadata.edited}
-		{@const lastEdited = Array.isArray(metadata.edited) ? metadata.edited[metadata.edited.length - 1] : metadata.edited}
+		{@const lastEdited = Array.isArray(metadata.edited)
+			? metadata.edited[metadata.edited.length - 1]
+			: metadata.edited}
 		{#if lastEdited}
-			<meta property="article:modified_time" content={new Date(lastEdited).toISOString()} key="article:modified_time" />
+			<meta
+				property="article:modified_time"
+				content={new Date(lastEdited).toISOString()}
+				key="article:modified_time"
+			/>
 		{/if}
 	{/if}
 	<!-- Add author, tags etc. if available -->
@@ -91,41 +95,47 @@
 </svelte:head>
 
 <!-- Post Header - Moved outside the max-width container -->
-<header class="relative text-center overflow-hidden mb-8 md:mb-12">
-	{#if resolvedImageUrl}
+<header class="relative mb-8 overflow-hidden text-center md:mb-12">
+	{#if featuredImage}
 		<!-- Header with Image -->
 		<!-- Make image container full width, remove max-width and rounding -->
-		<div class="w-full h-[60vh] relative overflow-hidden">
+		<div class="relative h-[60vh] w-full overflow-hidden">
 			<img
-				src={resolvedImageUrl}
+				src={featuredImage}
 				alt={metadata.title || 'Featured image'}
-				class="w-full h-full object-cover"
+				class="h-full w-full object-cover"
 				loading="eager"
 			/>
-				<!-- Overlay -->
-			<div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent"></div>
+			<!-- Overlay -->
+			<div
+				class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent"
+			></div>
 			<!-- Text Content -->
-			<div class="absolute bottom-0 left-0 right-0 p-6 md:p-8 text-white">
-				<h1 class="text-3xl md:text-5xl font-semibold mb-2 text-shadow">{metadata.title}</h1>
+			<div class="absolute bottom-0 left-0 right-0 p-6 text-white md:p-8">
+				<h1 class="text-shadow mb-2 text-3xl font-semibold md:text-5xl">{metadata.title}</h1>
 				{#if metadata.date}
-					<p class="text-sm md:text-base opacity-90 text-shadow mb-0">
+					<p class="text-shadow mb-0 text-sm opacity-90 md:text-base">
 						{formatDate(metadata.date)}
 					</p>
 				{/if}
 				{#if metadata.edited}
 					{#if Array.isArray(metadata.edited)}
 						{#if metadata.edited.length > 0}
-							<div class="text-sm md:text-base opacity-80 text-shadow mt-1">
+							<div class="text-shadow mt-1 text-sm opacity-80 md:text-base">
 								<span class="">🛈 Edited:</span>
-								<ul class="list-none p-0 m-0 inline-block ml-1">
+								<ul class="m-0 ml-1 inline-block list-none p-0">
 									{#each metadata.edited as editDate, i (editDate)}
-										<li class="inline">{formatDate(editDate)} {#if i < metadata.edited.length - 1} |{/if}</li>
+										<li class="inline">
+											{formatDate(editDate)}
+											{#if i < metadata.edited.length - 1}
+												|{/if}
+										</li>
 									{/each}
 								</ul>
 							</div>
 						{/if}
 					{:else}
-						<p class="text-sm md:text-base opacity-80 text-shadow mt-1">
+						<p class="text-shadow mt-1 text-sm opacity-80 md:text-base">
 							<span class="">🛈 edited {formatDate(metadata.edited)}</span>
 						</p>
 					{/if}
@@ -134,27 +144,32 @@
 		</div>
 	{:else}
 		<!-- Fallback Header (no image) - Needs padding if it's the first element -->
-		<div class="max-w-6xl mx-auto px-4 pt-8 md:pt-16">
-			<h1 class="text-3xl md:text-4xl font-semibold mb-2">{metadata.title}</h1>
+		<div class="mx-auto max-w-6xl px-4 pt-8 md:pt-16">
+			<h1 class="mb-2 text-3xl font-semibold md:text-4xl">{metadata.title}</h1>
 			{#if metadata.date}
-				<p class="text-sm text-gray-600 mb-0">
+				<p class="mb-0 text-sm text-gray-600">
 					{formatDate(metadata.date)}
 				</p>
 			{/if}
 			{#if metadata.edited}
 				{#if Array.isArray(metadata.edited)}
 					{#if metadata.edited.length > 0}
-						<div class="text-sm text-gray-500 mt-1 italic">
+						<div class="mt-1 text-sm italic text-gray-500">
 							<span class="">🛈 Edited:</span>
-							<ul class="list-none p-0 m-0 inline-block ml-1">
+							<ul class="m-0 ml-1 inline-block list-none p-0">
 								{#each metadata.edited as editDate, i (editDate)}
-									<li class="inline">{formatDate(editDate)} {#if i < metadata.edited.length - 1} - {/if}</li>
+									<li class="inline">
+										{formatDate(editDate)}
+										{#if i < metadata.edited.length - 1}
+											-
+										{/if}
+									</li>
 								{/each}
 							</ul>
 						</div>
 					{/if}
 				{:else}
-					<p class="text-sm text-gray-500 mt-1">
+					<p class="mt-1 text-sm text-gray-500">
 						<span class="italic">🛈 edited {formatDate(metadata.edited)}</span>
 					</p>
 				{/if}
@@ -163,19 +178,22 @@
 	{/if}
 </header>
 
-<div class="max-w-6xl mx-auto px-4 pb-8 md:pb-16"> 
+<div class="mx-auto max-w-6xl px-4 pb-8 md:pb-16">
 	<!-- Excerpt (from old layout) -->
 	{#if metadata.excerpt}
-		<blockquote class="my-10 md:my-12 text-center text-lg md:text-xl italic text-gray-600 border-none p-0 max-w-3xl mx-auto">
+		<blockquote
+			class="mx-auto my-10 max-w-3xl border-none p-0 text-center text-lg italic text-gray-600 md:my-12 md:text-xl"
+		>
 			"{metadata.excerpt}"
 		</blockquote>
 	{/if}
 
 	<!-- Article Content (wrapper from old layout, rendering from old page) -->
-	<article class="prose prose-neutral lg:prose-lg max-w-none text-justify prose-a:text-blue-600 hover:prose-a:text-blue-800">
-		{#if content} <!-- Check the local content variable -->
-			<!-- Use @render with the local content variable -->
-			{@render content()}
+	<article
+		class="prose prose-neutral lg:prose-lg prose-a:text-blue-600 hover:prose-a:text-blue-800 max-w-none text-justify"
+	>
+		{#if contentHtml}
+			{@html contentHtml}
 		{:else}
 			<p>Error loading post content.</p>
 		{/if}
@@ -185,10 +203,21 @@
 <!-- Use the BackToTop component -->
 <BackToTop />
 
+<!-- Edit button for logged-in users -->
+<AdminEditButton href="/admin/blog/{data.id}" label="Edit Post" />
+
 <style>
 	/* Styles from old layout */
-	:global(article h2) { margin-top: 2em; margin-bottom: 1em; }
-	:global(article h3) { margin-top: 1.8em; margin-bottom: 0.8em; }
+	:global(article h2) {
+		margin-top: 2em;
+		margin-bottom: 1em;
+	}
+	:global(article h3) {
+		margin-top: 1.8em;
+		margin-bottom: 0.8em;
+	}
 	/* Add text-shadow utility if not globally available */
-	.text-shadow { text-shadow: 0 1px 3px rgba(0,0,0,0.5); }
+	.text-shadow {
+		text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+	}
 </style>

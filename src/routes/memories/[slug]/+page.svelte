@@ -1,67 +1,74 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import { fade, scale } from 'svelte/transition';
-	import { Tween } from 'svelte/motion';
-	import { cubicOut, cubicIn } from 'svelte/easing';
 	import { onMount, onDestroy } from 'svelte';
 	import { PUBLIC_BASE_URL } from '$env/static/public'; // Import base URL
 	import { page } from '$app/state'; // Import page from $app/state
+	import AdminEditButton from '$lib/components/AdminEditButton.svelte';
 	// Import the enhanced image component type if needed for strict typing, otherwise it's globally available
 	// import type { EnhancedImg } from '@sveltejs/enhanced-img';
 
 	export let data: PageData;
 
-	// Types for enhanced image data passed from server
-	interface EnhancedImageModuleData {
-		src: string;
-		srcset: string;
-		width: number;
-		height: number;
-	}
-	interface EnhancedImageInfo {
-		src: EnhancedImageModuleData;
-		alt: string;
+	// Types for remote image data from Firestore
+	interface RemoteImageInfo {
+		url: string;
+		altText?: string;
 		filename: string;
 	}
 
 	// Use the FULL images array from loaded data for lightbox
-	const allImages: EnhancedImageInfo[] = data.allImages || [];
+	// The loader returns 'images' which replaces 'allImages'
+	const allImages: RemoteImageInfo[] = data.images || [];
 
 	// Separate gallery images for masonry
-	const galleryImages: EnhancedImageInfo[] = data.galleryImages || [];
-	const heroImage: EnhancedImageInfo | null = data.heroImage;
+	// For now, let's just use all images except hero if possible, or just all images
+	// The loader logic in +page.server.ts needs to be checked if it separates them.
+	// Assuming data.images contains all images.
+
+	const heroImage: string | null = data.heroImage; // URL string
+	const coverImage: string | null = data.coverImage; // URL string
+
+	// Filter out hero image from gallery if needed, or just show all
+	const galleryImages = allImages;
 
 	// Construct URLs and descriptions for meta tags
 	const baseUrl = PUBLIC_BASE_URL || 'https://www.beebekis.me'; // Use env variable or fallback
 	const memoryUrl = `${baseUrl}${page.url.pathname}`;
 	const memoryDescription = data.description || `A gallery of memories: ${data.title}`;
-	// Use the base src from the enhanced hero image object for meta tags
-	const memoryImageUrl = heroImage?.src?.src
-		? heroImage.src.src.startsWith('http')
-			? heroImage.src.src
-			: `${baseUrl}${heroImage.src.src.startsWith('/') ? '' : '/'}${heroImage.src.src}` // Ensure leading slash if relative
-		: `${baseUrl}/b.png`; // Updated Fallback image
+	const memoryImageUrl = heroImage || coverImage || `${baseUrl}/b.png`;
 
 	// Lightbox state
 	let lightboxOpen = false;
-	let selectedImageInfo: EnhancedImageInfo | null = null; // Store the whole info object
+	let selectedImageInfo: RemoteImageInfo | null = null;
 	let selectedImageIndex = -1;
-	let slideDirection = 1;
-	let isLoadingImage = false; // Still useful for UI feedback during animation/preload coordination
-	let isAnimating = false;
-	const transitionDuration = 200;
-	const slideDuration = 400;
 
-	// Use Tween class instance for image animation
-	const imageAnimationProps = new Tween(
-		{ x: 0, opacity: 1 },
-		{ duration: slideDuration, easing: cubicOut }
-	);
+	// Virtualized thumbnail window size (show 5 before + current + 5 after)
+	const THUMB_WINDOW_SIZE = 5;
 
-	// --- Preload Cache (Might be less critical with enhanced:img, but keep for lightbox smoothness) ---
-	let preloadedImages = new Map<string, { status: 'loading' | 'loaded' | 'error', element?: HTMLImageElement }>();
+	// Computed visible thumbnails for virtualization
+	$: visibleThumbnails = (() => {
+		if (selectedImageIndex < 0 || allImages.length === 0) return [];
 
-	// --- Refined Preload Helper ---
+		const start = Math.max(0, selectedImageIndex - THUMB_WINDOW_SIZE);
+		const end = Math.min(allImages.length, selectedImageIndex + THUMB_WINDOW_SIZE + 1);
+
+		return allImages.slice(start, end).map((img, i) => ({
+			...img,
+			originalIndex: start + i
+		}));
+	})();
+
+	// Check if there are hidden images on either side
+	$: hasMoreBefore = selectedImageIndex > THUMB_WINDOW_SIZE;
+	$: hasMoreAfter = selectedImageIndex < allImages.length - THUMB_WINDOW_SIZE - 1;
+
+	// --- Preload Cache ---
+	let preloadedImages = new Map<
+		string,
+		{ status: 'loading' | 'loaded' | 'error'; element?: HTMLImageElement }
+	>();
+
 	function preloadImage(src: string) {
 		if (!src || preloadedImages.has(src)) return;
 
@@ -74,99 +81,71 @@
 		img.onerror = () => {
 			preloadedImages.set(src, { status: 'error' });
 		};
-		img.src = src; // Preload the base src
+		img.src = src;
 	}
 
-	// Update openLightbox to use the index from the FULL allImages array
-	function openLightbox(imageInfo: EnhancedImageInfo, indexInFullArray: number) {
-		console.log(`openLightbox called. Index: ${indexInFullArray}, Filename: ${imageInfo.filename}`); // Add log
-		if (indexInFullArray < 0 || indexInFullArray >= allImages.length) {
-			console.error(`Invalid index passed to openLightbox: ${indexInFullArray}`);
-			return; // Prevent opening with invalid index
-		}
+	function openLightbox(imageInfo: RemoteImageInfo, indexInFullArray: number) {
+		if (indexInFullArray < 0 || indexInFullArray >= allImages.length) return;
+
 		selectedImageInfo = imageInfo;
 		selectedImageIndex = indexInFullArray;
 		lightboxOpen = true;
-		isLoadingImage = false; // Reset state
-		isAnimating = false;
-		imageAnimationProps.set({ x: 0, opacity: 1 }, { duration: 0 }); // Reset animation state
 
-		// Preload next/prev images using the full array's base src
+		// Preload next/prev
 		if (allImages.length > 1) {
 			const nextIndex = (indexInFullArray + 1) % allImages.length;
 			const prevIndex = (indexInFullArray - 1 + allImages.length) % allImages.length;
-			preloadImage(allImages[nextIndex].src.src); // Preload base src
+			preloadImage(allImages[nextIndex].url);
 			if (nextIndex !== prevIndex) {
-				preloadImage(allImages[prevIndex].src.src); // Preload base src
+				preloadImage(allImages[prevIndex].url);
 			}
 		}
-		preloadImage(imageInfo.src.src); // Preload current base src
-
-		// Ensure loading state is false initially when opening
-		isLoadingImage = false;
-		isAnimating = false;
+		preloadImage(imageInfo.url);
 	}
 
 	function closeLightbox() {
-		console.log('closeLightbox called'); // Add log
 		lightboxOpen = false;
 		selectedImageInfo = null;
 		selectedImageIndex = -1;
-		isLoadingImage = false;
-		isAnimating = false;
 	}
 
-	// Simplified animateAndLoad function
-	async function animateAndLoad(targetIndex: number, animationDirection: number) {
-		if (isAnimating) return; // Only block if already animating
+	// Simplified instant navigation - no animations
+	function goToImage(targetIndex: number) {
+		if (targetIndex < 0 || targetIndex >= allImages.length) return;
+		if (targetIndex === selectedImageIndex) return;
 
-		isAnimating = true;
-		isLoadingImage = true; // Show loading indicator during transition
-		slideDirection = animationDirection;
-
-		// Animate out the current image
-		await imageAnimationProps.set({ x: -100 * slideDirection, opacity: 0 }, { duration: slideDuration, easing: cubicIn });
-
-		// Update selected image data - this triggers the {#key} block to remount the image
+		// Instant swap
 		selectedImageIndex = targetIndex;
 		selectedImageInfo = allImages[targetIndex];
 
-		// Set animation state for incoming image (off-screen)
-		imageAnimationProps.set({ x: 100 * slideDirection, opacity: 0 }, { duration: 0 });
-
-		 // Animate the new image in (assuming {#key} handles the loading)
-		await imageAnimationProps.set({ x: 0, opacity: 1 }, { duration: slideDuration, easing: cubicOut });
-
-		isLoadingImage = false; // Hide loading indicator
-		isAnimating = false; // Animation finished
-
-		// Preload adjacent images (keep this)
-		const nextPreloadIndex = (targetIndex + 1) % allImages.length;
-		const prevPreloadIndex = (targetIndex - 1 + allImages.length) % allImages.length;
-		preloadImage(allImages[nextPreloadIndex].src.src);
-		if (nextPreloadIndex !== prevPreloadIndex) {
-			preloadImage(allImages[prevPreloadIndex].src.src);
+		// Preload adjacent images
+		const nextIdx = (targetIndex + 1) % allImages.length;
+		const prevIdx = (targetIndex - 1 + allImages.length) % allImages.length;
+		preloadImage(allImages[nextIdx].url);
+		if (nextIdx !== prevIdx) {
+			preloadImage(allImages[prevIdx].url);
 		}
 	}
 
-	// --- Navigation functions remain largely the same ---
-	function navigateLightbox(stepDirection: number) {
-		if (isAnimating || isLoadingImage || !lightboxOpen || allImages.length <= 1) return;
-		const targetIndex = (selectedImageIndex + stepDirection + allImages.length) % allImages.length;
-		animateAndLoad(targetIndex, stepDirection);
+	// --- Navigation functions ---
+	function goToNextImage() {
+		if (!lightboxOpen || allImages.length <= 1) return;
+		const nextIndex = (selectedImageIndex + 1) % allImages.length;
+		goToImage(nextIndex);
+	}
+
+	function goToPrevImage() {
+		if (!lightboxOpen || allImages.length <= 1) return;
+		const prevIndex = (selectedImageIndex - 1 + allImages.length) % allImages.length;
+		goToImage(prevIndex);
 	}
 
 	function jumpToImage(targetIndex: number) {
-		if (targetIndex === selectedImageIndex || isAnimating || isLoadingImage || !lightboxOpen) return;
-		const animationDirection = targetIndex > selectedImageIndex ? 1 : -1;
-		animateAndLoad(targetIndex, animationDirection);
+		goToImage(targetIndex);
 	}
 
-	function goToNextImage() { navigateLightbox(1); }
-	function goToPrevImage() { navigateLightbox(-1); }
-
 	function handleKeydown(event: KeyboardEvent) {
-		if (lightboxOpen && !isLoadingImage && !isAnimating) {
+		if (lightboxOpen) {
 			if (event.key === 'Escape') closeLightbox();
 			else if (event.key === 'ArrowRight') goToNextImage();
 			else if (event.key === 'ArrowLeft') goToPrevImage();
@@ -187,14 +166,14 @@
 	}
 </script>
 
-<svelte:window on:keydown={handleKeydown}/>
+<svelte:window on:keydown={handleKeydown} />
 
 <svelte:head>
 	<title>{data.title || 'Memoir Gallery'}</title>
 	<meta name="description" content={memoryDescription} />
 
 	<!-- Open Graph / Facebook -->
-	<meta property="og:type" content="article" /> <!-- Or 'website' if more appropriate -->
+	<meta property="og:type" content="article" />
 	<meta property="og:url" content={memoryUrl} />
 	<meta property="og:title" content={data.title || 'Memoir Gallery'} />
 	<meta property="og:description" content={memoryDescription} />
@@ -210,86 +189,70 @@
 	<meta property="twitter:description" content={memoryDescription} />
 	<meta property="twitter:image" content={memoryImageUrl} />
 
-	<!-- Link to your canonical URL -->
 	<link rel="canonical" href={memoryUrl} />
 </svelte:head>
 
 <!-- Hero Section -->
-<section class="hero-section relative mb-10 md:mb-16 bg-gray-200">
+<section class="hero-section relative mb-10 bg-gray-200 md:mb-16">
 	{#if heroImage}
-		<enhanced:img
-			src={heroImage.src}
-			alt={heroImage.alt || data.title || 'Hero image'}
-			class="w-full h-[60vh] md:h-[70vh] object-cover block"
+		<img
+			src={heroImage}
+			alt={data.title || 'Hero image'}
+			class="block h-[60vh] w-full object-cover md:h-[70vh]"
 			loading="eager"
-			fetchpriority="high"
-			sizes="100vw"
 		/>
 		<div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent"></div>
-		<header class="absolute bottom-0 left-0 right-0 p-6 md:p-10 text-white z-10">
-			<h1 class="text-3xl md:text-5xl font-bold mb-2 text-shadow">{data.title}</h1>
+		<header class="absolute bottom-0 left-0 right-0 z-10 p-6 text-white md:p-10">
+			<h1 class="text-shadow mb-2 text-3xl font-bold md:text-5xl">{data.title}</h1>
 			{#if data.date}
-				<p class="text-md md:text-lg text-gray-200 text-shadow">{formatDate(data.date)}</p>
+				<p class="text-md text-shadow text-gray-200 md:text-lg">{formatDate(data.date)}</p>
 			{/if}
 			{#if data.description}
-				<p class="mt-3 md:mt-4 text-lg md:text-xl text-gray-100 max-w-3xl text-shadow">{data.description}</p>
+				<p class="text-shadow mt-3 max-w-3xl text-lg text-gray-100 md:mt-4 md:text-xl">
+					{data.description}
+				</p>
 			{/if}
-			<button
-				on:click={() => {
-					const heroIndex = allImages.findIndex(img => img.filename === heroImage.filename);
-					openLightbox(heroImage, heroIndex >= 0 ? heroIndex : 0); // Pass calculated index or 0 as fallback
-				}}
-				class="absolute top-4 right-4 text-white bg-black/30 rounded-full p-2 hover:bg-black/50 transition-colors z-10"
-				aria-label="View hero image larger"
-				title="View hero image larger"
-			>
-				<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-					<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
-				</svg>
-			</button>
+			<!-- Simplified button: just scrolls to gallery since hero isn't in array usually in this new model 
+                 OR if we want to lightbox it, we'd need it in the array. 
+                 For simplicity, let's just View Gallery. -->
 		</header>
 	{:else}
-		<header class="text-center py-16 px-4">
-			<h1 class="text-3xl md:text-4xl font-semibold mb-2 text-gray-900">{data.title}</h1>
+		<header class="px-4 py-16 text-center">
+			<h1 class="mb-2 text-3xl font-semibold text-gray-900 md:text-4xl">{data.title}</h1>
 			{#if data.date}
 				<p class="text-md text-gray-600">{formatDate(data.date)}</p>
 			{/if}
 			{#if data.description}
-				<p class="mt-4 text-lg text-gray-700 max-w-3xl mx-auto">{data.description}</p>
+				<p class="mx-auto mt-4 max-w-3xl text-lg text-gray-700">{data.description}</p>
 			{/if}
 		</header>
 	{/if}
 </section>
 
 <!-- Main Content Area (Gallery + Text) -->
-<section class="memories-container max-w-6xl mx-auto px-4 pb-8 md:pb-16">
-
+<section class="memories-container mx-auto max-w-6xl px-4 pb-8 md:pb-16">
 	{#if data.contentHtml}
-		<div class="prose lg:prose-xl max-w-none mb-10 md:mb-16">
+		<div class="prose lg:prose-xl mb-10 max-w-none md:mb-16">
 			{@html data.contentHtml}
 		</div>
 	{/if}
 
 	{#if galleryImages.length > 0}
-		<h2 class="text-2xl font-semibold mb-6 text-gray-700">Gallery</h2>
+		<h2 class="mb-6 text-2xl font-semibold text-gray-700">Gallery</h2>
 		<div class="image-gallery">
-			{#each galleryImages as imageInfo (imageInfo.filename)}
-				{@const fullIndex = allImages.findIndex(img => img.filename === imageInfo.filename)}
+			{#each galleryImages as imageInfo, index (imageInfo.filename)}
 				<div
 					class="gallery-item"
-					on:click={() => openLightbox(imageInfo, fullIndex)}
+					on:click={() => openLightbox(imageInfo, index)}
 					role="button"
 					tabindex="0"
-					title={imageInfo.alt || 'View larger image'}
-					on:keydown={(e) => e.key === 'Enter' && openLightbox(imageInfo, fullIndex)}
+					title={imageInfo.altText || 'View larger image'}
+					on:keydown={(e) => e.key === 'Enter' && openLightbox(imageInfo, index)}
 				>
-					<!-- Use enhanced:img for gallery items -->
-					<enhanced:img
-						src={imageInfo.src}
-						alt={imageInfo.alt}
+					<img
+						src={imageInfo.url}
+						alt={imageInfo.altText || 'Gallery image'}
 						loading="lazy"
-						fetchpriority="low"
-						sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
 						class="gallery-image-enhanced"
 					/>
 				</div>
@@ -302,7 +265,9 @@
 
 <!-- Lightbox Modal -->
 {#if lightboxOpen && selectedImageInfo}
-	{@const _ = console.log(`Rendering Lightbox. Index: ${selectedImageIndex}, Filename: ${selectedImageInfo.filename}`)}
+	{@const _ = console.log(
+		`Rendering Lightbox. Index: ${selectedImageIndex}, Filename: ${selectedImageInfo.filename}`
+	)}
 	<div
 		class="lightbox-overlay"
 		on:click={closeLightbox}
@@ -310,92 +275,99 @@
 		aria-modal="true"
 		aria-label="Image Lightbox"
 		tabindex="-1"
-		transition:fade={{ duration: transitionDuration }}
 	>
 		<!-- Main area for image and nav buttons -->
 		<div class="lightbox-main-area">
 			{#if allImages.length > 1}
-			<button
-				class="lightbox-nav prev"
-				on:click|stopPropagation={goToPrevImage}
-				aria-label="Previous image"
-				disabled={isLoadingImage || isAnimating}
-			>
-				&#10094;
-			</button>
+				<button
+					class="lightbox-nav prev"
+					on:click|stopPropagation={goToPrevImage}
+					aria-label="Previous image"
+				>
+					&#10094;
+				</button>
 			{/if}
 
-			<div
-				class="lightbox-content"
-				on:click|stopPropagation
-				role="presentation"
-				transition:scale={{ duration: transitionDuration, start: 0.9 }}
-			>
-				{#if isLoadingImage && isAnimating} <!-- Show loading only during animation phase -->
-					<div class="loading-indicator">Loading...</div>
-				{/if}
-				<div
-					class="lightbox-image-wrapper"
-					style="opacity: {imageAnimationProps.current.opacity}; transform: translateX({imageAnimationProps.current.x}%);"
-				>
-					{#key selectedImageIndex}
-						<!-- Use enhanced:img in lightbox -->
-						<enhanced:img
-							src={selectedImageInfo.src}
-							alt={selectedImageInfo.alt}
-							loading="lazy"
-							sizes="90vw"
-							class="lightbox-image-enhanced"
-						/>
-					{/key}
+			<div class="lightbox-content" on:click|stopPropagation role="presentation">
+				<div class="lightbox-image-wrapper">
+					<!-- Simple instant image swap, no transitions -->
+					<img
+						src={selectedImageInfo.url}
+						alt={selectedImageInfo.altText || 'Image'}
+						loading="eager"
+						class="lightbox-image"
+					/>
 				</div>
 				<!-- Caption moved outside the key block -->
-				{#if selectedImageInfo.alt}
-					<div class="lightbox-caption">{selectedImageInfo.alt}</div>
+				{#if selectedImageInfo.altText}
+					<div class="lightbox-caption">{selectedImageInfo.altText}</div>
 				{/if}
 			</div>
 
 			{#if allImages.length > 1}
-			<button
-				class="lightbox-nav next"
-				on:click|stopPropagation={goToNextImage}
-				aria-label="Next image"
-				disabled={isLoadingImage || isAnimating}
-			>
-				&#10095;
-			</button>
+				<button
+					class="lightbox-nav next"
+					on:click|stopPropagation={goToNextImage}
+					aria-label="Next image"
+				>
+					&#10095;
+				</button>
 			{/if}
 		</div>
 
-		<!-- Thumbnail strip moved outside main area -->
+		<!-- Virtualized thumbnail strip - only renders visible window -->
 		{#if allImages.length > 1}
-		<div class="thumbnail-strip">
-			{#each allImages as imageInfo, index (imageInfo.filename)}
-				<div
-					class="thumbnail-item"
-					class:active={index === selectedImageIndex}
-					on:click|stopPropagation={() => jumpToImage(index)}
-					role="button"
-					tabindex="0"
-					aria-label={`View image ${index + 1}`}
-					title={imageInfo.alt || `Image ${index + 1}`}
-					on:keydown={(e) => e.key === 'Enter' && jumpToImage(index)}
-				>
-					<!-- Use enhanced:img for thumbnails -->
-					<enhanced:img
-						src={imageInfo.src}
-						alt={imageInfo.alt || `Thumbnail ${index + 1}`}
-						loading="lazy"
-						fetchpriority="low"
-						sizes="50px"
-						class="thumbnail-image-enhanced"
-					/>
-				</div>
-			{/each}
-		</div>
+			<div class="thumbnail-strip">
+				<!-- Indicator for more images before -->
+				{#if hasMoreBefore}
+					<button
+						class="more-indicator"
+						title="Jump back 5 images"
+						on:click|stopPropagation={() =>
+							jumpToImage(Math.max(0, selectedImageIndex - THUMB_WINDOW_SIZE))}
+					>
+						<span>◀◀</span>
+					</button>
+				{/if}
+
+				{#each visibleThumbnails as thumbItem (thumbItem.filename)}
+					<div
+						class="thumbnail-item"
+						class:active={thumbItem.originalIndex === selectedImageIndex}
+						on:click|stopPropagation={() => jumpToImage(thumbItem.originalIndex)}
+						role="button"
+						tabindex="0"
+						aria-label={`View image ${thumbItem.originalIndex + 1}`}
+						title={thumbItem.altText || `Image ${thumbItem.originalIndex + 1}`}
+						on:keydown={(e) => e.key === 'Enter' && jumpToImage(thumbItem.originalIndex)}
+					>
+						<img
+							src={thumbItem.url}
+							alt={thumbItem.altText || `Thumbnail ${thumbItem.originalIndex + 1}`}
+							loading="lazy"
+							class="thumbnail-image"
+						/>
+					</div>
+				{/each}
+
+				<!-- Indicator for more images after -->
+				{#if hasMoreAfter}
+					<button
+						class="more-indicator"
+						title="Jump forward 5 images"
+						on:click|stopPropagation={() =>
+							jumpToImage(Math.min(allImages.length - 1, selectedImageIndex + THUMB_WINDOW_SIZE))}
+					>
+						<span>▶▶</span>
+					</button>
+				{/if}
+			</div>
 		{/if}
 	</div>
 {/if}
+
+<!-- Edit button for logged-in users -->
+<AdminEditButton href="/admin/memories/{data.id}" label="Edit Memory" />
 
 <style>
 	/* ...existing styles... */
@@ -424,11 +396,11 @@
 		border-radius: 12px;
 		overflow: hidden;
 		position: relative;
-		box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+		box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 		transition: box-shadow 0.2s ease;
 	}
 	.gallery-item:hover {
-		box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+		box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 	}
 
 	/* Style the image generated by enhanced:img within gallery items */
@@ -443,7 +415,7 @@
 	.lightbox-overlay {
 		position: fixed;
 		inset: 0;
-		background: rgba(0,0,0,0.85); /* Slightly darker */
+		background: rgba(0, 0, 0, 0.85); /* Slightly darker */
 		display: flex;
 		flex-direction: column; /* Arrange main area and thumbnails vertically */
 		align-items: center;
@@ -469,7 +441,7 @@
 		position: absolute;
 		top: 50%;
 		transform: translateY(-50%);
-		background: rgba(0,0,0,0.3); /* Add slight background */
+		background: rgba(0, 0, 0, 0.3); /* Add slight background */
 		border: none;
 		color: white;
 		font-size: 2rem;
@@ -480,10 +452,14 @@
 		transition: background 0.2s ease;
 	}
 	.lightbox-nav:hover {
-		background: rgba(0,0,0,0.5);
+		background: rgba(0, 0, 0, 0.5);
 	}
-	.lightbox-nav.prev { left: 10px; } /* Adjust position */
-	.lightbox-nav.next { right: 10px; } /* Adjust position */
+	.lightbox-nav.prev {
+		left: 10px;
+	} /* Adjust position */
+	.lightbox-nav.next {
+		right: 10px;
+	} /* Adjust position */
 	.lightbox-nav:disabled {
 		opacity: 0.5;
 		cursor: default;
@@ -504,7 +480,7 @@
 		left: 50%;
 		transform: translate(-50%, -50%);
 		color: white;
-		background: rgba(0,0,0,0.6);
+		background: rgba(0, 0, 0, 0.6);
 		padding: 0.5rem 1rem;
 		border-radius: 4px;
 		z-index: 1; /* Ensure it's above the image wrapper during load */
@@ -529,13 +505,13 @@
 		overflow-x: auto;
 		gap: 0.5rem;
 		padding: 10px 15px; /* Add padding */
-		background: rgba(0,0,0,0.6); /* Add background for contrast */
+		background: rgba(0, 0, 0, 0.6); /* Add background for contrast */
 		z-index: 1001;
 		justify-content: center; /* Center thumbnails if they don't fill the width */
 		box-sizing: border-box;
 		/* Add scrollbar styling if desired */
 		scrollbar-width: thin;
-		scrollbar-color: rgba(255,255,255,0.3) transparent;
+		scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
 	}
 	.thumbnail-strip::-webkit-scrollbar {
 		height: 8px;
@@ -544,7 +520,7 @@
 		background: transparent;
 	}
 	.thumbnail-strip::-webkit-scrollbar-thumb {
-		background-color: rgba(255,255,255,0.3);
+		background-color: rgba(255, 255, 255, 0.3);
 		border-radius: 10px;
 		border: 2px solid transparent;
 		background-clip: content-box;
@@ -563,6 +539,8 @@
 
 	.lightbox-image-wrapper {
 		will-change: transform, opacity;
+		transform: translateZ(0); /* Force GPU acceleration */
+		backface-visibility: hidden;
 		display: flex;
 		justify-content: center;
 		align-items: center;
@@ -571,8 +549,8 @@
 		width: 100%; /* Ensure wrapper takes width */
 	}
 
-	/* Style the image generated by enhanced:img within the lightbox */
-	.lightbox-image-wrapper :global(img.lightbox-image-enhanced) {
+	/* Style the lightbox image */
+	.lightbox-image-wrapper .lightbox-image {
 		display: block;
 		max-width: 100%;
 		/* Use max-height from wrapper */
@@ -581,33 +559,66 @@
 		height: auto;
 		object-fit: contain;
 		border-radius: 3px;
-		box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+		box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
 	}
 
-	/* Style the image generated by enhanced:img within thumbnails */
-	.thumbnail-item :global(img.thumbnail-image-enhanced) {
+	/* Style thumbnail images */
+	.thumbnail-item .thumbnail-image {
 		display: block;
 		height: 100%; /* Fill container */
 		width: 100%; /* Fill container */
 		object-fit: cover;
-		/* border-radius: 2px; */ /* Removed, applied to container */
 		opacity: 0.6;
 		transition: opacity 0.2s ease;
-		/* cursor: pointer; */ /* Removed, applied to container */
 	}
 
-	.thumbnail-item:hover :global(img.thumbnail-image-enhanced) {
+	.thumbnail-item:hover .thumbnail-image {
 		opacity: 1; /* Full opacity on hover */
 	}
 	.thumbnail-item.active {
 		border-color: white; /* Use border instead of shadow */
 	}
-	.thumbnail-item.active :global(img.thumbnail-image-enhanced) {
+	.thumbnail-item.active .thumbnail-image {
 		opacity: 1;
 		/* box-shadow: 0 0 0 2px white; */ /* Replaced by border */
 	}
 
 	.text-shadow {
-		text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+		text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+	}
+
+	/* More indicator for virtualized thumbnails */
+	.more-indicator {
+		flex: 0 0 auto;
+		height: 50px;
+		width: 50px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: rgba(255, 255, 255, 0.9);
+		font-size: 14px;
+		letter-spacing: 1px;
+		cursor: pointer;
+		background: rgba(255, 255, 255, 0.15);
+		border: none;
+		border-radius: 4px;
+		transition: all 0.2s ease;
+		animation: pulse-glow 1.5s ease-in-out infinite;
+	}
+
+	.more-indicator:hover {
+		color: white;
+		background: rgba(255, 255, 255, 0.3);
+		transform: scale(1.05);
+	}
+
+	@keyframes pulse-glow {
+		0%,
+		100% {
+			opacity: 0.7;
+		}
+		50% {
+			opacity: 1;
+		}
 	}
 </style>

@@ -1,20 +1,21 @@
 import type { LayoutServerLoad } from './$types';
-import { error } from '@sveltejs/kit';
 
 interface DiaryMetadata {
 	title: string;
 	date: string;
-	[key: string]: any; 
+	[key: string]: any;
 }
 
 export interface DiaryEntry {
+	id?: string;
 	slug: string;
 	title: string;
 	date: string;
 }
 
-export const load: LayoutServerLoad = async () => {
+export const load: LayoutServerLoad = async ({ fetch }) => {
 	try {
+		// Load from static markdown files (original approach that works)
 		const diaryFiles = import.meta.glob('/src/lib/diary/*/+page.md');
 
 		const entries: DiaryEntry[] = await Promise.all(
@@ -26,7 +27,7 @@ export const load: LayoutServerLoad = async () => {
 				}
 				const slug = slugMatch[1];
 
-				const postModule = (await resolver()) as any; // Use 'any' for simplicity here
+				const postModule = (await resolver()) as any;
 				const metadata = (postModule?.metadata ?? {}) as DiaryMetadata;
 
 				if (!metadata.title || !metadata.date) {
@@ -53,6 +54,8 @@ export const load: LayoutServerLoad = async () => {
 		};
 	} catch (err) {
 		console.error('Error loading diary entries:', err);
-		error(500, 'Could not load diary entries');
+		return {
+			sortedEntries: []
+		};
 	}
 };

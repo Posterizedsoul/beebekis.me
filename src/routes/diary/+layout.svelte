@@ -9,22 +9,17 @@
 	const currentSlug = $derived($page.params.slug);
 </script>
 
-<div
-	class="diary-container"
-	class:layout-entry={hasSlug}
->
+<div class="diary-container" class:layout-entry={hasSlug}>
 	{#if hasSlug}
 		<div class="entry-content-area">
-			<article class="prose prose-neutral lg:prose-lg max-w-6xl text-justify prose-a:text-blue-600 hover:prose-a:text-blue-800">
+			<article
+				class="prose prose-neutral lg:prose-lg prose-a:text-blue-600 hover:prose-a:text-blue-800 max-w-6xl text-justify"
+			>
 				{@render children()}
 			</article>
 		</div>
 		<div class="timeline-area-horizontal">
-			<DiaryTimeline
-				entries={data.sortedEntries}
-				{currentSlug}
-				layout="horizontal"
-			/>
+			<DiaryTimeline entries={data.sortedEntries} {currentSlug} layout="horizontal" />
 		</div>
 	{:else}
 		<main class="diary-content-index">
@@ -71,7 +66,6 @@
 	.diary-container:not(.layout-entry) .diary-content-index {
 	}
 
-
 	@media (max-width: 768px) {
 		.diary-container {
 			height: auto;
@@ -117,4 +111,3 @@
 		}
 	}
 </style>
-
