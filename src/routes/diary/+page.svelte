@@ -1,7 +1,7 @@
 <script lang="ts">
-	import type { LayoutData } from './$types';
+	import type { PageData } from './$types';
 
-	export let data: LayoutData;
+	export let data: PageData;
 	const entries = data.sortedEntries;
 
 	function formatShortDate(dateString: string): string {
@@ -24,20 +24,39 @@
 
 <svelte:head>
 	<title>Diary - Bibek Bhatta</title>
-	<meta name="description" content="A chronological collection of thoughts and updates from Bibek Bhatta." />
+	<meta
+		name="description"
+		content="A chronological collection of thoughts and updates from Bibek Bhatta."
+	/>
 </svelte:head>
 
-<div class="fixed left-0 top-0 h-screen flex flex-col items-center justify-center pl-10 md:pl-150 z-10 pointer-events-none">
-	<span class="block text-5xl md:text-7xl lg:text-9xl font-bold text-gray-300 leading-none tracking-tighter">D</span>
-	<span class="block text-5xl md:text-7xl lg:text-9xl font-bold text-gray-300 leading-none tracking-tighter">I</span>
-	<span class="block text-5xl md:text-7xl lg:text-9xl font-bold text-gray-300 leading-none tracking-tighter">A</span>
-	<span class="block text-5xl md:text-7xl lg:text-9xl font-bold text-gray-300 leading-none tracking-tighter">R</span>
-	<span class="block text-5xl md:text-7xl lg:text-9xl font-bold text-gray-300 leading-none tracking-tighter">Y</span>
+<div
+	class="md:pl-150 pointer-events-none fixed left-0 top-0 z-10 flex h-screen flex-col items-center justify-center pl-10"
+>
+	<span
+		class="block text-5xl font-bold leading-none tracking-tighter text-gray-300 md:text-7xl lg:text-9xl"
+		>D</span
+	>
+	<span
+		class="block text-5xl font-bold leading-none tracking-tighter text-gray-300 md:text-7xl lg:text-9xl"
+		>I</span
+	>
+	<span
+		class="block text-5xl font-bold leading-none tracking-tighter text-gray-300 md:text-7xl lg:text-9xl"
+		>A</span
+	>
+	<span
+		class="block text-5xl font-bold leading-none tracking-tighter text-gray-300 md:text-7xl lg:text-9xl"
+		>R</span
+	>
+	<span
+		class="block text-5xl font-bold leading-none tracking-tighter text-gray-300 md:text-7xl lg:text-9xl"
+		>Y</span
+	>
 </div>
-<div class="max-w-2xl mx-auto px-4 py-12 md:py-16 relative z-20">
-
+<div class="relative z-20 mx-auto max-w-2xl px-4 py-12 md:py-16">
 	{#if entries.length > 0}
-		<div class="relative timeline-container">
+		<div class="timeline-container relative">
 			<div class="timeline-line"></div>
 
 			{#each entries as entry, i (entry.slug)}
@@ -59,11 +78,16 @@
 					</div>
 
 					<div class="timeline-content">
-						<a href="/diary/{entry.slug}" class="block transition-opacity duration-200 hover:opacity-75">
-							<h3 class="relative text-base sm:text-lg font-medium text-gray-900 mb-1 group-hover:text-black">
+						<a
+							href="/diary/{entry.slug}"
+							class="block transition-opacity duration-200 hover:opacity-75"
+						>
+							<h3
+								class="relative mb-1 text-base font-medium text-gray-900 group-hover:text-black sm:text-lg"
+							>
 								<span>{entry.title}</span>
 								<span
-									class="absolute bottom-0 left-0 block h-0.5 bg-black w-full transform transition-transform duration-300 ease-out origin-left scale-x-0 group-hover:scale-x-100"
+									class="absolute bottom-0 left-0 block h-0.5 w-full origin-left scale-x-0 transform bg-black transition-transform duration-300 ease-out group-hover:scale-x-100"
 								></span>
 							</h3>
 							{#if entry.description}
@@ -77,7 +101,7 @@
 			{/each}
 		</div>
 	{:else}
-		<p class="text-center text-gray-500 mt-10">No diary entries yet!</p>
+		<p class="mt-10 text-center text-gray-500">No diary entries yet!</p>
 	{/if}
 </div>
 
@@ -170,5 +194,4 @@
 	.timeline-container > :last-child {
 		margin-bottom: 0;
 	}
-
 </style>
