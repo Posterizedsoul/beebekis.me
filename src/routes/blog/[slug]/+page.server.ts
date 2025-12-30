@@ -58,3 +58,8 @@ export const load: PageServerLoad = async ({ params }) => {
         throw error(500, `Failed to load post: ${slug}`);
     }
 };
+
+// Disable ISR for this page so updated posts appear immediately
+export const config = {
+    isr: false
+};

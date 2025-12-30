@@ -56,6 +56,10 @@ export const load: PageServerLoad = async ({ params }) => {
 	} catch (err: any) {
 		console.error(`[Memory Loader] Error loading memory ${slug}:`, err);
 		if (err.status === 404) throw err;
-		throw error(500, `Failed to load memory: ${slug}`);
 	}
+};
+
+// Disable ISR for this page so updated memories appear immediately
+export const config = {
+	isr: false
 };

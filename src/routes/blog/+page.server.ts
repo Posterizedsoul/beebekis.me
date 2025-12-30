@@ -88,3 +88,8 @@ export const load: PageServerLoad = async () => {
 		};
 	}
 };
+
+// Disable ISR for this page so new posts appear immediately
+export const config = {
+	isr: false
+};

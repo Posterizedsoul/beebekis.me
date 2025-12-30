@@ -45,3 +45,8 @@ export const load: LayoutServerLoad = async () => {
 		};
 	}
 };
+
+// Disable ISR for diary pages so new entries appear immediately
+export const config = {
+	isr: false
+};

@@ -5,6 +5,7 @@ import { collection, getDocs, query, orderBy, where } from 'firebase/firestore';
 
 // Define the shape of diary entry metadata
 interface DiaryEntry {
+	id: string;
 	slug: string;
 	title: string;
 	date: string; // ISO string
@@ -43,6 +44,7 @@ export const load: PageServerLoad = async () => {
 			const dateObj = data.date?.toDate ? data.date.toDate() : new Date(data.date);
 
 			return {
+				id: doc.id,
 				slug: data.slug,
 				title: data.title,
 				date: dateObj.toISOString().split('T')[0], // YYYY-MM-DD
@@ -82,4 +84,9 @@ export const load: PageServerLoad = async () => {
 			sortedEntries: []
 		};
 	}
+};
+
+// Disable ISR for this page so new entries appear immediately
+export const config = {
+	isr: false
 };

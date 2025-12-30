@@ -59,7 +59,7 @@
 		<div class="timeline-container relative">
 			<div class="timeline-line"></div>
 
-			{#each entries as entry, i (entry.slug)}
+			{#each entries as entry, i (entry.id)}
 				{@const currentYear = getYear(entry.date)}
 				{@const previousYear = i > 0 ? getYear(entries[i - 1].date) : null}
 				{@const showYearSeparator = i === 0 || currentYear !== previousYear}
