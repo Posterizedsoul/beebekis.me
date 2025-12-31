@@ -91,17 +91,6 @@
 	<link rel="canonical" href={`${siteUrl}${page.url.pathname}`} />
 </svelte:head>
 
-<!-- Background for homepage -->
-{#if isHomePage}
-	<div class="fixed inset-0 -z-10 overflow-hidden">
-		<img
-			src="/background.png"
-			alt="Background"
-			class="absolute inset-0 h-full w-full origin-center scale-90 object-contain"
-		/>
-	</div>
-{/if}
-
 <!-- Wrapper for foreground content (Navbar + Main). -->
 <div class="relative z-0 min-h-screen bg-white">
 	<!-- Navbar -->

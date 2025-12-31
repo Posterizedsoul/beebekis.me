@@ -251,7 +251,7 @@
 						</p>
 					</div>
 					<p class="font-serif text-sm text-gray-800">
-						Mississippi State University • Starkville, Mississippi • Freshman
+						Mississippi State University • Starkville, Mississippi • Sophomore
 					</p>
 					<ul class="ml-4 list-outside list-disc pt-1 font-serif text-sm text-gray-800">
 						<li>Cumulative GPA: <strong>4.0/4.0</strong></li>
@@ -287,7 +287,35 @@
 				>
 					Experience
 				</h3>
+				<!-- Undergraduate Researcher -->
 				<div class="pt-1">
+					<div class="flex flex-col sm:flex-row sm:items-start sm:justify-between">
+						<h4 class="font-serif text-lg font-bold text-black">Undergraduate Researcher</h4>
+						<p class="flex-shrink-0 pt-1 font-serif text-sm font-bold text-black sm:pl-4 sm:pt-0">
+							October 2025 - Present
+						</p>
+					</div>
+					<p class="font-serif text-sm text-gray-800">
+						Department of Plant and Soil Sciences at Mississippi State University / Starkville, MS
+					</p>
+					<ul class="ml-4 list-outside list-disc space-y-1 pt-1 font-serif text-sm text-gray-800">
+						<li>
+							Developed a computer-vision seed measurement system (<strong
+								>ArUco-calibrated, real-time</strong
+							>) and modular Python app (<strong
+								>advanced image-processing pipelines, DearPyGUI</strong
+							>), while conducting <strong>CNN</strong> research for
+							<strong>automated seed and nodule analysis</strong> and supporting PhD and graduate research
+							with data collection, processing, and documentation.
+						</li>
+						<li>
+							Abstract, automated seed and nodule analysis paper, accepted for oral and poster
+							presentation at the 90th Mississippi Academy of Sciences Conference (2026).
+						</li>
+					</ul>
+				</div>
+				<!-- Technical Lead -->
+				<div class="mt-2">
 					<div class="flex flex-col sm:flex-row sm:items-start sm:justify-between">
 						<h4 class="font-serif text-lg font-bold text-black">Technical Lead</h4>
 						<p class="flex-shrink-0 pt-1 font-serif text-sm font-bold text-black sm:pl-4 sm:pt-0">
@@ -304,11 +332,6 @@
 							<strong>FastAPI</strong>,
 							<strong>DaisyUI</strong> and <strong>SvelteKit</strong>, significantly enhancing user
 							experience and operational efficiency.
-						</li>
-						<li>
-							Engineer a training application with <strong>Python</strong> and
-							<strong>DearPyGUI</strong> supported by a <strong>FastAPI</strong>
-							backend, to improve the training processes.
 						</li>
 						<li>
 							Create a custom <strong>PDF-to-image generator</strong> for
