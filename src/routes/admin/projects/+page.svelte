@@ -3,7 +3,7 @@
 	import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 	import { onMount } from 'svelte';
 
-	interface DiaryEntry {
+	interface Project {
 		id: string;
 		title: string;
 		date: Date;
@@ -11,15 +11,15 @@
 		isPublished: boolean;
 	}
 
-	let entries: DiaryEntry[] = $state([]);
+	let projects: Project[] = $state([]);
 	let loading = $state(true);
 
 	onMount(async () => {
 		try {
-			const q = query(collection(db, 'diary_entries'), orderBy('date', 'desc'));
+			const q = query(collection(db, 'projects'), orderBy('date', 'desc'));
 			const querySnapshot = await getDocs(q);
 
-			entries = querySnapshot.docs.map((doc) => {
+			projects = querySnapshot.docs.map((doc) => {
 				const data = doc.data();
 				return {
 					id: doc.id,
@@ -30,7 +30,7 @@
 				};
 			});
 		} catch (err) {
-			console.error('Error fetching diary entries:', err);
+			console.error('Error fetching projects:', err);
 		} finally {
 			loading = false;
 		}
@@ -39,15 +39,17 @@
 
 <div class="sm:flex sm:items-center">
 	<div class="sm:flex-auto">
-		<h1 class="text-2xl font-semibold text-gray-900">Diary Entries</h1>
-		<p class="mt-2 text-sm text-gray-700">A list of your personal journal entries.</p>
+		<h1 class="text-2xl font-semibold text-gray-900">Projects</h1>
+		<p class="mt-2 text-sm text-gray-700">
+			Manage your portfolio projects with images and descriptions.
+		</p>
 	</div>
 	<div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
 		<a
-			href="/admin/diary/new"
+			href="/admin/projects/new"
 			class="block rounded-md bg-black px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-gray-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
 		>
-			New Entry
+			Add Project
 		</a>
 	</div>
 </div>
@@ -79,32 +81,34 @@
 						{#if loading}
 							<tr>
 								<td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500"
-									>Loading entries...</td
+									>Loading projects...</td
 								>
 							</tr>
-						{:else if entries.length === 0}
+						{:else if projects.length === 0}
 							<tr>
 								<td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500"
-									>No diary entries found. Write one!</td
+									>No projects found. Add one!</td
 								>
 							</tr>
 						{:else}
-							{#each entries as entry}
+							{#each projects as project}
 								<tr>
 									<td
 										class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6"
 									>
 										<a
-											href="/diary/{entry.slug}"
+											href="/projects/{project.slug}"
 											target="_blank"
-											class="hover:text-indigo-600 hover:underline">{entry.title}</a
+											class="hover:text-indigo-600 hover:underline"
 										>
+											{project.title}
+										</a>
 									</td>
 									<td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500"
-										>{entry.date.toLocaleDateString()}</td
+										>{project.date.toLocaleDateString()}</td
 									>
 									<td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-										{#if entry.isPublished}
+										{#if project.isPublished}
 											<span
 												class="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20"
 												>Published</span
@@ -119,8 +123,10 @@
 									<td
 										class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6"
 									>
-										<a href="/admin/diary/{entry.id}" class="text-indigo-600 hover:text-indigo-900"
-											>Edit<span class="sr-only">, {entry.title}</span></a
+										<a
+											href="/admin/projects/{project.id}"
+											class="text-indigo-600 hover:text-indigo-900"
+											>Edit<span class="sr-only">, {project.title}</span></a
 										>
 									</td>
 								</tr>

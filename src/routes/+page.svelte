@@ -45,15 +45,18 @@
 	<!-- Name -->
 	<div class="content">
 		<h1 class="name">
-			<span>Bibek</span>
-			<span>Bhatta</span>
+			<span class="name-top">Bibek</span>
+			<span class="middle-line"></span>
+			<span class="name-bottom">Bhatta</span>
 		</h1>
 	</div>
 </div>
 
 <style>
 	.hero {
-		position: relative;
+		position: fixed;
+		top: 0;
+		left: 0;
 		width: 100%;
 		height: 100vh;
 		overflow: hidden;
@@ -104,14 +107,13 @@
 		transform-origin: center;
 	}
 
-	/* Name content */
+	/* Name content - positioned at true viewport center */
 	.content {
-		position: relative;
+		position: fixed;
+		top: 50vh;
+		left: 50%;
+		transform: translate(-50%, -50%);
 		z-index: 2;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		height: 100%;
 	}
 
 	.name {
@@ -123,10 +125,25 @@
 		margin: 0;
 		display: flex;
 		flex-direction: column;
+		align-items: center;
 	}
 
-	.name span {
+	.name-top {
 		display: block;
+		transform: translateY(-0.05em);
+	}
+
+	.middle-line {
+		display: block;
+		width: 100%;
+		height: 2px;
+		background: transparent;
+		margin: 0.05em 0;
+	}
+
+	.name-bottom {
+		display: block;
+		transform: translateY(0.05em);
 	}
 
 	/* Reduced motion */

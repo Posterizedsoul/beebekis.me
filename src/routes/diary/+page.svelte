@@ -31,7 +31,7 @@
 </svelte:head>
 
 <div
-	class="md:pl-150 pointer-events-none fixed left-0 top-0 z-10 flex h-screen flex-col items-center justify-center pl-10"
+	class="pointer-events-none fixed left-0 top-0 z-10 flex h-screen flex-col items-center justify-center pl-10 md:pl-20"
 >
 	<span
 		class="block text-5xl font-bold leading-none tracking-tighter text-gray-300 md:text-7xl lg:text-9xl"

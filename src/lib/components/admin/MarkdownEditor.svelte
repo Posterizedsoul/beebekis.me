@@ -11,12 +11,25 @@
 	import Highlight from '@tiptap/extension-highlight';
 	import Subscript from '@tiptap/extension-subscript';
 	import Superscript from '@tiptap/extension-superscript';
+	import { storage } from '$lib/firebase';
+	import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+	import imageCompression from 'browser-image-compression';
 
-	let { value = $bindable(''), placeholder = 'Start writing...' } = $props();
+	let {
+		value = $bindable(''),
+		placeholder = 'Start writing...',
+		imageFolder = 'content-images'
+	} = $props();
 
 	let element: HTMLElement;
 	let editor: Editor | undefined = $state();
 	let mode: 'edit' | 'preview' = $state('edit');
+
+	// Image upload state
+	let fileInput: HTMLInputElement;
+	let imageUploading = $state(false);
+	let imageUploadProgress = $state(0);
+	let isImageSelected = $state(false);
 
 	onMount(() => {
 		editor = new Editor({
@@ -46,6 +59,14 @@
 			},
 			onUpdate: ({ editor }) => {
 				value = editor.getHTML();
+			},
+			onSelectionUpdate: ({ editor }) => {
+				// Check if an image node is selected
+				const { selection } = editor.state;
+				const node = selection.$anchor.parent;
+				const isImage =
+					editor.isActive('image') || (selection.node && selection.node.type.name === 'image');
+				isImageSelected = isImage;
 			}
 		});
 	});
@@ -92,15 +113,118 @@
 		}
 		editor?.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
 	};
+
+	// Image upload - triggers file picker
 	const addImage = () => {
-		const url = window.prompt('Image URL');
-		if (url) {
-			editor?.chain().focus().setImage({ src: url }).run();
-		}
+		fileInput?.click();
 	};
+
+	// Handle file selection and upload
+	async function handleImageUpload(event: Event) {
+		const target = event.target as HTMLInputElement;
+		const files = target.files;
+		if (!files || files.length === 0 || !editor) return;
+
+		imageUploading = true;
+		imageUploadProgress = 0;
+		const uploadedUrls: string[] = [];
+
+		try {
+			for (let i = 0; i < files.length; i++) {
+				const file = files[i];
+
+				// Compress image
+				const options = {
+					maxSizeMB: 1,
+					maxWidthOrHeight: 1920,
+					useWebWorker: true
+				};
+
+				let fileToUpload = file;
+				try {
+					fileToUpload = await imageCompression(file, options);
+				} catch (compressionError) {
+					console.warn('Image compression failed, uploading original:', compressionError);
+				}
+
+				// Create storage reference
+				const timestamp = Date.now();
+				const uniqueName = `${timestamp}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+				const storageRef = ref(storage, `${imageFolder}/${uniqueName}`);
+
+				// Upload with progress
+				const uploadTask = uploadBytesResumable(storageRef, fileToUpload);
+
+				const downloadURL = await new Promise<string>((resolve, reject) => {
+					uploadTask.on(
+						'state_changed',
+						(snapshot) => {
+							const singleFileProgress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+							const overallProgress = (i * 100 + singleFileProgress) / files.length;
+							imageUploadProgress = Math.round(overallProgress);
+						},
+						(err) => reject(err),
+						async () => {
+							const url = await getDownloadURL(uploadTask.snapshot.ref);
+							resolve(url);
+						}
+					);
+				});
+
+				uploadedUrls.push(downloadURL);
+			}
+
+			// Insert images - as gallery grid if multiple, single if one
+			if (uploadedUrls.length === 1) {
+				editor.chain().focus().setImage({ src: uploadedUrls[0] }).run();
+			} else if (uploadedUrls.length > 1) {
+				// Insert as a gallery grid
+				const galleryHtml = `<div class="image-gallery">${uploadedUrls.map((url) => `<img src="${url}" alt="" />`).join('')}</div><p></p>`;
+				editor.chain().focus().insertContent(galleryHtml).run();
+			}
+		} catch (err: any) {
+			console.error('Image upload failed:', err);
+			alert('Failed to upload image: ' + err.message);
+		} finally {
+			imageUploading = false;
+			imageUploadProgress = 0;
+			target.value = ''; // Reset input for next upload
+		}
+	}
+
 	const addHr = () => editor?.chain().focus().setHorizontalRule().run();
 	const clearFormat = () => editor?.chain().focus().clearNodes().unsetAllMarks().run();
+
+	// Delete the currently selected image
+	const deleteSelectedImage = () => {
+		if (editor?.isActive('image')) {
+			editor.chain().focus().deleteSelection().run();
+		}
+	};
 </script>
+
+<!-- Hidden file input for image uploads -->
+<input
+	type="file"
+	bind:this={fileInput}
+	class="hidden"
+	accept="image/*"
+	multiple
+	onchange={handleImageUpload}
+/>
+
+<!-- Upload Progress Overlay -->
+{#if imageUploading}
+	<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+		<div class="rounded-lg bg-white p-6 text-center shadow-xl">
+			<div
+				class="mx-auto mb-3 h-12 w-12 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600"
+			></div>
+			<p class="text-sm font-medium text-gray-700">Uploading images...</p>
+			<p class="mt-1 text-lg font-semibold text-blue-600">{imageUploadProgress}%</p>
+		</div>
+	</div>
+{/if}
 
 <div class="flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
 	<!-- Top Toolbar -->
@@ -445,6 +569,28 @@
 				/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" /></svg
 			>
 		</button>
+		{#if isImageSelected}
+			<button
+				type="button"
+				onclick={deleteSelectedImage}
+				class="toolbar-btn text-red-600 hover:bg-red-100"
+				title="Delete Selected Image"
+				aria-label="Delete Selected Image"
+			>
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					width="16"
+					height="16"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					><polyline points="3 6 5 6 21 6" /><path
+						d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+					/><line x1="10" x2="10" y1="11" y2="17" /><line x1="14" x2="14" y1="11" y2="17" /></svg
+				>
+			</button>
+		{/if}
 		<button
 			type="button"
 			onclick={addHr}
@@ -598,5 +744,43 @@
 		pointer-events: none;
 		position: absolute;
 		z-index: 2;
+	}
+
+	/* Image gallery masonry for multiple images */
+	:global(.image-gallery) {
+		column-count: 2;
+		column-gap: 0.5rem;
+		margin: 1rem 0;
+		width: 100%;
+	}
+	:global(.image-gallery img) {
+		width: 100%;
+		height: auto;
+		margin-bottom: 0.5rem;
+		break-inside: avoid;
+		display: block;
+		border-radius: 8px;
+		cursor: pointer;
+		transition:
+			transform 0.2s,
+			opacity 0.2s;
+	}
+	:global(.image-gallery img:hover) {
+		transform: scale(1.02);
+		opacity: 0.9;
+	}
+
+	/* Image delete buttons in editor */
+	:global(.ProseMirror img) {
+		position: relative;
+		cursor: pointer;
+		transition: opacity 0.2s;
+	}
+	:global(.ProseMirror img:hover) {
+		opacity: 0.9;
+	}
+	:global(.ProseMirror img.ProseMirror-selectednode) {
+		outline: 2px solid #3b82f6;
+		outline-offset: 2px;
 	}
 </style>

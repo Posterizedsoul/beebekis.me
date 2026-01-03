@@ -117,7 +117,42 @@
 					></span>
 				</a>
 			</li>
-
+			<li>
+				<a
+					href="/projects"
+					class="group relative text-sm transition-colors duration-300 md:text-base {page.url.pathname.startsWith(
+						'/projects'
+					)
+						? 'text-black'
+						: 'hover:text-black'}"
+				>
+					<span>Projects</span>
+					<span
+						class="absolute bottom-0 left-0 block h-0.5 w-full origin-left transform bg-black transition-transform duration-300 ease-out {page.url.pathname.startsWith(
+							'/projects'
+						)
+							? 'scale-x-100'
+							: 'scale-x-0 group-hover:scale-x-100'}"
+					></span>
+				</a>
+			</li>
+			<li>
+				<a
+					href="/about"
+					class="group relative text-sm transition-colors duration-300 md:text-base {page.url
+						.pathname === '/about'
+						? 'text-black'
+						: 'hover:text-black'}"
+				>
+					<span>About</span>
+					<span
+						class="absolute bottom-0 left-0 block h-0.5 w-full origin-left transform bg-black transition-transform duration-300 ease-out {page
+							.url.pathname === '/about'
+							? 'scale-x-100'
+							: 'scale-x-0 group-hover:scale-x-100'}"
+					></span>
+				</a>
+			</li>
 			<li>
 				<a
 					href="/diary"
@@ -170,23 +205,6 @@
 						class="absolute bottom-0 left-0 block h-0.5 w-full origin-left transform bg-black transition-transform duration-300 ease-out {page.url.pathname.startsWith(
 							'/memories'
 						)
-							? 'scale-x-100'
-							: 'scale-x-0 group-hover:scale-x-100'}"
-					></span>
-				</a>
-			</li>
-			<li>
-				<a
-					href="/about"
-					class="group relative text-sm transition-colors duration-300 md:text-base {page.url
-						.pathname === '/about'
-						? 'text-black'
-						: 'hover:text-black'}"
-				>
-					<span>About</span>
-					<span
-						class="absolute bottom-0 left-0 block h-0.5 w-full origin-left transform bg-black transition-transform duration-300 ease-out {page
-							.url.pathname === '/about'
 							? 'scale-x-100'
 							: 'scale-x-0 group-hover:scale-x-100'}"
 					></span>
