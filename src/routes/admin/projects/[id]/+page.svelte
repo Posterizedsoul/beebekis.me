@@ -86,6 +86,14 @@
 			const docRef = doc(db, 'projects', projectId);
 			// Process content to group consecutive images into galleries
 			const processedContent = processContentImages(content);
+
+			// Filter out the featured image from gallery images to prevent it appearing in lightbox
+			const featuredBase = featuredImage ? featuredImage.split('?')[0] : '';
+			const filteredImages = images.filter((img) => {
+				const imgBase = img.url ? img.url.split('?')[0] : '';
+				return imgBase !== featuredBase;
+			});
+
 			await updateDoc(docRef, {
 				title,
 				slug,
@@ -96,7 +104,7 @@
 				technologies,
 				github,
 				live,
-				images,
+				images: filteredImages,
 				publishStatus,
 				isPublished: publishStatus === 'published',
 				updatedAt: Timestamp.now()

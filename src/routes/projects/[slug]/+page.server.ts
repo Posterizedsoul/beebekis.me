@@ -2,14 +2,11 @@ import type { PageServerLoad } from './$types';
 import { error } from '@sveltejs/kit';
 import { db } from '$lib/firebase';
 import { collection, getDocs, query, where, limit } from 'firebase/firestore';
-import { marked } from 'marked';
 
 export const load: PageServerLoad = async ({ params }) => {
     const { slug } = params;
 
     try {
-        console.log(`[Project Loader] Loading project: ${slug}`);
-
         const q = query(
             collection(db, 'projects'),
             where('slug', '==', slug),
@@ -19,30 +16,30 @@ export const load: PageServerLoad = async ({ params }) => {
         const querySnapshot = await getDocs(q);
 
         if (querySnapshot.empty) {
-            console.error(`[Project Loader] No project found for slug: ${slug}`);
             throw error(404, `Project not found: ${slug}`);
         }
 
         const doc = querySnapshot.docs[0];
         const data = doc.data();
 
-        // Parse markdown content
-        let contentHtml = '';
-        if (data.content) {
-            try {
-                contentHtml = await marked.parse(data.content, { breaks: true, gfm: true });
-            } catch (e) {
-                console.error(`[Project Loader] Error parsing markdown for ${slug}:`, e);
-            }
-        }
+        // Content is already HTML from TipTap editor
+        const contentHtml = data.content || '';
 
-        // Get all images
+        // Get all images for gallery/fallback
         let images: { url: string; alt?: string }[] = [];
+        const featuredImageBase = data.featuredImage ? data.featuredImage.split('?')[0] : '';
+
         if (data.images && Array.isArray(data.images)) {
-            images = data.images.map((img: any) => ({
-                url: img.url,
-                alt: img.altText || 'Project image'
-            }));
+            images = data.images
+                .filter((img: any) => {
+                    // Exclude the featured image from the gallery
+                    const imgBase = img.url ? img.url.split('?')[0] : '';
+                    return imgBase !== featuredImageBase;
+                })
+                .map((img: any) => ({
+                    url: img.url,
+                    alt: img.altText || 'Project image'
+                }));
         }
 
         return {

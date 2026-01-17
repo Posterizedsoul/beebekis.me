@@ -61,6 +61,13 @@
 			// Process content to group consecutive images into galleries
 			const processedContent = processContentImages(content);
 
+			// Filter out the featured image from gallery images to prevent it appearing in lightbox
+			const featuredBase = featuredImage ? featuredImage.split('?')[0] : '';
+			const filteredImages = images.filter((img) => {
+				const imgBase = img.url ? img.url.split('?')[0] : '';
+				return imgBase !== featuredBase;
+			});
+
 			const docData = {
 				title,
 				slug,
@@ -71,7 +78,7 @@
 				technologies,
 				github,
 				live,
-				images,
+				images: filteredImages,
 				publishStatus,
 				isPublished: publishStatus === 'published',
 				createdAt: Timestamp.now(),

@@ -5,30 +5,40 @@
 /**
  * Process content HTML to ensure images display in galleries when grouped together
  * Handles:
- * 1. Multiple images inside a single <p> tag
- * 2. Consecutive <p> tags each containing a single image
+ * 1. Multiple images inside a single <p> tag (with or without style attributes)
+ * 2. Consecutive <p> tags each containing images (with or without other content)
  */
 export function processContentImages(html: string): string {
     if (!html) return html;
 
-    // First pass: Handle paragraphs with multiple images
-    // Pattern: <p> containing 2+ images (possibly with whitespace/br between them)
+    // First pass: Handle paragraphs with multiple images (including styled paragraphs)
+    // Pattern: <p ...> containing 2+ images (possibly with other content like links)
     html = html.replace(
-        /<p>(\s*(?:<img[^>]*(?:\/>|>(?:<\/img>)?)\s*(?:<br\s*\/?>)?\s*){2,})<\/p>/gi,
-        (match, innerContent) => {
+        /<p([^>]*)>([\s\S]*?)<\/p>/gi,
+        (match, attrs, innerContent) => {
             // Extract all img tags
-            const imgMatches = innerContent.match(/<img[^>]*(?:\/?>|>(?:<\/img>)?)/gi);
+            const imgMatches = innerContent.match(/<img[^>]*(?:\/?>|><\/img>)/gi);
             if (imgMatches && imgMatches.length > 1) {
-                // Normalize img tags and wrap in gallery
+                // Has multiple images - extract images and any captions/links
                 const normalizedImgs = imgMatches
                     .map((img: string) => {
-                        // Ensure self-closing format
+                        // Ensure proper format
                         if (!img.endsWith('/>') && !img.includes('</img>')) {
                             return img.replace(/>$/, ' />');
                         }
                         return img.replace(/<\/img>$/, '').replace(/>$/, ' />');
                     })
                     .join('');
+
+                // Check for any caption/link content after images
+                const nonImgContent = innerContent
+                    .replace(/<img[^>]*(?:\/?>|><\/img>)/gi, '')
+                    .trim();
+
+                if (nonImgContent) {
+                    // Keep caption/link below the gallery
+                    return `<div class="image-gallery">${normalizedImgs}</div><p${attrs}>${nonImgContent}</p>`;
+                }
                 return `<div class="image-gallery">${normalizedImgs}</div>`;
             }
             return match;
@@ -36,9 +46,9 @@ export function processContentImages(html: string): string {
     );
 
     // Second pass: Handle consecutive single-image paragraphs
-    // Pattern: <p><img .../></p> followed by more <p><img .../></p>
-    const singleImgParagraphPattern = /<p>\s*(<img[^>]*(?:\/>|>(?:<\/img>)?))\s*<\/p>/gi;
-    const parts: Array<{ type: 'single-img' | 'other'; img?: string; content?: string }> = [];
+    // Pattern: <p ...><img .../></p> (with possible style attributes)
+    const singleImgParagraphPattern = /<p([^>]*)>\s*(<img[^>]*(?:\/?>|><\/img>))\s*<\/p>/gi;
+    const parts: Array<{ type: 'single-img' | 'other'; img?: string; attrs?: string; content?: string }> = [];
     let lastIndex = 0;
     let match;
 
@@ -53,7 +63,7 @@ export function processContentImages(html: string): string {
             }
         }
         // Add the single-image paragraph
-        parts.push({ type: 'single-img', img: match[1] });
+        parts.push({ type: 'single-img', img: match[2], attrs: match[1] });
         lastIndex = regex.lastIndex;
     }
 
