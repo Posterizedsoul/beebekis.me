@@ -31,6 +31,50 @@
 	let imageUploadProgress = $state(0);
 	let isImageSelected = $state(false);
 
+	// Handle pasted images - upload to Firebase instead of embedding as base64
+	async function handlePastedImage(file: File): Promise<string | null> {
+		try {
+			// Compress image
+			const options = {
+				maxSizeMB: 1,
+				maxWidthOrHeight: 1920,
+				useWebWorker: true
+			};
+
+			let fileToUpload = file;
+			try {
+				fileToUpload = await imageCompression(file, options);
+			} catch (compressionError) {
+				console.warn('Image compression failed, uploading original:', compressionError);
+			}
+
+			// Create storage reference
+			const timestamp = Date.now();
+			const uniqueName = `${timestamp}-pasted-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+			const storageRef = ref(storage, `${imageFolder}/${uniqueName}`);
+
+			// Upload
+			const uploadTask = uploadBytesResumable(storageRef, fileToUpload);
+
+			const downloadURL = await new Promise<string>((resolve, reject) => {
+				uploadTask.on(
+					'state_changed',
+					() => {},
+					(err) => reject(err),
+					async () => {
+						const url = await getDownloadURL(uploadTask.snapshot.ref);
+						resolve(url);
+					}
+				);
+			});
+
+			return downloadURL;
+		} catch (err) {
+			console.error('Failed to upload pasted image:', err);
+			return null;
+		}
+	}
+
 	onMount(() => {
 		editor = new Editor({
 			element,
@@ -38,7 +82,7 @@
 				StarterKit.configure({
 					heading: { levels: [1, 2, 3, 4] }
 				}),
-				Image.configure({ inline: true, allowBase64: true }),
+				Image.configure({ inline: true, allowBase64: false }),
 				Placeholder.configure({ placeholder, emptyEditorClass: 'is-editor-empty' }),
 				Link.configure({
 					openOnClick: false,
@@ -55,6 +99,31 @@
 			editorProps: {
 				attributes: {
 					class: 'prose prose-lg focus:outline-none min-h-[400px] max-w-none p-6'
+				},
+				handlePaste: (view, event) => {
+					const items = event.clipboardData?.items;
+					if (!items) return false;
+
+					for (const item of items) {
+						if (item.type.startsWith('image/')) {
+							event.preventDefault();
+							const file = item.getAsFile();
+							if (file) {
+								// Show uploading state
+								imageUploading = true;
+								imageUploadProgress = 0;
+
+								handlePastedImage(file).then((url) => {
+									imageUploading = false;
+									if (url && editor) {
+										editor.chain().focus().setImage({ src: url }).run();
+									}
+								});
+							}
+							return true;
+						}
+					}
+					return false;
 				}
 			},
 			onUpdate: ({ editor }) => {
