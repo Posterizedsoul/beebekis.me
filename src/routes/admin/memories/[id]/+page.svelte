@@ -21,6 +21,7 @@
 	let coverImage = $state('');
 	let heroImage = $state('');
 	let images: ImageItem[] = $state([]);
+	let isPublished = $state(true);
 
 	let loading = $state(true);
 	let saving = $state(false);
@@ -46,6 +47,7 @@
 				coverImage = data.coverImage || '';
 				heroImage = data.heroImage || '';
 				images = data.images || [];
+				isPublished = data.isPublished ?? true;
 			} else {
 				error = 'Album not found';
 			}
@@ -89,6 +91,7 @@
 					...img,
 					sortOrder: index
 				})),
+				isPublished,
 				updatedAt: Timestamp.now()
 			};
 
@@ -241,6 +244,16 @@
 							placeholder="Brief summary for cards..."
 							class="mt-1 block w-full rounded-md border-gray-300 py-1.5 text-sm shadow-sm focus:border-black focus:ring-black"
 						></textarea>
+					</div>
+
+					<div class="flex items-center justify-between">
+						<label for="isPublished" class="text-xs font-medium text-gray-500">Published</label>
+						<input
+							type="checkbox"
+							id="isPublished"
+							bind:checked={isPublished}
+							class="h-4 w-4 rounded border-gray-300 text-black focus:ring-black"
+						/>
 					</div>
 				</div>
 
