@@ -1,14 +1,56 @@
 <script lang="ts">
-	import type { DiaryEntry } from '$lib/types'; // Assuming types are defined here
+	import type { DiaryEntry } from '$lib/types';
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
 
 	export let entries: DiaryEntry[] = [];
 	export let currentSlug: string | null = null;
 	export let layout: 'vertical' | 'horizontal' = 'vertical';
-	export let entryLimit: number | null = 30; // Limit for horizontal layout (null for no limit)
+	export let entryLimit: number | null = 30;
 
 	let activeItemRef: HTMLElement | null = null;
+	let wrapperRef: HTMLElement | null = null;
+	let blobStyle = 'opacity: 0;';
+	let rafId: number;
+
+	function updateBlob() {
+		if (activeItemRef) {
+			const { offsetLeft, offsetWidth } = activeItemRef;
+			blobStyle = `transform: translateX(${offsetLeft}px); width: ${offsetWidth}px; opacity: 1;`;
+		}
+	}
+
+	function startUpdateLoop() {
+		if (!browser) return;
+		const loop = () => {
+			updateBlob();
+			rafId = requestAnimationFrame(loop);
+		};
+		cancelAnimationFrame(rafId);
+		rafId = requestAnimationFrame(loop);
+	}
+
+	function setActiveRef(node: HTMLElement, isActive: boolean) {
+		if (isActive) {
+			activeItemRef = node;
+			updateBlob();
+		}
+		return {
+			update(newIsActive: boolean) {
+				if (newIsActive) {
+					activeItemRef = node;
+					updateBlob();
+				}
+			}
+		};
+	}
+
+	onMount(() => {
+		startUpdateLoop();
+		return () => cancelAnimationFrame(rafId);
+	});
+
+	$: if (entries || layout) setTimeout(updateBlob, 100);
 
 	// Function to format date (adjust as needed)
 	function formatDate(dateString: string): string {
@@ -68,25 +110,32 @@
 </script>
 
 <!-- Apply wrapper class based on layout -->
-<!-- Restore overflow-x-auto for horizontal -->
 <div
-	class="timeline-wrapper h-full"
+	bind:this={wrapperRef}
+	class="timeline-wrapper"
+	class:timeline-collapsed={layout === 'horizontal'}
 	class:p-2={layout === 'horizontal'}
-	class:overflow-x-auto={layout === 'horizontal'}
 	class:overflow-y-auto={layout === 'vertical'}
+	class:h-full={layout === 'vertical'}
 	class:p-4={layout === 'vertical'}
 >
 	<!-- Use conditional classes for layout direction and spacing -->
 	<!-- Restore horizontal flex layout -->
 	<ul
-		class="h-full"
+		class:h-full={layout === 'vertical'}
 		class:flex={layout === 'horizontal'}
 		class:flex-row={layout === 'horizontal'}
 		class:items-center={layout === 'horizontal'}
 		class:pb-2={layout === 'horizontal'}
 		class:space-y-4={layout === 'vertical'}
 		class:space-x-0={layout === 'vertical'}
+		style="position: relative;"
 	>
+		<!-- Floating active blob indicator -->
+		{#if layout === 'horizontal' && activeItemRef}
+			<div class="active-blob" style={blobStyle}></div>
+		{/if}
+
 		{#if entries.length > 0}
 			{#if layout === 'horizontal'}
 				<!-- Horizontal Layout: Iterate through sorted years and then entries within each year -->
@@ -98,62 +147,35 @@
 
 					{#each groupedEntries[year] as entry (entry.slug)}
 						{@const isActive = entry.slug === currentSlug}
-						{@const itemBaseClass =
-							'group timeline-item transition-[width,background-color] duration-300 ease-out rounded-md overflow-hidden flex-shrink-0 h-[calc(100%-1rem)]'}
-						{@const itemWidthClass = isActive ? 'w-40' : 'w-16 hover:w-40'}
+						{@const itemWidthClass = isActive ? 'w-44' : 'w-20 hover:w-36'}
 						{@const linkPaddingClass = isActive ? 'p-3' : 'p-2 group-hover:p-3'}
-						{@const linkJustifyClass = isActive
-							? 'justify-between'
-							: 'justify-center group-hover:justify-between'}
-						{@const dateAlignClass = isActive
-							? 'text-left mb-1'
-							: 'text-center mb-0 group-hover:text-left group-hover:mb-1'}
-						{@const titleOpacityClass = isActive
-							? 'opacity-100'
-							: 'opacity-0 group-hover:opacity-100'}
+						{@const linkJustifyClass = 'justify-start'}
+						{@const dateAlignClass = 'text-center'}
+						{@const titleOpacityClass = ''}
 
-						{#if isActive}
-							<li
-								bind:this={activeItemRef}
-								class="{itemBaseClass} {itemWidthClass} ml-2 border-l-4 border-yellow-400 bg-gray-800 text-white shadow-md md:ml-4"
+						<!-- Use unified element with morphing classes -->
+						<li
+							use:setActiveRef={isActive}
+							class="timeline-item timeline-entry-morph group ml-2 flex-shrink-0 overflow-hidden rounded-md md:ml-4 {itemWidthClass}"
+							class:entry-active={isActive}
+							class:entry-inactive={!isActive}
+						>
+							<a
+								href="/diary/{entry.slug}"
+								class="relative block flex h-full flex-col {linkPaddingClass} {linkJustifyClass}"
 							>
-								<a
-									href="/diary/{entry.slug}"
-									class="block flex h-full flex-col {linkPaddingClass} {linkJustifyClass}"
+								<span
+									class="timeline-date block text-xs font-semibold whitespace-nowrap {dateAlignClass}"
 								>
-									<span
-										class="block text-sm font-semibold {dateAlignClass} text-gray-300 transition-colors duration-200"
-									>
-										{formatDate(entry.date)}
-									</span>
-									<span
-										class="line-clamp-3 block text-sm font-semibold leading-tight {titleOpacityClass} text-white transition-opacity duration-200 ease-out"
-									>
-										{entry.title}
-									</span>
-								</a>
-							</li>
-						{:else}
-							<li
-								class="{itemBaseClass} {itemWidthClass} ml-2 border border-gray-200 bg-white text-gray-700 hover:bg-gray-100 md:ml-4"
-							>
-								<a
-									href="/diary/{entry.slug}"
-									class="block flex h-full flex-col {linkPaddingClass} {linkJustifyClass}"
+									{formatDate(entry.date)}
+								</span>
+								<span
+									class="timeline-title line-clamp-3 block text-sm leading-tight font-semibold {titleOpacityClass}"
 								>
-									<span
-										class="block text-sm font-semibold {dateAlignClass} text-gray-500 transition-colors duration-200"
-									>
-										{formatDate(entry.date)}
-									</span>
-									<span
-										class="line-clamp-3 block text-sm font-semibold leading-tight {titleOpacityClass} transition-opacity duration-200 ease-out"
-									>
-										{entry.title}
-									</span>
-								</a>
-							</li>
-						{/if}
+									{entry.title}
+								</span>
+							</a>
+						</li>
 					{/each}
 				{/each}
 			{:else}
@@ -173,7 +195,7 @@
 								<span class="mb-1 block text-base font-bold text-gray-300">
 									{formatDate(entry.date)}
 								</span>
-								<span class="line-clamp-3 block text-sm font-semibold leading-tight">
+								<span class="line-clamp-3 block text-sm leading-tight font-semibold">
 									{entry.title}
 								</span>
 							</a>
@@ -188,7 +210,7 @@
 								>
 									{formatDate(entry.date)}
 								</span>
-								<span class="line-clamp-3 block text-sm font-semibold leading-tight">
+								<span class="line-clamp-3 block text-sm leading-tight font-semibold">
 									{entry.title}
 								</span>
 							</a>
@@ -197,45 +219,60 @@
 				{/each}
 			{/if}
 		{:else}
-			<li class="px-4 text-center italic text-gray-500">No diary entries found.</li>
+			<li class="px-4 text-center text-gray-500 italic">No diary entries found.</li>
 		{/if}
 	</ul>
 </div>
 
 <style>
-	/* Common wrapper styles */
 	.timeline-wrapper {
-		scrollbar-width: thin; /* Firefox */
-		scrollbar-color: var(--tw-color-gray-400) var(--tw-color-gray-100); /* Firefox */
+		scrollbar-width: thin;
+		scrollbar-color: #9ca3af #f3f4f6;
 	}
 	.timeline-wrapper::-webkit-scrollbar {
-		height: 6px; /* Default height (for horizontal) */
-		width: 6px; /* Default width (for vertical) */
+		height: 6px;
+		width: 6px;
 	}
 	.timeline-wrapper::-webkit-scrollbar-track {
-		background: var(--tw-color-gray-100);
+		background: #f3f4f6;
 		border-radius: 3px;
 	}
 	.timeline-wrapper::-webkit-scrollbar-thumb {
-		background-color: var(--tw-color-gray-400);
+		background-color: #9ca3af;
 		border-radius: 3px;
 	}
 	.timeline-wrapper::-webkit-scrollbar-thumb:hover {
-		background-color: var(--tw-color-gray-500);
+		background-color: #6b7280;
 	}
 
-	/* Restore horizontal scrollbar height adjustment */
-	.timeline-wrapper.overflow-x-auto::-webkit-scrollbar {
-		height: 6px;
-		width: auto; /* Reset width if needed */
-	}
-	/* Adjust scrollbar width only for vertical layout */
-	.timeline-wrapper.overflow-y-auto::-webkit-scrollbar {
-		width: 6px;
-		height: auto; /* Reset height if needed */
+	.timeline-collapsed {
+		height: 100%;
+		overflow-x: auto;
+		overflow-y: hidden;
+		scroll-behavior: smooth;
 	}
 
-	/* Add line-clamp utility if not globally available */
+	.timeline-collapsed .timeline-item,
+	.timeline-collapsed .year-separator-horizontal {
+		height: 48px;
+		will-change: height, width;
+		transition:
+			height 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+			width 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+	}
+	.timeline-collapsed:hover .timeline-item,
+	.timeline-collapsed:hover .year-separator-horizontal {
+		height: 110px;
+	}
+
+	.timeline-collapsed .year-text-horizontal {
+		font-size: 0.875rem;
+		transition: font-size 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+	}
+	.timeline-collapsed:hover .year-text-horizontal {
+		font-size: 1.25rem;
+	}
+
 	.line-clamp-3 {
 		overflow: hidden;
 		display: -webkit-box;
@@ -243,33 +280,117 @@
 		-webkit-line-clamp: 3;
 	}
 
-	/* Horizontal Year Separator Styles */
 	.year-separator-horizontal {
 		display: flex;
-		align-items: center; /* Vertically center content */
-		height: calc(100% - 1rem); /* Match item height */
-		padding: 0 2rem; /* Increased padding for larger text */
-		/* Removed margin-left, spacing handled by item margin */
+		align-items: center;
+		padding: 0 0.75rem;
 		position: relative;
 	}
 	.year-separator-horizontal::before {
 		content: '';
 		position: absolute;
 		left: 0;
-		top: 10%; /* Adjust vertical position */
-		bottom: 10%; /* Adjust vertical position */
-		width: 2px; /* Line width */
-		background-color: #6b7280; /* gray-500 - Slightly darker line */
+		top: 10%;
+		bottom: 10%;
+		width: 2px;
+		background-color: #6b7280;
 	}
 	.year-text-horizontal {
-		writing-mode: vertical-rl; /* Vertical text */
-		transform: rotate(180deg); /* Correct orientation */
-		font-weight: 800; /* Extra-bold */
-		color: #374151; /* gray-700 - Darker text */
-		font-size: 1.5rem; /* Significantly larger text (adjust as needed) */
-		line-height: 1; /* Adjust line height for vertical text */
-		letter-spacing: 0.15em; /* Increased spacing */
-		margin-left: 0.75rem; /* Increased space between line and text */
+		writing-mode: vertical-rl;
+		transform: rotate(180deg);
+		font-weight: 800;
+		color: #374151;
+		line-height: 1;
+		letter-spacing: 0.05em;
+		margin-left: 0.5rem;
 		white-space: nowrap;
+	}
+
+	.timeline-entry-morph {
+		position: relative;
+		overflow: hidden;
+		will-change: width, height, background-color;
+		transition:
+			background-color 0.3s,
+			border-color 0.3s,
+			width 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+			height 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+	}
+	.timeline-entry-morph a {
+		position: relative;
+		z-index: 30;
+	}
+
+	.active-blob {
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		left: 0;
+		height: 100%;
+		background-color: #1f2937;
+		border-left: 4px solid #facc15;
+		border-radius: 0.375rem;
+		z-index: 20;
+		box-shadow:
+			0 10px 15px -3px rgba(0, 0, 0, 0.2),
+			0 4px 6px -2px rgba(0, 0, 0, 0.1);
+		pointer-events: none;
+		will-change: transform, width;
+		transition:
+			transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+			width 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+			opacity 0.2s;
+	}
+
+	.timeline-entry-morph.entry-active {
+		background-color: transparent !important;
+		border: 1px solid transparent;
+		color: white;
+	}
+	.timeline-entry-morph.entry-inactive {
+		background-color: white;
+		border: 1px solid #e5e7eb;
+		color: #374151;
+	}
+	.timeline-entry-morph.entry-inactive:hover {
+		background-color: #d1d5db;
+	}
+
+	.timeline-entry-morph.entry-active .timeline-date {
+		color: #d1d5db;
+	}
+	.timeline-entry-morph.entry-inactive .timeline-date {
+		color: #6b7280;
+	}
+	.timeline-entry-morph.entry-active .timeline-title {
+		color: white;
+	}
+	.timeline-entry-morph.entry-inactive .timeline-title {
+		color: #374151;
+	}
+
+	.timeline-collapsed .timeline-title {
+		opacity: 0;
+		max-height: 0;
+		position: absolute;
+		bottom: 0.5rem;
+		left: 0;
+		width: 100%;
+		text-align: center;
+		padding: 0 0.5rem;
+		display: -webkit-box;
+		-webkit-line-clamp: 3;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+		word-break: break-word;
+		line-height: 1.25;
+		transition:
+			opacity 0.3s,
+			max-height 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+	}
+	.timeline-collapsed:hover .timeline-item:hover .timeline-title,
+	.timeline-collapsed:hover .timeline-item.entry-active .timeline-title {
+		opacity: 1;
+		max-height: 5rem;
 	}
 </style>

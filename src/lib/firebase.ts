@@ -13,10 +13,6 @@ const firebaseConfig = {
   appId: PUBLIC_FIREBASE_APP_ID
 };
 
-console.log('Firebase Config Init:', {
-  apiKey: PUBLIC_FIREBASE_API_KEY ? 'Set' : 'Missing',
-  projectId: PUBLIC_FIREBASE_PROJECT_ID
-});
 
 // Initialize Firebase
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();

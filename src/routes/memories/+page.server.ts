@@ -1,7 +1,7 @@
 import type { PageServerLoad } from './$types';
 import { error } from '@sveltejs/kit';
 import { db } from '$lib/firebase';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, where } from 'firebase/firestore';
 
 // Define the shape of the memoir object for the landing page
 interface MemoirSummary {
@@ -41,8 +41,12 @@ export const load: PageServerLoad = async () => {
 	try {
 		console.log('Loading memories from Firestore...');
 
-		// Fetch all memories sorted by date
-		const q = query(collection(db, 'memories'), orderBy('date', 'desc'));
+		// Fetch all published memories sorted by date
+		const q = query(
+			collection(db, 'memories'),
+			where('isPublished', '==', true),
+			orderBy('date', 'desc')
+		);
 		// NOTE: In server-side load, getting docs from client SDK might require
 		// some environment setup. If this fails, we might need to move this logic to +page.ts (client-side load)
 		// or use firebase-admin. Let's assume standard SDK works for now or user browser fetch in +page.ts is better?

@@ -10,6 +10,7 @@ export const load: PageServerLoad = async ({ params }) => {
         const q = query(
             collection(db, 'projects'),
             where('slug', '==', slug),
+            where('isPublished', '==', true),
             limit(1)
         );
 

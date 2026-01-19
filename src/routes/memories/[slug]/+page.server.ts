@@ -13,6 +13,7 @@ export const load: PageServerLoad = async ({ params }) => {
 		const q = query(
 			collection(db, 'memories'),
 			where('slug', '==', slug),
+			where('isPublished', '==', true),
 			limit(1)
 		);
 

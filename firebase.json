@@ -1,0 +1,11 @@
+{
+    "firestore": {
+        "rules": "firestore.rules"
+    },
+    "storage": [
+        {
+            "bucket": "beebek-3e3e.firebasestorage.app",
+            "rules": "storage.rules"
+        }
+    ]
+}
