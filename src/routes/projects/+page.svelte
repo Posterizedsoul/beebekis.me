@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
+	import AdminAddButton from '$lib/components/AdminAddButton.svelte';
 
 	let { data }: { data: PageData } = $props();
 
@@ -50,6 +51,9 @@
 </div>
 
 <div class="mx-auto max-w-5xl px-4 py-12 sm:px-6 sm:py-16 md:py-20">
+	<div class="mb-8 flex justify-end">
+		<AdminAddButton href="/admin/projects/new" label="Add Project" />
+	</div>
 	{#if data.projects && data.projects.length > 0}
 		<div class="space-y-16">
 			{#each data.projects as project (project.slug)}

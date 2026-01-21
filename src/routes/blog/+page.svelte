@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
+	import AdminAddButton from '$lib/components/AdminAddButton.svelte';
 
 	export let data: PageData; // Receives groupedPosts and sortedYears
 
@@ -14,6 +15,9 @@
 </script>
 
 <div class="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 md:py-20">
+	<div class="mb-8 flex justify-end">
+		<AdminAddButton href="/admin/blog/new" label="Add Blog Post" />
+	</div>
 	<!-- Optional: Add a main heading for the blog section if desired -->
 	<!-- <h1 class="text-2xl sm:text-3xl font-semibold mb-10 sm:mb-12 text-center text-gray-800">Articles</h1> -->
 

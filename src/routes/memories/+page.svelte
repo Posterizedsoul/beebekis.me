@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import { onMount } from 'svelte';
+	import AdminAddButton from '$lib/components/AdminAddButton.svelte';
 
 	export let data: PageData; // Receives groupedMemoirs and sortedKeys
 
@@ -58,6 +59,9 @@
 </svelte:head>
 
 <section class="memories-landing-container mx-auto max-w-6xl px-4 py-8 md:py-16">
+	<div class="mb-8 flex justify-end">
+		<AdminAddButton href="/admin/memories/new" label="Add Memory" />
+	</div>
 	<!-- You could add a temporary debug output here if needed -->
 	<!-- <pre>Debug Sorted Keys: {JSON.stringify(data.sortedKeys, null, 2)}</pre> -->
 	{#if data.sortedKeys && data.sortedKeys.years.length > 0}

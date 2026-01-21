@@ -165,12 +165,12 @@
 								class="relative block flex h-full flex-col {linkPaddingClass} {linkJustifyClass}"
 							>
 								<span
-									class="timeline-date block text-xs font-semibold whitespace-nowrap {dateAlignClass}"
+									class="timeline-date block whitespace-nowrap text-xs font-semibold {dateAlignClass}"
 								>
 									{formatDate(entry.date)}
 								</span>
 								<span
-									class="timeline-title line-clamp-3 block text-sm leading-tight font-semibold {titleOpacityClass}"
+									class="timeline-title line-clamp-3 block text-sm font-semibold leading-tight {titleOpacityClass}"
 								>
 									{entry.title}
 								</span>
@@ -195,7 +195,7 @@
 								<span class="mb-1 block text-base font-bold text-gray-300">
 									{formatDate(entry.date)}
 								</span>
-								<span class="line-clamp-3 block text-sm leading-tight font-semibold">
+								<span class="line-clamp-3 block text-sm font-semibold leading-tight">
 									{entry.title}
 								</span>
 							</a>
@@ -210,7 +210,7 @@
 								>
 									{formatDate(entry.date)}
 								</span>
-								<span class="line-clamp-3 block text-sm leading-tight font-semibold">
+								<span class="line-clamp-3 block text-sm font-semibold leading-tight">
 									{entry.title}
 								</span>
 							</a>
@@ -219,7 +219,7 @@
 				{/each}
 			{/if}
 		{:else}
-			<li class="px-4 text-center text-gray-500 italic">No diary entries found.</li>
+			<li class="px-4 text-center italic text-gray-500">No diary entries found.</li>
 		{/if}
 	</ul>
 </div>

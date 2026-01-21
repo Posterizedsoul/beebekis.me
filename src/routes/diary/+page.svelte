@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
+	import AdminAddButton from '$lib/components/AdminAddButton.svelte';
 
 	export let data: PageData;
 	const entries = data.sortedEntries;
@@ -55,6 +56,9 @@
 	>
 </div>
 <div class="relative z-20 mx-auto max-w-2xl px-4 py-12 md:py-16">
+	<div class="mb-6 flex justify-end">
+		<AdminAddButton href="/admin/diary/new" label="Add Diary Entry" />
+	</div>
 	{#if entries.length > 0}
 		<div class="timeline-container relative">
 			<div class="timeline-line"></div>
