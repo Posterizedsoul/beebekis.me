@@ -126,10 +126,10 @@
 	</div>
 {:else}
 	<!-- 2 Column Layout -->
-	<div class="flex h-[calc(100vh-64px)] overflow-hidden bg-gray-50">
+	<div class="flex min-h-[calc(100vh-64px)] bg-gray-50">
 		<!-- Main Content Area (Photos) -->
-		<div class="flex-1 overflow-y-auto p-8">
-			<div class="mx-auto max-w-4xl">
+		<div class="flex-1">
+			<div class="mx-auto max-w-4xl p-8">
 				<div class="mb-6">
 					<input
 						type="text"
@@ -186,139 +186,147 @@
 		</div>
 
 		<!-- Right Sidebar -->
-		<div class="w-80 overflow-y-auto border-l border-gray-200 bg-white p-6">
-			<h3 class="mb-6 text-sm font-semibold text-gray-900">Album Settings</h3>
+		<div class="w-80 border-l border-gray-200 bg-white p-6">
+			<div class="sticky top-6">
+				<h3 class="mb-6 text-sm font-semibold text-gray-900">Album Settings</h3>
 
-			<form onsubmit={handleSubmit} class="space-y-6">
-				<!-- Save Button -->
-				<button
-					type="submit"
-					disabled={saving}
-					class="w-full rounded-md bg-black px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-800 disabled:opacity-50"
-				>
-					{saving ? 'Saving...' : 'Update Album'}
-				</button>
+				<form onsubmit={handleSubmit} class="space-y-6">
+					<!-- Save Button -->
+					<button type="submit" disabled={saving}>
+						{saving ? 'Saving...' : 'Update Album'}
+					</button>
 
-				<!-- Delete Button -->
-				<button
-					type="button"
-					onclick={handleDelete}
-					disabled={deleting}
-					class="w-full rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 disabled:opacity-50"
-				>
-					{deleting ? 'Deleting...' : 'Delete Album'}
-				</button>
-
-				<hr class="border-gray-100" />
-
-				<!-- Metadata -->
-				<div class="space-y-4">
-					<div>
-						<label for="date" class="block text-xs font-medium text-gray-500">Date</label>
-						<input
-							type="date"
-							id="date"
-							bind:value={date}
-							class="mt-1 block w-full rounded-md border-gray-300 py-1.5 text-sm shadow-sm focus:border-black focus:ring-black"
-						/>
-					</div>
-
-					<div>
-						<label for="slug" class="block text-xs font-medium text-gray-500">Slug</label>
-						<input
-							type="text"
-							id="slug"
-							bind:value={slug}
-							class="mt-1 block w-full rounded-md border-gray-300 py-1.5 text-sm shadow-sm focus:border-black focus:ring-black"
-						/>
-					</div>
-
-					<div>
-						<label for="description" class="block text-xs font-medium text-gray-500"
-							>Description</label
+					{#if slug}
+						<a
+							href="/memories/{slug}"
+							target="_blank"
+							class="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-center text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
 						>
-						<textarea
-							id="description"
-							rows="3"
-							bind:value={description}
-							placeholder="Brief summary for cards..."
-							class="mt-1 block w-full rounded-md border-gray-300 py-1.5 text-sm shadow-sm focus:border-black focus:ring-black"
-						></textarea>
-					</div>
-
-					<div class="flex items-center justify-between">
-						<label for="isPublished" class="text-xs font-medium text-gray-500">Published</label>
-						<input
-							type="checkbox"
-							id="isPublished"
-							bind:checked={isPublished}
-							class="h-4 w-4 rounded border-gray-300 text-black focus:ring-black"
-						/>
-					</div>
-				</div>
-
-				<hr class="border-gray-100" />
-
-				<!-- Cover Image -->
-				<div>
-					<label for="coverImage" class="mb-2 block text-xs font-medium text-gray-500"
-						>Cover Image</label
-					>
-					{#if images.length > 0}
-						<select
-							id="coverImage"
-							bind:value={coverImage}
-							class="block w-full rounded-md border-gray-300 py-1.5 text-sm shadow-sm focus:border-black focus:ring-black"
-						>
-							{#each images as img, i}
-								<option value={img.url}>Image {i + 1}</option>
-							{/each}
-						</select>
-						{#if coverImage}
-							<img
-								src={coverImage}
-								alt="Cover preview"
-								class="mt-2 h-24 w-full rounded border object-cover"
-							/>
-						{/if}
-					{:else}
-						<p class="text-xs text-gray-400">Upload photos first</p>
+							View Public Page ↗
+						</a>
 					{/if}
-				</div>
 
-				<!-- Hero Image -->
-				<div>
-					<label for="heroImage" class="mb-2 block text-xs font-medium text-gray-500"
-						>Hero Image</label
+					<!-- Delete Button -->
+					<button
+						type="button"
+						onclick={handleDelete}
+						disabled={deleting}
+						class="w-full rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 disabled:opacity-50"
 					>
-					{#if images.length > 0}
-						<select
-							id="heroImage"
-							bind:value={heroImage}
-							class="block w-full rounded-md border-gray-300 py-1.5 text-sm shadow-sm focus:border-black focus:ring-black"
-						>
-							{#each images as img, i}
-								<option value={img.url}>Image {i + 1}</option>
-							{/each}
-						</select>
-						{#if heroImage}
-							<img
-								src={heroImage}
-								alt="Hero preview"
-								class="mt-2 h-24 w-full rounded border object-cover"
-							/>
-						{/if}
-					{:else}
-						<p class="text-xs text-gray-400">Upload photos first</p>
-					{/if}
-				</div>
+						{deleting ? 'Deleting...' : 'Delete Album'}
+					</button>
 
-				{#if error}
-					<div class="rounded-md bg-red-50 p-2 text-xs text-red-600">
-						{error}
+					<hr class="border-gray-100" />
+
+					<!-- Metadata -->
+					<div class="space-y-4">
+						<div>
+							<label for="date" class="block text-xs font-medium text-gray-500">Date</label>
+							<input
+								type="date"
+								id="date"
+								bind:value={date}
+								class="mt-1 block w-full rounded-md border-gray-300 py-1.5 text-sm shadow-sm focus:border-black focus:ring-black"
+							/>
+						</div>
+
+						<div>
+							<label for="slug" class="block text-xs font-medium text-gray-500">Slug</label>
+							<input
+								type="text"
+								id="slug"
+								bind:value={slug}
+								class="mt-1 block w-full rounded-md border-gray-300 py-1.5 text-sm shadow-sm focus:border-black focus:ring-black"
+							/>
+						</div>
+
+						<div>
+							<label for="description" class="block text-xs font-medium text-gray-500"
+								>Description</label
+							>
+							<textarea
+								id="description"
+								rows="3"
+								bind:value={description}
+								placeholder="Brief summary for cards..."
+								class="mt-1 block w-full rounded-md border-gray-300 py-1.5 text-sm shadow-sm focus:border-black focus:ring-black"
+							></textarea>
+						</div>
+
+						<div class="flex items-center justify-between">
+							<label for="isPublished" class="text-xs font-medium text-gray-500">Published</label>
+							<input
+								type="checkbox"
+								id="isPublished"
+								bind:checked={isPublished}
+								class="h-4 w-4 rounded border-gray-300 text-black focus:ring-black"
+							/>
+						</div>
 					</div>
-				{/if}
-			</form>
+
+					<hr class="border-gray-100" />
+
+					<!-- Cover Image -->
+					<div>
+						<label for="coverImage" class="mb-2 block text-xs font-medium text-gray-500"
+							>Cover Image</label
+						>
+						{#if images.length > 0}
+							<select
+								id="coverImage"
+								bind:value={coverImage}
+								class="block w-full rounded-md border-gray-300 py-1.5 text-sm shadow-sm focus:border-black focus:ring-black"
+							>
+								{#each images as img, i}
+									<option value={img.url}>Image {i + 1}</option>
+								{/each}
+							</select>
+							{#if coverImage}
+								<img
+									src={coverImage}
+									alt="Cover preview"
+									class="mt-2 h-24 w-full rounded border object-cover"
+								/>
+							{/if}
+						{:else}
+							<p class="text-xs text-gray-400">Upload photos first</p>
+						{/if}
+					</div>
+
+					<!-- Hero Image -->
+					<div>
+						<label for="heroImage" class="mb-2 block text-xs font-medium text-gray-500"
+							>Hero Image</label
+						>
+						{#if images.length > 0}
+							<select
+								id="heroImage"
+								bind:value={heroImage}
+								class="block w-full rounded-md border-gray-300 py-1.5 text-sm shadow-sm focus:border-black focus:ring-black"
+							>
+								{#each images as img, i}
+									<option value={img.url}>Image {i + 1}</option>
+								{/each}
+							</select>
+							{#if heroImage}
+								<img
+									src={heroImage}
+									alt="Hero preview"
+									class="mt-2 h-24 w-full rounded border object-cover"
+								/>
+							{/if}
+						{:else}
+							<p class="text-xs text-gray-400">Upload photos first</p>
+						{/if}
+					</div>
+
+					{#if error}
+						<div class="rounded-md bg-red-50 p-2 text-xs text-red-600">
+							{error}
+						</div>
+					{/if}
+				</form>
+			</div>
 		</div>
 	</div>
 {/if}

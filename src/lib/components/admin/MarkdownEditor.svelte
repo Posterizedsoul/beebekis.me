@@ -295,9 +295,11 @@
 	</div>
 {/if}
 
-<div class="flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+<div class="flex flex-col rounded-lg border border-gray-200 bg-white shadow-sm">
 	<!-- Top Toolbar -->
-	<div class="flex flex-wrap items-center gap-0.5 border-b border-gray-200 bg-gray-50 px-1 py-1">
+	<div
+		class="sticky top-0 z-10 flex flex-wrap items-center gap-0.5 rounded-t-lg border-b border-gray-200 bg-gray-50 px-1 py-1"
+	>
 		<!-- Undo/Redo -->
 		<button type="button" onclick={undo} class="toolbar-btn" title="Undo" aria-label="Undo">
 			<svg
@@ -727,7 +729,7 @@
 	</div>
 
 	<!-- Editor / Preview Area -->
-	<div class="min-h-[400px] bg-white text-gray-900">
+	<div class="min-h-[400px] rounded-b-lg bg-white text-gray-900">
 		<!-- Editor always mounted, hidden when in preview mode -->
 		<div bind:this={element} class="h-full w-full" class:hidden={mode === 'preview'}></div>
 		<!-- Preview renders HTML -->

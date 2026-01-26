@@ -9,6 +9,7 @@
 
 	// Reactive check: true if the current path is the homepage '/'
 	const isHomePage = $derived(page.url.pathname === '/');
+	const isAdmin = $derived(page.url.pathname.startsWith('/admin'));
 
 	// Site metadata (adjust as needed)
 	const siteTitle = 'Bibek Bhatta - Portfolio';
@@ -94,127 +95,129 @@
 <!-- Wrapper for foreground content (Navbar + Main). -->
 <div class="relative z-0 min-h-screen bg-white">
 	<!-- Navbar -->
-	<nav
-		class="fixed left-0 right-0 top-0 z-50 flex justify-center bg-white p-4 transition-transform duration-300 ease-in-out {navbarVisible
-			? 'translate-y-0'
-			: '-translate-y-full'}"
-	>
-		<ul class="flex flex-row items-center space-x-4 text-gray-600">
-			<li>
-				<a
-					href="/"
-					class="group relative text-sm transition-colors duration-300 md:text-base {page.url
-						.pathname === '/'
-						? 'text-black'
-						: 'hover:text-black'}"
-				>
-					<span>Home</span>
-					<span
-						class="absolute bottom-0 left-0 block h-0.5 w-full origin-left transform bg-black transition-transform duration-300 ease-out {page
-							.url.pathname === '/'
-							? 'scale-x-100'
-							: 'scale-x-0 group-hover:scale-x-100'}"
-					></span>
-				</a>
-			</li>
-			<li>
-				<a
-					href="/projects"
-					class="group relative text-sm transition-colors duration-300 md:text-base {page.url.pathname.startsWith(
-						'/projects'
-					)
-						? 'text-black'
-						: 'hover:text-black'}"
-				>
-					<span>Projects</span>
-					<span
-						class="absolute bottom-0 left-0 block h-0.5 w-full origin-left transform bg-black transition-transform duration-300 ease-out {page.url.pathname.startsWith(
+	{#if !isAdmin}
+		<nav
+			class="fixed left-0 right-0 top-0 z-50 flex justify-center bg-white p-4 transition-transform duration-300 ease-in-out {navbarVisible
+				? 'translate-y-0'
+				: '-translate-y-full'}"
+		>
+			<ul class="flex flex-row items-center space-x-4 text-gray-600">
+				<li>
+					<a
+						href="/"
+						class="group relative text-sm transition-colors duration-300 md:text-base {page.url
+							.pathname === '/'
+							? 'text-black'
+							: 'hover:text-black'}"
+					>
+						<span>Home</span>
+						<span
+							class="absolute bottom-0 left-0 block h-0.5 w-full origin-left transform bg-black transition-transform duration-300 ease-out {page
+								.url.pathname === '/'
+								? 'scale-x-100'
+								: 'scale-x-0 group-hover:scale-x-100'}"
+						></span>
+					</a>
+				</li>
+				<li>
+					<a
+						href="/projects"
+						class="group relative text-sm transition-colors duration-300 md:text-base {page.url.pathname.startsWith(
 							'/projects'
 						)
-							? 'scale-x-100'
-							: 'scale-x-0 group-hover:scale-x-100'}"
-					></span>
-				</a>
-			</li>
-			<li>
-				<a
-					href="/about"
-					class="group relative text-sm transition-colors duration-300 md:text-base {page.url
-						.pathname === '/about'
-						? 'text-black'
-						: 'hover:text-black'}"
-				>
-					<span>About</span>
-					<span
-						class="absolute bottom-0 left-0 block h-0.5 w-full origin-left transform bg-black transition-transform duration-300 ease-out {page
-							.url.pathname === '/about'
-							? 'scale-x-100'
-							: 'scale-x-0 group-hover:scale-x-100'}"
-					></span>
-				</a>
-			</li>
-			<li>
-				<a
-					href="/diary"
-					class="group relative text-sm transition-colors duration-300 md:text-base {page.url.pathname.startsWith(
-						'/diary'
-					)
-						? 'text-black'
-						: 'hover:text-black'}"
-				>
-					<span>Diary</span>
-					<span
-						class="absolute bottom-0 left-0 block h-0.5 w-full origin-left transform bg-black transition-transform duration-300 ease-out {page.url.pathname.startsWith(
+							? 'text-black'
+							: 'hover:text-black'}"
+					>
+						<span>Projects</span>
+						<span
+							class="absolute bottom-0 left-0 block h-0.5 w-full origin-left transform bg-black transition-transform duration-300 ease-out {page.url.pathname.startsWith(
+								'/projects'
+							)
+								? 'scale-x-100'
+								: 'scale-x-0 group-hover:scale-x-100'}"
+						></span>
+					</a>
+				</li>
+				<li>
+					<a
+						href="/about"
+						class="group relative text-sm transition-colors duration-300 md:text-base {page.url
+							.pathname === '/about'
+							? 'text-black'
+							: 'hover:text-black'}"
+					>
+						<span>About</span>
+						<span
+							class="absolute bottom-0 left-0 block h-0.5 w-full origin-left transform bg-black transition-transform duration-300 ease-out {page
+								.url.pathname === '/about'
+								? 'scale-x-100'
+								: 'scale-x-0 group-hover:scale-x-100'}"
+						></span>
+					</a>
+				</li>
+				<li>
+					<a
+						href="/diary"
+						class="group relative text-sm transition-colors duration-300 md:text-base {page.url.pathname.startsWith(
 							'/diary'
 						)
-							? 'scale-x-100'
-							: 'scale-x-0 group-hover:scale-x-100'}"
-					></span>
-				</a>
-			</li>
-			<li>
-				<a
-					href="/blog"
-					class="group relative text-sm transition-colors duration-300 md:text-base {page.url.pathname.startsWith(
-						'/blog'
-					)
-						? 'text-black'
-						: 'hover:text-black'}"
-				>
-					<span>Blog</span>
-					<span
-						class="absolute bottom-0 left-0 block h-0.5 w-full origin-left transform bg-black transition-transform duration-300 ease-out {page.url.pathname.startsWith(
+							? 'text-black'
+							: 'hover:text-black'}"
+					>
+						<span>Diary</span>
+						<span
+							class="absolute bottom-0 left-0 block h-0.5 w-full origin-left transform bg-black transition-transform duration-300 ease-out {page.url.pathname.startsWith(
+								'/diary'
+							)
+								? 'scale-x-100'
+								: 'scale-x-0 group-hover:scale-x-100'}"
+						></span>
+					</a>
+				</li>
+				<li>
+					<a
+						href="/blog"
+						class="group relative text-sm transition-colors duration-300 md:text-base {page.url.pathname.startsWith(
 							'/blog'
 						)
-							? 'scale-x-100'
-							: 'scale-x-0 group-hover:scale-x-100'}"
-					></span>
-				</a>
-			</li>
-			<li>
-				<a
-					href="/memories"
-					class="group relative text-sm transition-colors duration-300 md:text-base {page.url.pathname.startsWith(
-						'/memories'
-					)
-						? 'text-black'
-						: 'hover:text-black'}"
-				>
-					<span>Memories</span>
-					<span
-						class="absolute bottom-0 left-0 block h-0.5 w-full origin-left transform bg-black transition-transform duration-300 ease-out {page.url.pathname.startsWith(
+							? 'text-black'
+							: 'hover:text-black'}"
+					>
+						<span>Blog</span>
+						<span
+							class="absolute bottom-0 left-0 block h-0.5 w-full origin-left transform bg-black transition-transform duration-300 ease-out {page.url.pathname.startsWith(
+								'/blog'
+							)
+								? 'scale-x-100'
+								: 'scale-x-0 group-hover:scale-x-100'}"
+						></span>
+					</a>
+				</li>
+				<li>
+					<a
+						href="/memories"
+						class="group relative text-sm transition-colors duration-300 md:text-base {page.url.pathname.startsWith(
 							'/memories'
 						)
-							? 'scale-x-100'
-							: 'scale-x-0 group-hover:scale-x-100'}"
-					></span>
-				</a>
-			</li>
-		</ul>
-	</nav>
+							? 'text-black'
+							: 'hover:text-black'}"
+					>
+						<span>Memories</span>
+						<span
+							class="absolute bottom-0 left-0 block h-0.5 w-full origin-left transform bg-black transition-transform duration-300 ease-out {page.url.pathname.startsWith(
+								'/memories'
+							)
+								? 'scale-x-100'
+								: 'scale-x-0 group-hover:scale-x-100'}"
+						></span>
+					</a>
+				</li>
+			</ul>
+		</nav>
+	{/if}
 
 	<!-- Main content area - Added pt-16 for navbar offset -->
-	<main class="pt-16 text-gray-800">
+	<main class="{isAdmin ? '' : 'pt-16'} text-gray-800">
 		{@render children()}
 	</main>
 </div>

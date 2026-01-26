@@ -172,6 +172,16 @@
 				{saving ? 'Saving...' : 'Save Changes'}
 			</button>
 
+			{#if slug}
+				<a
+					href="/blog/{slug}"
+					target="_blank"
+					class="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-center text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
+				>
+					View Public Page ↗
+				</a>
+			{/if}
+
 			<!-- Status -->
 			<div class="flex items-center">
 				<input
