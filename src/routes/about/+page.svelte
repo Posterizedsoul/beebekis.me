@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	// Icons are needed again
 	import {
 		Mail,
@@ -13,7 +13,7 @@
 	} from 'lucide-svelte';
 	import { onMount } from 'svelte';
 
-	function scrollToElement(elementId) {
+	function scrollToElement(elementId: string) {
 		const element = document.getElementById(elementId);
 		if (element) {
 			element.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -208,237 +208,287 @@
 			</div>
 		</div>
 
-		<div class="space-y-6">
+		<div class="mx-auto max-w-4xl space-y-12 text-left font-serif text-black">
 			<!-- Summary Section -->
 			<div>
-				<h3
-					class="mb-2 border-b border-black pb-1 font-serif text-lg font-bold uppercase text-black"
-				>
+				<h3 class="mb-4 border-b-2 border-black pb-2 text-xl font-bold uppercase tracking-wide">
 					Summary
 				</h3>
-				<p class="pt-1 font-serif text-sm text-gray-800">
-					Results-driven <strong>Python</strong> Developer with over 5 years of experience in
-					<strong>3-D Printing</strong>, <strong>Electronics</strong>,
-					<strong>REST API</strong> development, <strong>Machine Learning</strong>,
-					<strong>Computer Vision</strong>, and <strong>Data Analytics</strong>. Proficient in
-					building robust applications with <strong>FastAPI</strong> and leveraging libraries such
-					as
-					<strong>PyTorch</strong>, <strong>Pandas</strong>, <strong>Matplotlib</strong>,
-					<strong>OpenCV</strong>, and <strong>NumPy</strong>. Passionate about
-					<strong>Machine Learning</strong> and possess a proven track record of contributing to
-					<strong>Open-Source</strong>
-					projects. Skilled in leveraging a strong foundation in <strong>mathematics</strong> to
-					solve complex analytical problems. Highly interested in <strong>aerodynamics</strong>,
-					<strong>design</strong> and <strong>control systems</strong> of
-					<strong>Unmanned Aerial Vehicle Systems</strong>.
+				<p class="text-base leading-relaxed text-gray-800">
+					Mechanical Engineering undergraduate with <strong>6+ years</strong> of experience applying
+					<strong>Python</strong>, <strong>machine learning</strong>, and
+					<strong>computer vision</strong> to engineering and robotics focused problems. Strong
+					background in <strong>electronics</strong>, <strong>3D printing</strong>, and
+					<strong>embedded systems</strong>, with hands-on experience in
+					<strong>perception</strong>, <strong>data-driven modeling</strong>, and
+					<strong>control-oriented systems</strong>. Experienced with <strong>FastAPI</strong>,
+					<strong>PyTorch</strong>, <strong>OpenCV</strong> and
+					<strong>scientific computing</strong>. Highly interested in <strong>robotics</strong>,
+					<strong>UAV systems</strong>, <strong>aerodynamics</strong>, and
+					<strong>autonomous control system design</strong>.
 				</p>
 			</div>
 
 			<!-- Education Section -->
 			<div>
-				<h3
-					class="mb-2 border-b border-black pb-1 font-serif text-lg font-bold uppercase text-black"
-				>
+				<h3 class="mb-6 border-b-2 border-black pb-2 text-xl font-bold uppercase tracking-wide">
 					Education
 				</h3>
-				<div class="pt-1">
-					<div class="flex flex-col sm:flex-row sm:items-start sm:justify-between">
-						<h4 class="font-serif text-lg font-bold text-black">
-							Bachelor of Science in Mechanical Engineering
-						</h4>
-						<p class="flex-shrink-0 pt-1 font-serif text-sm font-bold text-black sm:pl-4 sm:pt-0">
-							December 2028
-						</p>
+				<div class="space-y-10">
+					<!-- MSU -->
+					<div>
+						<div class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between">
+							<h4 class="text-xl font-bold text-black">
+								Bachelor of Science in Mechanical Engineering
+							</h4>
+							<span class="text-sm font-semibold">December 2028</span>
+						</div>
+						<div class="mt-1 flex flex-col sm:flex-row sm:items-baseline sm:justify-between">
+							<p class="text-lg italic text-gray-700">Mississippi State University</p>
+							<span class="text-base text-gray-700">Starkville, Mississippi</span>
+						</div>
+
+						<div class="mt-4 grid gap-4 sm:grid-cols-[auto_1fr]">
+							<div class="font-bold text-black">GPA:</div>
+							<div class="text-lg font-bold text-black">4.0 / 4.0</div>
+
+							<div class="font-bold text-black">Honors:</div>
+							<ul class="list-inside list-disc space-y-1 text-base text-gray-800">
+								<li>Colvard Future Leader Scholarship</li>
+								<li>Freshman Academic Excellence Scholarship</li>
+								<li>Presidents List — Summer & Fall 2025</li>
+							</ul>
+						</div>
 					</div>
-					<p class="font-serif text-sm text-gray-800">
-						Mississippi State University • Starkville, Mississippi • Sophomore
-					</p>
-					<ul class="ml-4 list-outside list-disc pt-1 font-serif text-sm text-gray-800">
-						<li>Cumulative GPA: <strong>4.0/4.0</strong></li>
-						<li>Colvard Future Leader Scholarship | Freshman Academic Excellence Scholarship.</li>
-					</ul>
-				</div>
-				<div class="mt-2">
-					<div class="flex flex-col sm:flex-row sm:items-start sm:justify-between">
-						<h4 class="font-serif text-lg font-bold text-black">
-							Cambridge International Advanced Levels
-						</h4>
-						<p class="flex-shrink-0 pt-1 font-serif text-sm font-bold text-black sm:pl-4 sm:pt-0">
-							August 2023
-						</p>
+
+					<!-- Cambridge -->
+					<div>
+						<div class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between">
+							<h4 class="text-xl font-bold text-black">Cambridge International Advanced Levels</h4>
+							<span class="text-sm font-semibold">August 2023</span>
+						</div>
+						<div class="mt-1 flex flex-col sm:flex-row sm:items-baseline sm:justify-between">
+							<p class="text-lg italic text-gray-700">St. Xavier's College</p>
+							<span class="text-base text-gray-700">Maitighar, Kathmandu</span>
+						</div>
+
+						<div class="mt-4">
+							<span class="mb-2 block text-lg font-bold text-black">Awards & Achievements:</span>
+							<ul
+								class="grid list-inside list-disc gap-x-8 gap-y-2 text-base text-gray-800 sm:grid-cols-2"
+							>
+								<li>
+									<strong class="text-black">Gold</strong> — Provincial Information Technology Olympiad
+								</li>
+								<li>
+									<strong class="text-black">Silver</strong> — National Information Technology Olympiad
+								</li>
+								<li>
+									<strong class="text-black">Bronze</strong> — International Youth Math Challenge
+								</li>
+								<li>
+									<strong class="text-black">Bronze</strong> — Budanilkantha National Math League
+								</li>
+								<li><strong class="text-black">Bronze</strong> — National Science Exhibition</li>
+							</ul>
+						</div>
 					</div>
-					<p class="font-serif text-sm text-gray-800">
-						St. Xavier's College • Maitighar, Kathmandu
-					</p>
-					<ul class="ml-4 list-outside list-disc pt-1 font-serif text-sm text-gray-800">
-						<li>
-							Bronze Honor International Youth Math Challenge | Bronze National Science Exhibition |
-							Bronze Budanilkantha National Math League | Gold Provincial Information Technology
-							Olympiad | Silver National Information Technology Olympiad
-						</li>
-					</ul>
 				</div>
 			</div>
 
 			<!-- Experience Section -->
 			<div>
-				<h3
-					class="mb-2 border-b border-black pb-1 font-serif text-lg font-bold uppercase text-black"
-				>
+				<h3 class="mb-6 border-b-2 border-black pb-2 text-xl font-bold uppercase tracking-wide">
 					Experience
 				</h3>
-				<!-- Undergraduate Researcher -->
-				<div class="pt-1">
-					<div class="flex flex-col sm:flex-row sm:items-start sm:justify-between">
-						<h4 class="font-serif text-lg font-bold text-black">Undergraduate Researcher</h4>
-						<p class="flex-shrink-0 pt-1 font-serif text-sm font-bold text-black sm:pl-4 sm:pt-0">
-							October 2025 - Present
+				<div class="space-y-8">
+					<!-- Undergraduate Researcher -->
+					<div>
+						<div class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between">
+							<h4 class="text-lg font-bold">Undergraduate Researcher</h4>
+							<span class="text-sm font-semibold">October 2025 – Present</span>
+						</div>
+						<p class="text-base italic text-gray-700">
+							Department of Plant and Soil Sciences at Mississippi State University
 						</p>
+						<ul class="mt-3 list-outside list-disc space-y-2 pl-5 text-base text-gray-800">
+							<li>
+								Develop a real-time <strong>ArUco</strong>-calibrated
+								<strong>computer vision</strong>
+								seed measurement system and modular Python application, supporting
+								<strong>CNN</strong>-based seed and nodule analysis for PhD research.
+							</li>
+							<li>
+								First author on a paper accepted for oral and poster presentation at the
+								<strong>90th Mississippi Academy of Sciences Conference 2026</strong>.
+							</li>
+						</ul>
 					</div>
-					<p class="font-serif text-sm text-gray-800">
-						Department of Plant and Soil Sciences at Mississippi State University / Starkville, MS
-					</p>
-					<ul class="ml-4 list-outside list-disc space-y-1 pt-1 font-serif text-sm text-gray-800">
-						<li>
-							Developed a computer-vision seed measurement system (<strong
-								>ArUco-calibrated, real-time</strong
-							>) and modular Python app (<strong
-								>advanced image-processing pipelines, DearPyGUI</strong
-							>), while conducting <strong>CNN</strong> research for
-							<strong>automated seed and nodule analysis</strong> and supporting PhD and graduate research
-							with data collection, processing, and documentation.
-						</li>
-						<li>
-							Abstract, automated seed and nodule analysis paper, accepted for oral and poster
-							presentation at the 90th Mississippi Academy of Sciences Conference (2026).
-						</li>
-					</ul>
-				</div>
-				<!-- Technical Lead -->
-				<div class="mt-2">
-					<div class="flex flex-col sm:flex-row sm:items-start sm:justify-between">
-						<h4 class="font-serif text-lg font-bold text-black">Technical Lead</h4>
-						<p class="flex-shrink-0 pt-1 font-serif text-sm font-bold text-black sm:pl-4 sm:pt-0">
-							June 2021 - Present
+
+					<!-- Technical Lead -->
+					<div>
+						<div class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between">
+							<h4 class="text-lg font-bold">Technical Lead</h4>
+							<span class="text-sm font-semibold">September 2022 – Present</span>
+						</div>
+						<p class="text-base italic text-gray-700">Mathematical Association of Nepal</p>
+						<ul class="mt-3 list-outside list-disc space-y-2 pl-5 text-base text-gray-800">
+							<li>
+								Develop comprehensive registration and training software using <strong
+									>Python</strong
+								>,
+								<strong>FastAPI</strong>, <strong>DaisyUI</strong> and <strong>SvelteKit</strong>,
+								significantly enhancing user experience and operational efficiency.
+							</li>
+							<li>
+								Create a custom <strong>PDF-to-image generator</strong> for <strong>LaTeX</strong>
+								processing and design a specialized <strong>MongoDB</strong> database for mathematical
+								problems.
+							</li>
+						</ul>
+					</div>
+
+					<!-- Backend Engineer -->
+					<div>
+						<div class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between">
+							<h4 class="text-lg font-bold">Backend Engineer & ML Developer</h4>
+							<span class="text-sm font-semibold">August 2024 – June 2025</span>
+						</div>
+						<p class="text-base italic text-gray-700">usjany • Kathmandu, Nepal</p>
+						<ul class="mt-3 list-outside list-disc space-y-2 pl-5 text-base text-gray-800">
+							<li>
+								Developed a production-level backend server using <strong>FastAPI</strong> with
+								<strong>Python</strong> libraries including <strong>BeautifulSoup</strong> and
+								<strong>Requests</strong>, and a <strong>PostgreSQL</strong> database.
+							</li>
+							<li>
+								Built and fine-tuned a custom <strong>Large Language Model</strong> powered by
+								<strong>Meta AI's Llama-3.1 8B</strong>, implementing a
+								<strong>Retrieval-Augmented Generation (RAG)</strong> pipeline to enhance response accuracy.
+							</li>
+						</ul>
+					</div>
+
+					<!-- Agrisense -->
+					<div>
+						<div class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between">
+							<h4 class="text-lg font-bold">Machine Learning Developer</h4>
+							<span class="text-sm font-semibold">February 2023 – June 2023</span>
+						</div>
+						<p class="text-base italic text-gray-700">Agrisense • Kathmandu, Nepal</p>
+						<ul class="mt-3 list-outside list-disc space-y-2 pl-5 text-base text-gray-800">
+							<li>
+								Developed and implemented a custom <strong>CNN-based image processing model</strong>
+								utilizing
+								<strong>Scikit-learn</strong>, <strong>NumPy</strong>, and <strong>OpenCV</strong> for
+								plant disease detection to enhance agricultural diagnostics.
+							</li>
+							<li>
+								Modelled a sanctuary in <strong>Free CAD</strong> and <strong>3D-printed</strong> it
+								in
+								<strong>PLA</strong>, optimizing the design for <strong>FDM printing</strong> with proper
+								wall thickness, layer height, and minimal supports.
+							</li>
+						</ul>
+					</div>
+
+					<!-- Traverse -->
+					<div>
+						<div class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between">
+							<h4 class="text-lg font-bold">Machine Learning Developer</h4>
+							<span class="text-sm font-semibold">December 2022 – May 2023</span>
+						</div>
+						<p class="text-base italic text-gray-700">Traverse • Kathmandu, Nepal</p>
+						<ul class="mt-3 list-outside list-disc space-y-2 pl-5 text-base text-gray-800">
+							<li>
+								Engineered a custom <strong>recommendation engine</strong> using
+								<strong>NumPy</strong>
+								and <strong>PyTorch</strong> to suggest places based on user itineraries, enhancing user
+								personalization and engagement.
+							</li>
+						</ul>
+					</div>
+
+					<!-- NASA Space Apps -->
+					<div>
+						<div class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between">
+							<h4 class="text-lg font-bold">Project Lead / Lead Developer</h4>
+							<span class="text-sm font-semibold">October 2022 – November 2022</span>
+						</div>
+						<p class="text-base italic text-gray-700">
+							NASA Space Apps Challenge • Kathmandu, Nepal
 						</p>
+						<ul class="mt-3 list-outside list-disc space-y-2 pl-5 text-base text-gray-800">
+							<li>
+								Developed an interactive <strong>3D model</strong> of the
+								<strong>International Space Station (ISS)</strong> and its orbit using
+								<strong>Three.js</strong> and <strong>JavaScript</strong>.
+							</li>
+						</ul>
 					</div>
-					<p class="font-serif text-sm text-gray-800">
-						Mathematical Association of Nepal / Kathmandu, Nepal
-					</p>
-					<ul class="ml-4 list-outside list-disc space-y-1 pt-1 font-serif text-sm text-gray-800">
-						<li>
-							Develop comprehensive registration and training software using <strong>Python</strong
-							>,
-							<strong>FastAPI</strong>,
-							<strong>DaisyUI</strong> and <strong>SvelteKit</strong>, significantly enhancing user
-							experience and operational efficiency.
-						</li>
-						<li>
-							Create a custom <strong>PDF-to-image generator</strong> for
-							<strong>LaTeX</strong> processing and design a specialized
-							<strong>MongoDB</strong> database for mathematical problems.
-						</li>
-					</ul>
-				</div>
-				<div class="mt-2">
-					<div class="flex flex-col sm:flex-row sm:items-start sm:justify-between">
-						<h4 class="font-serif text-lg font-bold text-black">
-							Backend Engineer and Machine Learning Developer
-						</h4>
-						<p class="flex-shrink-0 pt-1 font-serif text-sm font-bold text-black sm:pl-4 sm:pt-0">
-							August 2024 - June 2025
-						</p>
-					</div>
-					<p class="font-serif text-sm text-gray-800">usjany / Kathmandu, Nepal</p>
-					<ul class="ml-4 list-outside list-disc space-y-1 pt-1 font-serif text-sm text-gray-800">
-						<li>
-							Developed a production-level backend server using <strong>FastAPI</strong> with
-							<strong>Python</strong> libraries including <strong>BeautifulSoup</strong> and
-							<strong>Requests</strong>, and a <strong>PostgreSQL</strong> database.
-						</li>
-						<li>
-							Built and fine-tuned a custom <strong>Large Language Model</strong> powered by
-							<strong>Meta AI's Llama-3.1 8B</strong>, implementing a
-							<strong>Retrieval-Augmented Generation (RAG)</strong> pipeline to enhance response accuracy.
-						</li>
-					</ul>
-				</div>
-				<div class="mt-2">
-					<div class="flex flex-col sm:flex-row sm:items-start sm:justify-between">
-						<h4 class="font-serif text-lg font-bold text-black">Machine Learning Developer</h4>
-						<p class="flex-shrink-0 pt-1 font-serif text-sm font-bold text-black sm:pl-4 sm:pt-0">
-							February 2023 - June 2023
-						</p>
-					</div>
-					<p class="font-serif text-sm text-gray-800">Agrisense / Kathmandu, Nepal</p>
-					<ul class="ml-4 list-outside list-disc space-y-1 pt-1 font-serif text-sm text-gray-800">
-						<li>
-							Developed and implemented a custom <strong>CNN-based image processing model</strong>
-							utilizing
-							<strong>Scikit-learn</strong>, <strong>NumPy</strong>, and
-							<strong>OpenCV</strong> for plant disease detection to enhance agricultural diagnostics.
-						</li>
-						<li>
-							I modelled a sanctuary, for presentation, in <strong>Free CAD</strong> and
-							<strong>3D-printed</strong> it in <strong>PLA</strong>, optimizing the design for
-							<strong>FDM printing</strong> with proper wall thickness, layer height, and minimal supports.
-						</li>
-					</ul>
-				</div>
-				<div class="mt-2">
-					<div class="flex flex-col sm:flex-row sm:items-start sm:justify-between">
-						<h4 class="font-serif text-lg font-bold text-black">Machine Learning Developer</h4>
-						<p class="flex-shrink-0 pt-1 font-serif text-sm font-bold text-black sm:pl-4 sm:pt-0">
-							December 2022 - May 2023
-						</p>
-					</div>
-					<p class="font-serif text-sm text-gray-800">Traverse / Kathmandu, Bagmati</p>
-					<ul class="ml-4 list-outside list-disc space-y-1 pt-1 font-serif text-sm text-gray-800">
-						<li>
-							Engineered a custom <strong>recommendation engine</strong> using
-							<strong>NumPy</strong> and <strong>PyTorch</strong> to suggest places based on user itineraries,
-							enhancing user personalization and engagement.
-						</li>
-					</ul>
-				</div>
-				<div class="mt-2">
-					<div class="flex flex-col sm:flex-row sm:items-start sm:justify-between">
-						<h4 class="font-serif text-lg font-bold text-black">Project Lead / Lead Developer</h4>
-						<p class="flex-shrink-0 pt-1 font-serif text-sm font-bold text-black sm:pl-4 sm:pt-0">
-							October 2022 - November 2022
-						</p>
-					</div>
-					<p class="font-serif text-sm text-gray-800">
-						NASA Space Apps Challenge / Kathmandu, Bagmati
-					</p>
-					<ul class="ml-4 list-outside list-disc space-y-1 pt-1 font-serif text-sm text-gray-800">
-						<li>
-							Developed an interactive <strong>3D model</strong> of the
-							<strong>International Space Station (ISS)</strong> and its orbit using
-							<strong>Three.js</strong> and <strong>JavaScript</strong>.
-						</li>
-					</ul>
 				</div>
 			</div>
 
 			<!-- Skills Section -->
 			<div>
-				<h3
-					class="mb-2 border-b border-black pb-1 font-serif text-lg font-bold uppercase text-black"
-				>
+				<h3 class="mb-4 border-b-2 border-black pb-2 text-xl font-bold uppercase tracking-wide">
 					Skills
 				</h3>
-				<p class="pt-1 font-serif text-sm text-gray-800">
-					<span class="font-semibold">Technical:</span> 3D Printing, Free CAD, Fusion 360, ESP32,
-					RaspberryPi, Python, OpenCV-Python, PyTorch,FastAPI,JavaScript, ThreeJS, SvelteKit, Rust,
-					Bevy, C++, Excel, Word, PowerPoint Presentation, Machine Learning, Data Engineering and
-					Visualization, Git(hub),Database, Linux
-					<br />
-					<span class="font-semibold">Soft:</span> Teamwork, Leadership, Time Management, Creativity,
-					Work Ethic, Communication, Organization, Collaboration, Mentorship, Problem Solving
-				</p>
+				<div class="grid gap-8 text-base text-gray-800 sm:grid-cols-2">
+					<!-- Technical Skills Column -->
+					<div>
+						<h4 class="mb-3 text-lg font-bold text-black underline">Technical</h4>
+
+						<div class="space-y-4">
+							<div>
+								<span
+									class="mb-1 block text-sm font-semibold uppercase tracking-wider text-gray-500"
+									>Languages & Frameworks</span
+								>
+								<p class="leading-relaxed">
+									Python, C++, Rust, JavaScript, SvelteKit, FastAPI, ThreeJS
+								</p>
+							</div>
+
+							<div>
+								<span
+									class="mb-1 block text-sm font-semibold uppercase tracking-wider text-gray-500"
+									>AI & Computer Vision</span
+								>
+								<p class="leading-relaxed">PyTorch, OpenCV, Machine Learning, Data Engineering</p>
+							</div>
+
+							<div>
+								<span
+									class="mb-1 block text-sm font-semibold uppercase tracking-wider text-gray-500"
+									>Hardware & Engineering</span
+								>
+								<p class="leading-relaxed">ESP32, RaspberryPi, 3D Printing, Linux</p>
+							</div>
+
+							<div>
+								<span
+									class="mb-1 block text-sm font-semibold uppercase tracking-wider text-gray-500"
+									>CAD & Tools</span
+								>
+								<p class="leading-relaxed">OnShape, FreeCAD, Fusion 360, Git, Database</p>
+							</div>
+						</div>
+					</div>
+
+					<!-- Soft Skills Column -->
+					<div>
+						<h4 class="mb-3 text-lg font-bold text-black underline">Soft Skills</h4>
+						<ul class="list-inside list-disc space-y-1.5 leading-relaxed">
+							<li>Leadership & Mentorship</li>
+							<li>Communication & Collaboration</li>
+							<li>Problem Solving & Creativity</li>
+							<li>Time Management & Organization</li>
+							<li>Work Ethic & Reliability</li>
+						</ul>
+					</div>
+				</div>
 			</div>
-			<!-- Projects and Awards sections are removed as their content is integrated above -->
 		</div>
 	</div>
 </section>
@@ -463,33 +513,5 @@
 			linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
 			linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px);
 		background-size: var(--grid-size) var(--grid-size);
-	}
-
-	/* Style for social icons */
-	.icon-link {
-		transition: opacity 0.2s ease-in-out;
-	}
-
-	/* Resume Specific Styles */
-	.section-title {
-		/* All styles moved to HTML elements directly */
-	}
-	.section-content {
-		/* All styles moved to HTML elements directly */
-	}
-	.item-container {
-		/* All styles moved to HTML elements directly */
-	}
-	.item-title {
-		/* All styles moved to HTML elements directly */
-	}
-	.item-subtitle {
-		/* All styles moved to HTML elements directly */
-	}
-	.item-date {
-		/* All styles moved to HTML elements directly */
-	}
-	.item-details-list {
-		/* All styles moved to HTML elements directly */
 	}
 </style>
