@@ -50,7 +50,8 @@ if (browser) {
 		// OR check localStorage directly
 		// const currentStoredValue = localStorage.getItem(key) ?? defaultValue;
 
-		if (currentStoreValue === 'system') { // Or check currentStoredValue
+		if (currentStoreValue === 'system') {
+			// Or check currentStoredValue
 			document.documentElement.classList.remove('light', 'dark');
 			document.documentElement.classList.add(e.matches ? 'dark' : 'light');
 		}

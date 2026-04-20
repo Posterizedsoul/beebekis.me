@@ -46,7 +46,7 @@
 		on:click={goTop}
 		aria-label="Scroll to top"
 		title="Scroll to top"
-		transition:fade={{ duration: 300 }} 
+		transition:fade={{ duration: 300 }}
 	>
 		<ArrowUp size={24} />
 	</button>
@@ -68,7 +68,11 @@
 		justify-content: center;
 		cursor: pointer;
 		z-index: 1000;
-		transition: background-color 0.2s ease, transform 0.2s ease, opacity 0.3s ease, visibility 0.3s ease;
+		transition:
+			background-color 0.2s ease,
+			transform 0.2s ease,
+			opacity 0.3s ease,
+			visibility 0.3s ease;
 		box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 	}
 

@@ -21,7 +21,7 @@ export const load: LayoutServerLoad = async () => {
 
 		const querySnapshot = await getDocs(q);
 
-		const entries: DiaryEntry[] = querySnapshot.docs.map(doc => {
+		const entries: DiaryEntry[] = querySnapshot.docs.map((doc) => {
 			const data = doc.data();
 			// Firestore Timestamp to Date -> ISO string
 			const dateObj = data.date?.toDate ? data.date.toDate() : new Date(data.date);

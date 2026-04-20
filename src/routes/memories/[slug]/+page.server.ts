@@ -46,14 +46,15 @@ export const load: PageServerLoad = async ({ params }) => {
 		return {
 			id: doc.id, // Add document ID for edit button
 			title: data.title,
-			date: data.date?.toDate ? data.date.toDate().toISOString() : new Date(data.date).toISOString(),
+			date: data.date?.toDate
+				? data.date.toDate().toISOString()
+				: new Date(data.date).toISOString(),
 			description: data.description,
 			heroImage: data.heroImage || null, // URL string
 			coverImage: data.coverImage || null, // URL string
 			images: images, // Array of RemoteImageInfo
 			contentHtml: contentHtml // Compiled HTML string
 		};
-
 	} catch (err: any) {
 		console.error(`[Memory Loader] Error loading memory ${slug}:`, err);
 		if (err.status === 404) throw err;

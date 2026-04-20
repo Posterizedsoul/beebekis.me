@@ -17,7 +17,7 @@
 {#if isLoggedIn}
 	<a
 		{href}
-		class="admin-edit-btn fixed bottom-20 right-4 z-50 flex items-center gap-2 rounded-full bg-gray-900/90 px-4 py-2.5 text-sm font-medium shadow-lg backdrop-blur-sm transition-all hover:scale-105 hover:bg-gray-700"
+		class="admin-edit-btn fixed right-4 bottom-20 z-50 flex items-center gap-2 rounded-full bg-gray-900/90 px-4 py-2.5 text-sm font-medium shadow-lg backdrop-blur-sm transition-all hover:scale-105 hover:bg-gray-700"
 		title={label}
 	>
 		<svg

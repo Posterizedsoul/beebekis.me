@@ -166,7 +166,7 @@
 									<button
 										type="button"
 										onclick={() => removeImage(i)}
-										class="absolute right-1 top-1 rounded-full bg-red-600 p-1 text-white opacity-0 transition-opacity group-hover:opacity-100"
+										class="absolute top-1 right-1 rounded-full bg-red-600 p-1 text-white opacity-0 transition-opacity group-hover:opacity-100"
 										aria-label="Remove image"
 									>
 										<svg
@@ -331,7 +331,7 @@
 									<button
 										type="button"
 										onclick={() => (featuredImage = '')}
-										class="absolute right-1 top-1 rounded-full bg-white/80 p-1 text-red-600 opacity-0 transition-opacity group-hover:opacity-100"
+										class="absolute top-1 right-1 rounded-full bg-white/80 p-1 text-red-600 opacity-0 transition-opacity group-hover:opacity-100"
 										aria-label="Remove image"
 									>
 										<svg

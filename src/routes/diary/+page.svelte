@@ -32,26 +32,26 @@
 </svelte:head>
 
 <div
-	class="pointer-events-none fixed left-0 top-0 z-10 flex h-screen flex-col items-center justify-center pl-10 md:pl-20"
+	class="pointer-events-none fixed top-0 left-0 z-10 flex h-screen flex-col items-center justify-center pl-10 md:pl-20"
 >
 	<span
-		class="block text-5xl font-bold leading-none tracking-tighter text-gray-300 md:text-7xl lg:text-9xl"
+		class="block text-5xl leading-none font-bold tracking-tighter text-gray-300 md:text-7xl lg:text-9xl"
 		>D</span
 	>
 	<span
-		class="block text-5xl font-bold leading-none tracking-tighter text-gray-300 md:text-7xl lg:text-9xl"
+		class="block text-5xl leading-none font-bold tracking-tighter text-gray-300 md:text-7xl lg:text-9xl"
 		>I</span
 	>
 	<span
-		class="block text-5xl font-bold leading-none tracking-tighter text-gray-300 md:text-7xl lg:text-9xl"
+		class="block text-5xl leading-none font-bold tracking-tighter text-gray-300 md:text-7xl lg:text-9xl"
 		>A</span
 	>
 	<span
-		class="block text-5xl font-bold leading-none tracking-tighter text-gray-300 md:text-7xl lg:text-9xl"
+		class="block text-5xl leading-none font-bold tracking-tighter text-gray-300 md:text-7xl lg:text-9xl"
 		>R</span
 	>
 	<span
-		class="block text-5xl font-bold leading-none tracking-tighter text-gray-300 md:text-7xl lg:text-9xl"
+		class="block text-5xl leading-none font-bold tracking-tighter text-gray-300 md:text-7xl lg:text-9xl"
 		>Y</span
 	>
 </div>

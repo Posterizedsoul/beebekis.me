@@ -76,7 +76,7 @@
 							<section class="relative mb-8 pt-16 md:mb-10 md:pt-20">
 								<!-- Combined Sticky Year/Month/Day Heading -->
 								<h2
-									class="absolute left-0 right-0 top-0 z-20 border-b border-gray-200 bg-white/90 px-4 py-3 text-2xl
+									class="absolute top-0 right-0 left-0 z-20 border-b border-gray-200 bg-white/90 px-4 py-3 text-2xl
                            font-semibold text-gray-600 backdrop-blur-sm md:text-3xl"
 								>
 									<span class="mr-2 font-bold text-gray-300">{year}</span>
@@ -110,7 +110,7 @@
 																	/>
 																	{#if i < previews.length - 1}
 																		<div
-																			class="absolute bottom-0 right-0 top-0 z-10 w-px bg-white/20"
+																			class="absolute top-0 right-0 bottom-0 z-10 w-px bg-white/20"
 																		></div>
 																	{/if}
 																</div>
@@ -148,7 +148,7 @@
 										{/each}
 									</ul>
 								{:else}
-									<p class="italic text-gray-500">No memoirs found for this day.</p>
+									<p class="text-gray-500 italic">No memoirs found for this day.</p>
 								{/if}
 							</section>
 						{/each}
@@ -157,7 +157,7 @@
 					{/if}
 				{/each}
 			{:else}
-				<p class="pl-4 italic text-gray-500 md:pl-8">No entries found for {year}.</p>
+				<p class="pl-4 text-gray-500 italic md:pl-8">No entries found for {year}.</p>
 			{/if}
 		{/each}
 	{:else}

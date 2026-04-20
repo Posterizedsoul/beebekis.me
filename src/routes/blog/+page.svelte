@@ -47,7 +47,7 @@
 										{formatted.month}
 									</span>
 									<span
-										class="text-6xl font-bold leading-none text-gray-700 transition-colors duration-300 group-hover:text-orange-600"
+										class="text-6xl leading-none font-bold text-gray-700 transition-colors duration-300 group-hover:text-orange-600"
 									>
 										{formatted.day}
 									</span>
@@ -67,12 +67,12 @@
 										></div>
 										<!-- Darker Overlay for Readability -->
 										<div
-											class="z-1 absolute inset-0 bg-black/50 transition-colors duration-300 group-hover:bg-black/40"
+											class="absolute inset-0 z-1 bg-black/50 transition-colors duration-300 group-hover:bg-black/40"
 										></div>
 									{/if}
 
 									<!-- Link container -->
-									<a href="/blog/{post.slug}" class="relative z-10 block px-4 pb-2 pt-4">
+									<a href="/blog/{post.slug}" class="relative z-10 block px-4 pt-4 pb-2">
 										<div class:text-white={post.featuredImage}>
 											<h3
 												class="text-lg font-medium transition-colors sm:text-xl {post.featuredImage
@@ -85,10 +85,10 @@
 									</a>
 									<!-- Description -->
 									{#if post.description}
-										<div class="relative z-10 px-4 pb-6 pt-0">
+										<div class="relative z-10 px-4 pt-0 pb-6">
 											<p
 												class="text-xs {post.featuredImage
-													? 'text-shadow-sm text-gray-200 opacity-90'
+													? 'text-gray-200 opacity-90 text-shadow-sm'
 													: 'text-gray-600'}"
 											>
 												{post.description}

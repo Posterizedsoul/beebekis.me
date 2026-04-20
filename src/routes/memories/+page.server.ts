@@ -31,9 +31,9 @@ interface SortedKeys {
 }
 
 export const load: PageServerLoad = async () => {
-	// Note: In a real server-side environment with Firebase client SDK, 
+	// Note: In a real server-side environment with Firebase client SDK,
 	// we might need to use firebase-admin or ensure the client SDK uses REST properly.
-	// However, since we initialized it in $lib/firebase with standard SDK, it should work 
+	// However, since we initialized it in $lib/firebase with standard SDK, it should work
 	// if polyfills are present or if running in a Node environment that supports fetch.
 	// For a robust production app, often `firebase-admin` is preferred in +page.server.ts.
 	// For this implementation, we'll try using the client SDK we initialized.
@@ -50,13 +50,13 @@ export const load: PageServerLoad = async () => {
 		// NOTE: In server-side load, getting docs from client SDK might require
 		// some environment setup. If this fails, we might need to move this logic to +page.ts (client-side load)
 		// or use firebase-admin. Let's assume standard SDK works for now or user browser fetch in +page.ts is better?
-		// Actually, for SEO and initial load, server side is best. 
-		// Let's stick with this. SvelteKit server runs on Node (or edge), 
+		// Actually, for SEO and initial load, server side is best.
+		// Let's stick with this. SvelteKit server runs on Node (or edge),
 		// and standard Firebase JS SDK works in Node.
 
 		const querySnapshot = await getDocs(q);
 
-		const memoirs: MemoirSummary[] = querySnapshot.docs.map(doc => {
+		const memoirs: MemoirSummary[] = querySnapshot.docs.map((doc) => {
 			const data = doc.data();
 
 			// Map Firestore data to our summary shape
@@ -102,17 +102,19 @@ export const load: PageServerLoad = async () => {
 
 		// Sorting keys logic (reused)
 		const sortedKeys: SortedKeys = {
-			years: Object.keys(groupedMemoirs).map(Number).sort((a, b) => b - a),
+			years: Object.keys(groupedMemoirs)
+				.map(Number)
+				.sort((a, b) => b - a),
 			months: {},
 			days: {}
 		};
 
-		sortedKeys.years.forEach(year => {
+		sortedKeys.years.forEach((year) => {
 			sortedKeys.months[year] = Object.keys(groupedMemoirs[year])
 				.map(Number)
 				.sort((a, b) => b - a);
 			sortedKeys.days[year] = {};
-			sortedKeys.months[year].forEach(month => {
+			sortedKeys.months[year].forEach((month) => {
 				sortedKeys.days[year][month] = Object.keys(groupedMemoirs[year][month])
 					.map(Number)
 					.sort((a, b) => b - a);
@@ -124,7 +126,6 @@ export const load: PageServerLoad = async () => {
 			groupedMemoirs,
 			sortedKeys
 		};
-
 	} catch (err: any) {
 		console.error('[Memories Loader] Error loading memoirs:', err);
 		// Check for specific Firestore error codes

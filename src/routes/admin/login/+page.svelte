@@ -65,7 +65,7 @@
 						type="email"
 						autocomplete="off"
 						required
-						class="relative block w-full appearance-none rounded-t-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-black focus:outline-none focus:ring-black sm:text-sm"
+						class="relative block w-full appearance-none rounded-t-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-black focus:ring-black focus:outline-none sm:text-sm"
 						placeholder="Email address"
 						bind:value={email}
 						disabled={loading}
@@ -79,7 +79,7 @@
 						type="password"
 						autocomplete="off"
 						required
-						class="relative block w-full appearance-none rounded-b-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-black focus:outline-none focus:ring-black sm:text-sm"
+						class="relative block w-full appearance-none rounded-b-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-black focus:ring-black focus:outline-none sm:text-sm"
 						placeholder="Password"
 						bind:value={password}
 						disabled={loading}
@@ -116,7 +116,7 @@
 				<button
 					type="submit"
 					disabled={loading}
-					class="group relative flex w-full justify-center rounded-md border border-transparent bg-black px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+					class="group relative flex w-full justify-center rounded-md border border-transparent bg-black px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 focus:ring-2 focus:ring-black focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
 				>
 					{#if loading}
 						<span class="absolute inset-y-0 left-0 flex items-center pl-3">

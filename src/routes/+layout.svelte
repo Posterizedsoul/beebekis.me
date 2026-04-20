@@ -97,7 +97,7 @@
 	<!-- Navbar -->
 	{#if !isAdmin}
 		<nav
-			class="fixed left-0 right-0 top-0 z-50 flex justify-center bg-white p-4 transition-transform duration-300 ease-in-out {navbarVisible
+			class="fixed top-0 right-0 left-0 z-50 flex justify-center bg-white p-4 transition-transform duration-300 ease-in-out {navbarVisible
 				? 'translate-y-0'
 				: '-translate-y-full'}"
 		>

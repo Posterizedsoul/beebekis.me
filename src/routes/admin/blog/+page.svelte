@@ -42,7 +42,7 @@
 		<h1 class="text-2xl font-semibold text-gray-900">Blog Posts</h1>
 		<p class="mt-2 text-sm text-gray-700">Manage your blog articles and publications.</p>
 	</div>
-	<div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+	<div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
 		<a
 			href="/admin/blog/new"
 			class="block rounded-md bg-black px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-gray-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
@@ -55,13 +55,13 @@
 <div class="mt-8 flex flex-col">
 	<div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
 		<div class="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
-			<div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
+			<div class="ring-opacity-5 overflow-hidden shadow ring-1 ring-black md:rounded-lg">
 				<table class="min-w-full divide-y divide-gray-300">
 					<thead class="bg-gray-50">
 						<tr>
 							<th
 								scope="col"
-								class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6"
+								class="py-3.5 pr-3 pl-4 text-left text-sm font-semibold text-gray-900 sm:pl-6"
 								>Title</th
 							>
 							<th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
@@ -70,7 +70,7 @@
 							<th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
 								>Status</th
 							>
-							<th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
+							<th scope="col" class="relative py-3.5 pr-4 pl-3 sm:pr-6">
 								<span class="sr-only">Edit</span>
 							</th>
 						</tr>
@@ -92,7 +92,7 @@
 							{#each posts as post}
 								<tr>
 									<td
-										class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6"
+										class="py-4 pr-3 pl-4 text-sm font-medium whitespace-nowrap text-gray-900 sm:pl-6"
 									>
 										<a
 											href="/blog/{post.slug}"
@@ -100,24 +100,24 @@
 											class="hover:text-indigo-600 hover:underline">{post.title}</a
 										>
 									</td>
-									<td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500"
+									<td class="px-3 py-4 text-sm whitespace-nowrap text-gray-500"
 										>{post.date.toLocaleDateString()}</td
 									>
-									<td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+									<td class="px-3 py-4 text-sm whitespace-nowrap text-gray-500">
 										{#if post.isPublished}
 											<span
-												class="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20"
+												class="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-green-600/20 ring-inset"
 												>Published</span
 											>
 										{:else}
 											<span
-												class="inline-flex items-center rounded-md bg-yellow-50 px-2 py-1 text-xs font-medium text-yellow-800 ring-1 ring-inset ring-yellow-600/20"
+												class="inline-flex items-center rounded-md bg-yellow-50 px-2 py-1 text-xs font-medium text-yellow-800 ring-1 ring-yellow-600/20 ring-inset"
 												>Draft</span
 											>
 										{/if}
 									</td>
 									<td
-										class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6"
+										class="relative py-4 pr-4 pl-3 text-right text-sm font-medium whitespace-nowrap sm:pr-6"
 									>
 										<a href="/admin/blog/{post.id}" class="text-indigo-600 hover:text-indigo-900"
 											>Edit<span class="sr-only">, {post.title}</span></a

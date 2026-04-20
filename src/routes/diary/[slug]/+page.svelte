@@ -37,7 +37,7 @@
 		{formatDate(metadata.date)}
 	</h1>
 	<p class="!mt-0 text-xl text-gray-800 md:text-xl">{metadata.title}</p>
-	<hr class="mx-auto mb-0 mt-2 border-gray-200" />
+	<hr class="mx-auto mt-2 mb-0 border-gray-200" />
 </header>
 
 {#if contentHtml}

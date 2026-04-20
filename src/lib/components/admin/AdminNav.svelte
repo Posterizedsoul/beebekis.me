@@ -91,7 +91,7 @@
 			<div class="hidden sm:ml-6 sm:flex sm:items-center">
 				<button
 					onclick={handleLogout}
-					class="block rounded bg-white px-2 py-1 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+					class="block rounded bg-white px-2 py-1 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50"
 				>
 					Sign Out
 				</button>
@@ -100,7 +100,7 @@
 				<button
 					type="button"
 					onclick={toggleMenu}
-					class="inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-black"
+					class="inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:ring-2 focus:ring-black focus:outline-none focus:ring-inset"
 					aria-controls="mobile-menu"
 					aria-expanded={isOpen}
 				>
@@ -144,10 +144,10 @@
 	</div>
 
 	<div class="sm:hidden" id="mobile-menu" class:hidden={!isOpen}>
-		<div class="space-y-1 pb-3 pt-2">
+		<div class="space-y-1 pt-2 pb-3">
 			<a
 				href="/admin"
-				class="block border-l-4 border-transparent bg-gray-50 py-2 pl-3 pr-4 text-base font-medium text-gray-500 hover:border-gray-300 hover:bg-gray-100 hover:text-gray-700 {isActive(
+				class="block border-l-4 border-transparent bg-gray-50 py-2 pr-4 pl-3 text-base font-medium text-gray-500 hover:border-gray-300 hover:bg-gray-100 hover:text-gray-700 {isActive(
 					'/admin'
 				) && !isActive('/admin/')
 					? '!border-black !bg-gray-100 !text-gray-900'
@@ -157,7 +157,7 @@
 			</a>
 			<a
 				href="/admin/memories"
-				class="block border-l-4 border-transparent bg-gray-50 py-2 pl-3 pr-4 text-base font-medium text-gray-500 hover:border-gray-300 hover:bg-gray-100 hover:text-gray-700 {isActive(
+				class="block border-l-4 border-transparent bg-gray-50 py-2 pr-4 pl-3 text-base font-medium text-gray-500 hover:border-gray-300 hover:bg-gray-100 hover:text-gray-700 {isActive(
 					'/admin/memories'
 				)
 					? '!border-black !bg-gray-100 !text-gray-900'
@@ -167,7 +167,7 @@
 			</a>
 			<a
 				href="/admin/diary"
-				class="block border-l-4 border-transparent bg-gray-50 py-2 pl-3 pr-4 text-base font-medium text-gray-500 hover:border-gray-300 hover:bg-gray-100 hover:text-gray-700 {isActive(
+				class="block border-l-4 border-transparent bg-gray-50 py-2 pr-4 pl-3 text-base font-medium text-gray-500 hover:border-gray-300 hover:bg-gray-100 hover:text-gray-700 {isActive(
 					'/admin/diary'
 				)
 					? '!border-black !bg-gray-100 !text-gray-900'
@@ -177,7 +177,7 @@
 			</a>
 			<a
 				href="/admin/blog"
-				class="block border-l-4 border-transparent bg-gray-50 py-2 pl-3 pr-4 text-base font-medium text-gray-500 hover:border-gray-300 hover:bg-gray-100 hover:text-gray-700 {isActive(
+				class="block border-l-4 border-transparent bg-gray-50 py-2 pr-4 pl-3 text-base font-medium text-gray-500 hover:border-gray-300 hover:bg-gray-100 hover:text-gray-700 {isActive(
 					'/admin/blog'
 				)
 					? '!border-black !bg-gray-100 !text-gray-900'
@@ -187,7 +187,7 @@
 			</a>
 			<a
 				href="/admin/projects"
-				class="block border-l-4 border-transparent bg-gray-50 py-2 pl-3 pr-4 text-base font-medium text-gray-500 hover:border-gray-300 hover:bg-gray-100 hover:text-gray-700 {isActive(
+				class="block border-l-4 border-transparent bg-gray-50 py-2 pr-4 pl-3 text-base font-medium text-gray-500 hover:border-gray-300 hover:bg-gray-100 hover:text-gray-700 {isActive(
 					'/admin/projects'
 				)
 					? '!border-black !bg-gray-100 !text-gray-900'
@@ -197,7 +197,7 @@
 			</a>
 			<button
 				onclick={handleLogout}
-				class="block w-full border-l-4 border-transparent bg-gray-50 py-2 pl-3 pr-4 text-left text-base font-medium text-gray-500 hover:border-gray-300 hover:bg-gray-100 hover:text-gray-700"
+				class="block w-full border-l-4 border-transparent bg-gray-50 py-2 pr-4 pl-3 text-left text-base font-medium text-gray-500 hover:border-gray-300 hover:bg-gray-100 hover:text-gray-700"
 			>
 				Sign Out
 			</button>

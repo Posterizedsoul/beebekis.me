@@ -9,7 +9,7 @@
 	<div class="md:flex md:items-center md:justify-between">
 		<div class="min-w-0 flex-1">
 			<h2
-				class="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight"
+				class="text-2xl leading-7 font-bold text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight"
 			>
 				Dashboard
 			</h2>
@@ -26,7 +26,7 @@
 			class="group relative overflow-hidden rounded-lg bg-white p-6 shadow transition-all hover:shadow-md"
 		>
 			<div
-				class="absolute right-0 top-0 -mr-4 -mt-4 h-24 w-24 rounded-full bg-blue-50 transition-all group-hover:scale-110"
+				class="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 rounded-full bg-blue-50 transition-all group-hover:scale-110"
 			></div>
 			<div class="relative">
 				<div class="flex items-center space-x-4">
@@ -56,7 +56,7 @@
 			class="group relative overflow-hidden rounded-lg bg-white p-6 shadow transition-all hover:shadow-md"
 		>
 			<div
-				class="absolute right-0 top-0 -mr-4 -mt-4 h-24 w-24 rounded-full bg-purple-50 transition-all group-hover:scale-110"
+				class="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 rounded-full bg-purple-50 transition-all group-hover:scale-110"
 			></div>
 			<div class="relative">
 				<div class="flex items-center space-x-4">
@@ -86,7 +86,7 @@
 			class="group relative overflow-hidden rounded-lg bg-white p-6 shadow transition-all hover:shadow-md"
 		>
 			<div
-				class="absolute right-0 top-0 -mr-4 -mt-4 h-24 w-24 rounded-full bg-green-50 transition-all group-hover:scale-110"
+				class="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 rounded-full bg-green-50 transition-all group-hover:scale-110"
 			></div>
 			<div class="relative">
 				<div class="flex items-center space-x-4">
@@ -116,7 +116,7 @@
 			class="group relative overflow-hidden rounded-lg bg-white p-6 shadow transition-all hover:shadow-md"
 		>
 			<div
-				class="absolute right-0 top-0 -mr-4 -mt-4 h-24 w-24 rounded-full bg-orange-50 transition-all group-hover:scale-110"
+				class="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 rounded-full bg-orange-50 transition-all group-hover:scale-110"
 			></div>
 			<div class="relative">
 				<div class="flex items-center space-x-4">

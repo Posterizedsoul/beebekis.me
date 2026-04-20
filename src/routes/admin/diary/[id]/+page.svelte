@@ -242,7 +242,7 @@
 									<button
 										type="button"
 										onclick={() => (featuredImage = '')}
-										class="absolute right-1 top-1 rounded-full bg-white/80 p-1 text-red-600 opacity-0 transition-opacity group-hover:opacity-100"
+										class="absolute top-1 right-1 rounded-full bg-white/80 p-1 text-red-600 opacity-0 transition-opacity group-hover:opacity-100"
 									>
 										<svg
 											xmlns="http://www.w3.org/2000/svg"

@@ -22,30 +22,30 @@
 
 <!-- Large side text -->
 <div
-	class="pointer-events-none fixed left-0 top-0 z-10 hidden h-screen flex-col items-center justify-center pl-10 md:pl-20 lg:flex"
+	class="pointer-events-none fixed top-0 left-0 z-10 hidden h-screen flex-col items-center justify-center pl-10 md:pl-20 lg:flex"
 >
-	<span class="block text-7xl font-bold leading-none tracking-tighter text-gray-300 xl:text-8xl"
+	<span class="block text-7xl leading-none font-bold tracking-tighter text-gray-300 xl:text-8xl"
 		>P</span
 	>
-	<span class="block text-7xl font-bold leading-none tracking-tighter text-gray-300 xl:text-8xl"
+	<span class="block text-7xl leading-none font-bold tracking-tighter text-gray-300 xl:text-8xl"
 		>R</span
 	>
-	<span class="block text-7xl font-bold leading-none tracking-tighter text-gray-300 xl:text-8xl"
+	<span class="block text-7xl leading-none font-bold tracking-tighter text-gray-300 xl:text-8xl"
 		>O</span
 	>
-	<span class="block text-7xl font-bold leading-none tracking-tighter text-gray-300 xl:text-8xl"
+	<span class="block text-7xl leading-none font-bold tracking-tighter text-gray-300 xl:text-8xl"
 		>J</span
 	>
-	<span class="block text-7xl font-bold leading-none tracking-tighter text-gray-300 xl:text-8xl"
+	<span class="block text-7xl leading-none font-bold tracking-tighter text-gray-300 xl:text-8xl"
 		>E</span
 	>
-	<span class="block text-7xl font-bold leading-none tracking-tighter text-gray-300 xl:text-8xl"
+	<span class="block text-7xl leading-none font-bold tracking-tighter text-gray-300 xl:text-8xl"
 		>C</span
 	>
-	<span class="block text-7xl font-bold leading-none tracking-tighter text-gray-300 xl:text-8xl"
+	<span class="block text-7xl leading-none font-bold tracking-tighter text-gray-300 xl:text-8xl"
 		>T</span
 	>
-	<span class="block text-7xl font-bold leading-none tracking-tighter text-gray-300 xl:text-8xl"
+	<span class="block text-7xl leading-none font-bold tracking-tighter text-gray-300 xl:text-8xl"
 		>S</span
 	>
 </div>
@@ -75,7 +75,7 @@
 												loading="lazy"
 											/>
 											{#if i < previews.length - 1}
-												<div class="absolute bottom-0 right-0 top-0 z-10 w-px bg-white/30"></div>
+												<div class="absolute top-0 right-0 bottom-0 z-10 w-px bg-white/30"></div>
 											{/if}
 										</div>
 									{/each}
@@ -86,9 +86,9 @@
 								></div>
 
 								<!-- Title on image -->
-								<div class="absolute bottom-0 left-0 right-0 p-6 md:p-8">
+								<div class="absolute right-0 bottom-0 left-0 p-6 md:p-8">
 									<h2
-										class="text-shadow text-3xl font-bold uppercase tracking-wide text-white md:text-4xl lg:text-5xl"
+										class="text-shadow text-3xl font-bold tracking-wide text-white uppercase md:text-4xl lg:text-5xl"
 									>
 										{project.title}
 									</h2>
@@ -110,9 +110,9 @@
 								<div
 									class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"
 								></div>
-								<div class="absolute bottom-0 left-0 right-0 p-6 md:p-8">
+								<div class="absolute right-0 bottom-0 left-0 p-6 md:p-8">
 									<h2
-										class="text-shadow text-3xl font-bold uppercase tracking-wide text-white md:text-4xl lg:text-5xl"
+										class="text-shadow text-3xl font-bold tracking-wide text-white uppercase md:text-4xl lg:text-5xl"
 									>
 										{project.title}
 									</h2>

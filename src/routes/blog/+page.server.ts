@@ -29,7 +29,7 @@ export const load: PageServerLoad = async () => {
 		const querySnapshot = await getDocs(q);
 		const allTags = new Set<string>();
 
-		const posts: PostMetadata[] = querySnapshot.docs.map(doc => {
+		const posts: PostMetadata[] = querySnapshot.docs.map((doc) => {
 			const data = doc.data();
 			const dateObj = data.date?.toDate ? data.date.toDate() : new Date(data.date);
 
@@ -61,7 +61,9 @@ export const load: PageServerLoad = async () => {
 			return acc;
 		}, {} as GroupedPosts);
 
-		const sortedYears = Object.keys(groupedPosts).map(Number).sort((a, b) => b - a);
+		const sortedYears = Object.keys(groupedPosts)
+			.map(Number)
+			.sort((a, b) => b - a);
 
 		return {
 			posts: posts, // Flat list
@@ -69,7 +71,6 @@ export const load: PageServerLoad = async () => {
 			groupedPosts: groupedPosts,
 			sortedYears: sortedYears
 		};
-
 	} catch (err: any) {
 		console.error('Failed to load blog posts:', err);
 		if (err.code === 'permission-denied') {

@@ -111,7 +111,7 @@
 
 			<!-- Controls -->
 			<div
-				class="absolute right-1 top-1 z-10 flex space-x-1 sm:opacity-0 sm:group-hover:opacity-100"
+				class="absolute top-1 right-1 z-10 flex space-x-1 sm:opacity-0 sm:group-hover:opacity-100"
 			>
 				<button
 					type="button"
@@ -135,7 +135,7 @@
 </div>
 
 {#if images.length === 0}
-	<p class="mt-4 text-center text-sm italic text-gray-500">No images added yet.</p>
+	<p class="mt-4 text-center text-sm text-gray-500 italic">No images added yet.</p>
 {:else}
 	<div class="mt-4 flex flex-col items-center gap-2">
 		<p class="text-xs text-gray-400">

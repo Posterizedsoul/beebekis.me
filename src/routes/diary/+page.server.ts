@@ -20,14 +20,17 @@ export const load: PageServerLoad = async ({ parent }) => {
 	const { sortedEntries } = await parent();
 
 	// Group entries by year
-	const groupedDiaries: GroupedDiaries = sortedEntries.reduce((acc: GroupedDiaries, entry: DiaryEntry) => {
-		const year = new Date(entry.date).getFullYear();
-		if (!acc[year]) {
-			acc[year] = [];
-		}
-		acc[year].push(entry);
-		return acc;
-	}, {} as GroupedDiaries);
+	const groupedDiaries: GroupedDiaries = sortedEntries.reduce(
+		(acc: GroupedDiaries, entry: DiaryEntry) => {
+			const year = new Date(entry.date).getFullYear();
+			if (!acc[year]) {
+				acc[year] = [];
+			}
+			acc[year].push(entry);
+			return acc;
+		},
+		{} as GroupedDiaries
+	);
 
 	return {
 		groupedDiaries,

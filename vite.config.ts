@@ -6,8 +6,8 @@ import { defineConfig } from 'vite';
 export default defineConfig({
 	plugins: [
 		enhancedImages(), // Keep enhancedImages first or try moving it last if issues persist
-		sveltekit(),      // sveltekit() before tailwindcss()
-		tailwindcss()     // tailwindcss() after sveltekit()
+		sveltekit(), // sveltekit() before tailwindcss()
+		tailwindcss() // tailwindcss() after sveltekit()
 	],
 	server: {
 		host: true,

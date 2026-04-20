@@ -78,7 +78,7 @@
 		{/if}
 
 		<!-- Content Overlay -->
-		<div class="absolute bottom-0 left-0 right-0 mx-auto w-full max-w-7xl p-6 text-white md:p-12">
+		<div class="absolute right-0 bottom-0 left-0 mx-auto w-full max-w-7xl p-6 text-white md:p-12">
 			<a
 				href="/projects"
 				class="back-link mb-6 inline-flex items-center gap-2 text-sm font-medium text-white/80 transition-colors hover:text-white"
@@ -87,7 +87,7 @@
 			</a>
 
 			<h1
-				class="text-shadow mb-4 text-5xl font-bold uppercase tracking-wide md:text-7xl lg:text-8xl"
+				class="text-shadow mb-4 text-5xl font-bold tracking-wide uppercase md:text-7xl lg:text-8xl"
 			>
 				{data.metadata.title}
 			</h1>

@@ -202,7 +202,7 @@
 			loading="eager"
 		/>
 		<div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent"></div>
-		<header class="absolute bottom-0 left-0 right-0 z-10 p-6 text-white md:p-10">
+		<header class="absolute right-0 bottom-0 left-0 z-10 p-6 text-white md:p-10">
 			<h1 class="text-shadow mb-2 text-3xl font-bold md:text-5xl">{data.title}</h1>
 			{#if data.date}
 				<p class="text-md text-shadow text-gray-200 md:text-lg">{formatDate(data.date)}</p>

@@ -111,7 +111,7 @@
 				class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent"
 			></div>
 			<!-- Text Content -->
-			<div class="absolute bottom-0 left-0 right-0 p-6 text-white md:p-8">
+			<div class="absolute right-0 bottom-0 left-0 p-6 text-white md:p-8">
 				<h1 class="text-shadow mb-2 text-3xl font-semibold md:text-5xl">{metadata.title}</h1>
 				{#if metadata.date}
 					<p class="text-shadow mb-0 text-sm opacity-90 md:text-base">
@@ -154,7 +154,7 @@
 			{#if metadata.edited}
 				{#if Array.isArray(metadata.edited)}
 					{#if metadata.edited.length > 0}
-						<div class="mt-1 text-sm italic text-gray-500">
+						<div class="mt-1 text-sm text-gray-500 italic">
 							<span class="">🛈 Edited:</span>
 							<ul class="m-0 ml-1 inline-block list-none p-0">
 								{#each metadata.edited as editDate, i (editDate)}
@@ -182,7 +182,7 @@
 	<!-- Excerpt (from old layout) -->
 	{#if metadata.excerpt}
 		<blockquote
-			class="mx-auto my-10 max-w-3xl border-none p-0 text-center text-lg italic text-gray-600 md:my-12 md:text-xl"
+			class="mx-auto my-10 max-w-3xl border-none p-0 text-center text-lg text-gray-600 italic md:my-12 md:text-xl"
 		>
 			"{metadata.excerpt}"
 		</blockquote>
