@@ -14,6 +14,8 @@
 	import { storage } from '$lib/firebase';
 	import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 	import imageCompression from 'browser-image-compression';
+	import ProjectContent from '$lib/components/ProjectContent.svelte';
+	import { ImageGroup } from '$lib/tiptap/imageGroup';
 
 	let {
 		value = $bindable(''),
@@ -83,6 +85,7 @@
 					heading: { levels: [1, 2, 3, 4] }
 				}),
 				Image.configure({ inline: true, allowBase64: false }),
+				ImageGroup,
 				Placeholder.configure({ placeholder, emptyEditorClass: 'is-editor-empty' }),
 				Link.configure({
 					openOnClick: false,
@@ -98,7 +101,7 @@
 			content: value,
 			editorProps: {
 				attributes: {
-					class: 'prose prose-lg focus:outline-none min-h-[400px] max-w-none p-6'
+					class: 'prose prose-lg focus:outline-none min-h-[70vh] max-w-none py-8'
 				},
 				handlePaste: (view, event) => {
 					const items = event.clipboardData?.items;
@@ -134,7 +137,9 @@
 				const { selection } = editor.state;
 				const node = selection.$anchor.parent;
 				const isImage =
-					editor.isActive('image') || (selection.node && selection.node.type.name === 'image');
+					editor.isActive('image') ||
+					editor.isActive('imageGroup') ||
+					(selection.node && selection.node.type.name === 'image');
 				isImageSelected = isImage;
 			}
 		});
@@ -243,13 +248,11 @@
 				uploadedUrls.push(downloadURL);
 			}
 
-			// Insert images - as gallery grid if multiple, single if one
+			// Insert images - as grouped gallery with caption if multiple, single if one
 			if (uploadedUrls.length === 1) {
 				editor.chain().focus().setImage({ src: uploadedUrls[0] }).run();
 			} else if (uploadedUrls.length > 1) {
-				// Insert as a gallery grid
-				const galleryHtml = `<div class="image-gallery">${uploadedUrls.map((url) => `<img src="${url}" alt="" />`).join('')}</div><p></p>`;
-				editor.chain().focus().insertContent(galleryHtml).run();
+				editor.chain().focus().insertImageGroup(uploadedUrls).run();
 			}
 		} catch (err: any) {
 			console.error('Image upload failed:', err);
@@ -264,9 +267,11 @@
 	const addHr = () => editor?.chain().focus().setHorizontalRule().run();
 	const clearFormat = () => editor?.chain().focus().clearNodes().unsetAllMarks().run();
 
-	// Delete the currently selected image
+	// Delete the currently selected image or image group
 	const deleteSelectedImage = () => {
-		if (editor?.isActive('image')) {
+		if (editor?.isActive('imageGroup')) {
+			editor.chain().focus().deleteNode('imageGroup').run();
+		} else if (editor?.isActive('image')) {
 			editor.chain().focus().deleteSelection().run();
 		}
 	};
@@ -295,10 +300,10 @@
 	</div>
 {/if}
 
-<div class="flex flex-col rounded-lg border border-gray-200 bg-white shadow-sm">
-	<!-- Top Toolbar -->
+<div class="flex flex-col">
+	<!-- Top Toolbar: floats above the writing surface, sticks while scrolling -->
 	<div
-		class="sticky top-0 z-10 flex flex-wrap items-center gap-0.5 rounded-t-lg border-b border-gray-200 bg-gray-50 px-1 py-1"
+		class="sticky top-0 z-10 flex flex-wrap items-center gap-1 border-b border-gray-100 bg-white/95 py-2 backdrop-blur"
 	>
 		<!-- Undo/Redo -->
 		<button type="button" onclick={undo} class="toolbar-btn" title="Undo" aria-label="Undo">
@@ -729,13 +734,13 @@
 	</div>
 
 	<!-- Editor / Preview Area -->
-	<div class="min-h-[400px] rounded-b-lg bg-white text-gray-900">
+	<div class="min-h-[70vh] bg-white text-gray-900">
 		<!-- Editor always mounted, hidden when in preview mode -->
 		<div bind:this={element} class="h-full w-full" class:hidden={mode === 'preview'}></div>
-		<!-- Preview renders HTML -->
+		<!-- Preview renders exactly what the public project page will show -->
 		{#if mode === 'preview'}
-			<div class="prose prose-lg max-w-none p-6">
-				{@html value}
+			<div class="py-8">
+				<ProjectContent html={value} />
 			</div>
 		{/if}
 	</div>
@@ -744,8 +749,8 @@
 <style>
 	/* Toolbar button styles (light theme) */
 	.toolbar-btn {
-		border-radius: 0.25rem;
-		padding: 0.375rem;
+		border-radius: 0.375rem;
+		padding: 0.5rem;
 		font-size: 0.75rem;
 		color: #6b7280;
 		transition:
@@ -754,8 +759,8 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		min-width: 28px;
-		height: 28px;
+		min-width: 32px;
+		height: 32px;
 	}
 	.toolbar-btn:hover {
 		background-color: #e5e7eb;
@@ -766,9 +771,9 @@
 		color: #111827;
 	}
 	.divider {
-		margin-left: 0.25rem;
-		margin-right: 0.25rem;
-		height: 1.25rem;
+		margin-left: 0.375rem;
+		margin-right: 0.375rem;
+		height: 1.5rem;
 		width: 1px;
 		background-color: #d1d5db;
 	}
@@ -782,7 +787,7 @@
 	}
 	:global(.ProseMirror) {
 		outline: none;
-		min-height: 400px;
+		min-height: 70vh;
 	}
 	/* Table styles */
 	:global(.ProseMirror table) {
@@ -839,6 +844,38 @@
 	:global(.image-gallery img:hover) {
 		transform: scale(1.02);
 		opacity: 0.9;
+	}
+
+	/* Image group: bordered collection card with editable caption underneath */
+	:global(.ProseMirror .image-group) {
+		margin: 1.5rem 0;
+		padding: 0.875rem;
+		border: 1px solid #e5e7eb;
+		border-radius: 14px;
+		background: #ffffff;
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+	}
+	:global(.ProseMirror .image-group .image-gallery) {
+		margin: 0 0 0.5rem;
+	}
+	:global(.ProseMirror .image-group-caption) {
+		padding-top: 0.625rem;
+		border-top: 1px solid #f3f4f6;
+		text-align: center;
+		font-size: 0.9375rem;
+		color: #6b7280;
+	}
+	:global(.ProseMirror .image-group-caption p.is-empty::before) {
+		color: #9ca3af;
+		content: 'Write a caption…';
+		float: left;
+		width: 100%;
+		height: 0;
+		pointer-events: none;
+	}
+	:global(.ProseMirror .image-group.ProseMirror-selectednode) {
+		outline: 2px solid #3b82f6;
+		outline-offset: 2px;
 	}
 
 	/* Image delete buttons in editor */

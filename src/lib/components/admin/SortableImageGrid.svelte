@@ -2,7 +2,7 @@
 	import { onMount, tick } from 'svelte';
 	import Sortable from 'sortablejs';
 
-	let { images = $bindable([]), onRemove } = $props();
+	let { images = $bindable([]), onRemove = undefined } = $props();
 
 	let gridContainer: HTMLElement;
 

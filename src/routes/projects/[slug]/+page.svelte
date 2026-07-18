@@ -1,22 +1,18 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import { Github, ExternalLink, ArrowLeft, X } from 'lucide-svelte';
+	import { Github, ExternalLink, ArrowLeft } from 'lucide-svelte';
 	import AdminEditButton from '$lib/components/AdminEditButton.svelte';
-	import { onMount } from 'svelte';
+	import ProjectContent from '$lib/components/ProjectContent.svelte';
+	import ImageLightbox, {
+		collectImages,
+		type LightboxImage
+	} from '$lib/components/ImageLightbox.svelte';
 
 	let { data }: { data: PageData } = $props();
 
-	// Simple image viewer state - just shows the clicked image enlarged
-	let viewerOpen = $state(false);
-	let viewerImage = $state({ url: '', alt: '' });
-
-	// Animation state
-	let mounted = $state(false);
-
-	onMount(() => {
-		// Trigger entrance animations
-		setTimeout(() => (mounted = true), 50);
-	});
+	let lightboxOpen = $state(false);
+	let lightboxImages: LightboxImage[] = $state([]);
+	let lightboxIndex = $state(0);
 
 	// Determine hero image (featured or fallback to first gallery image)
 	let heroImage = $derived(
@@ -31,23 +27,16 @@
 		});
 	}
 
-	function closeViewer() {
-		viewerOpen = false;
-	}
-
-	function handleKeydown(e: KeyboardEvent) {
-		if (!viewerOpen) return;
-		if (e.key === 'Escape') closeViewer();
-	}
-
 	// Handle clicks on images within the prose content
 	function handleContentClick(e: MouseEvent) {
 		const target = e.target as HTMLElement;
-		if (target.tagName === 'IMG') {
-			const img = target as HTMLImageElement;
-			viewerImage = { url: img.src, alt: img.alt || 'Project image' };
-			viewerOpen = true;
-		}
+		if (target.tagName !== 'IMG') return;
+		const container = e.currentTarget as HTMLElement;
+		lightboxImages = collectImages(container);
+		lightboxIndex = Array.from(container.querySelectorAll('img')).indexOf(
+			target as HTMLImageElement
+		);
+		lightboxOpen = true;
 	}
 </script>
 
@@ -58,8 +47,6 @@
 		content={data.metadata.description || `Project: ${data.metadata.title}`}
 	/>
 </svelte:head>
-
-<svelte:window on:keydown={handleKeydown} />
 
 <article class="project-page">
 	<!-- Hero Section -->
@@ -141,26 +128,18 @@
 		{/if}
 
 		{#if data.contentHtml}
-			<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-			<div class="prose-content">
-				{@html data.contentHtml}
-			</div>
+			<ProjectContent html={data.contentHtml} />
 		{/if}
 	</div>
 </article>
 
-<!-- Image Viewer - shows clicked image enlarged -->
-{#if viewerOpen}
-	<!-- svelte-ignore a11y_no_static_element_interactions a11y_click_events_have_key_events -->
-	<div class="lightbox" onclick={closeViewer} role="dialog" aria-modal="true">
-		<div class="lightbox-container" onclick={(e) => e.stopPropagation()}>
-			<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_noninteractive_element_interactions -->
-			<img src={viewerImage.url} alt={viewerImage.alt} class="lightbox-img" />
-			<button type="button" class="lightbox-close" onclick={closeViewer} aria-label="Close">
-				<X size={20} />
-			</button>
-		</div>
-	</div>
+<!-- Image Viewer with prev/next navigation and captions -->
+{#if lightboxOpen}
+	<ImageLightbox
+		images={lightboxImages}
+		startIndex={lightboxIndex}
+		onClose={() => (lightboxOpen = false)}
+	/>
 {/if}
 
 <!-- Edit button for logged-in users -->
@@ -241,138 +220,10 @@
 		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 	}
 
-	/* ===== Content Section ===== */
-	.content-section {
-		padding: 3rem 1.5rem 5rem;
-		background: #fafafa;
-	}
-
 	@media (min-width: 768px) {
 		.content-section {
 			padding: 4rem 2rem 6rem;
 		}
-	}
-
-	.prose-content {
-		max-width: 56rem;
-		margin: 0 auto;
-		font-size: 1.0625rem;
-		line-height: 1.8;
-		color: #374151;
-	}
-
-	:global(.prose-content p) {
-		margin-bottom: 1.5rem;
-	}
-
-	:global(.prose-content h2) {
-		font-size: 1.875rem;
-		font-weight: 700;
-		color: #111827;
-		margin-top: 3rem;
-		margin-bottom: 1rem;
-	}
-
-	:global(.prose-content h3) {
-		font-size: 1.5rem;
-		font-weight: 600;
-		color: #1f2937;
-		margin-top: 2.5rem;
-		margin-bottom: 0.75rem;
-	}
-
-	:global(.prose-content img) {
-		display: block;
-		width: 100%;
-		max-width: 100%;
-		height: auto;
-		border-radius: 12px;
-		margin: 2rem auto;
-		cursor: pointer;
-		transition:
-			transform 0.2s,
-			box-shadow 0.2s;
-		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-	}
-
-	:global(.prose-content img:hover) {
-		transform: scale(1.01);
-		box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
-	}
-
-	:global(.prose-content a) {
-		color: #4f46e5;
-		text-decoration: underline;
-		text-underline-offset: 3px;
-		transition: color 0.2s;
-	}
-
-	:global(.prose-content a:hover) {
-		color: #4338ca;
-	}
-
-	:global(.prose-content ul),
-	:global(.prose-content ol) {
-		margin: 1.5rem 0;
-		padding-left: 1.5rem;
-	}
-
-	:global(.prose-content li) {
-		margin-bottom: 0.5rem;
-	}
-
-	:global(.prose-content pre) {
-		background: #1e293b;
-		color: #e2e8f0;
-		padding: 1.5rem;
-		border-radius: 12px;
-		overflow-x: auto;
-		margin: 2rem 0;
-	}
-
-	:global(.prose-content code) {
-		font-family: 'JetBrains Mono', 'Fira Code', monospace;
-		font-size: 0.9em;
-	}
-
-	/* Masonry layout for grouped images from editor */
-	:global(.prose-content .image-gallery) {
-		column-count: 2;
-		column-gap: 1rem;
-		margin: 2rem 0;
-		width: 100%;
-	}
-
-	@media (max-width: 640px) {
-		:global(.prose-content .image-gallery) {
-			column-count: 1;
-		}
-	}
-
-	:global(.prose-content .image-gallery img) {
-		width: 100%;
-		height: auto;
-		margin: 0 0 1rem 0;
-		break-inside: avoid;
-		border-radius: 12px;
-		cursor: pointer;
-		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-		transition:
-			transform 0.2s,
-			box-shadow 0.2s;
-	}
-
-	:global(.prose-content .image-gallery img:hover) {
-		transform: scale(1.02);
-		box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
-	}
-
-	:global(.prose-content blockquote) {
-		border-left: 4px solid #e2e8f0;
-		padding-left: 1.5rem;
-		margin: 2rem 0;
-		font-style: italic;
-		color: #64748b;
 	}
 
 	/* ===== Back Link ===== */
@@ -395,81 +246,10 @@
 		width: 100%;
 	}
 
-	/* ===== Image Viewer ===== */
-	.lightbox {
-		position: fixed;
-		inset: 0;
-		z-index: 100;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		background: rgba(0, 0, 0, 0.85);
-		animation: fadeIn 0.3s ease-out;
-	}
-
-	@keyframes fadeIn {
-		from {
-			opacity: 0;
-		}
-		to {
-			opacity: 1;
-		}
-	}
-
-	.lightbox-container {
-		position: relative;
-		display: inline-block;
-		max-width: 90vw;
-		max-height: 85vh;
-	}
-
-	.lightbox-close {
-		position: absolute;
-		bottom: 0.75rem;
-		right: 0.75rem;
-		padding: 0.5rem;
-		background: rgba(0, 0, 0, 0.6);
-		border: none;
-		border-radius: 50%;
-		color: #fff;
-		cursor: pointer;
-		transition: all 0.2s;
-		z-index: 10;
-	}
-
-	.lightbox-close:hover {
-		background: rgba(0, 0, 0, 0.8);
-		transform: scale(1.1);
-	}
-
-	.lightbox-img {
-		max-width: 90vw;
-		max-height: 85vh;
-		object-fit: contain;
-		border-radius: 8px;
-		animation: zoomIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-	}
-
-	@keyframes zoomIn {
-		from {
-			opacity: 0;
-			transform: scale(0.8);
-		}
-		to {
-			opacity: 1;
-			transform: scale(1);
-		}
-	}
-
 	/* Reduced motion */
 	@media (prefers-reduced-motion: reduce) {
 		.tech-badge {
 			transition: none;
-		}
-
-		.lightbox,
-		.lightbox-img {
-			animation: none;
 		}
 	}
 </style>

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import backgroundImg from '$lib/assets/background.png?enhanced';
 
 	let mouseX = $state(0);
 	let mouseY = $state(0);
@@ -34,12 +35,12 @@
 <div class="hero" onmousemove={handleMouseMove} role="banner">
 	<!-- Blurred background layer -->
 	<div class="bg-blurred">
-		<img src="/background.png" alt="" aria-hidden="true" />
+		<enhanced:img src={backgroundImg} alt="" aria-hidden="true" sizes="100vw" />
 	</div>
 
 	<!-- Clear background with mask following cursor -->
 	<div class="bg-clear" style="--mouse-x: {mouseX}px; --mouse-y: {mouseY}px;">
-		<img src="/background.png" alt="" aria-hidden="true" />
+		<enhanced:img src={backgroundImg} alt="" aria-hidden="true" sizes="100vw" />
 	</div>
 
 	<!-- Name -->
@@ -71,7 +72,13 @@
 		z-index: 0;
 	}
 
-	.bg-blurred img {
+	.bg-blurred :global(picture) {
+		display: block;
+		width: 100%;
+		height: 100%;
+	}
+
+	.bg-blurred :global(img) {
 		width: 100%;
 		height: 100%;
 		object-fit: contain;
@@ -98,7 +105,13 @@
 		);
 	}
 
-	.bg-clear img {
+	.bg-clear :global(picture) {
+		display: block;
+		width: 100%;
+		height: 100%;
+	}
+
+	.bg-clear :global(img) {
 		width: 100%;
 		height: 100%;
 		object-fit: contain;

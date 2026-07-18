@@ -57,7 +57,7 @@
 </div>
 <div class="relative z-20 mx-auto max-w-2xl px-4 py-12 md:py-16">
 	<div class="mb-6 flex justify-end">
-		<AdminAddButton href="/admin/diary/new" label="Add Diary Entry" />
+		<AdminAddButton kind="diary" label="Add Diary Entry" />
 	</div>
 	{#if entries.length > 0}
 		<div class="timeline-container relative">

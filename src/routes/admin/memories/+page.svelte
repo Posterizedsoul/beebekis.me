@@ -40,13 +40,13 @@
 
 <div class="sm:flex sm:items-center">
 	<div class="sm:flex-auto">
-		<h1 class="text-2xl font-semibold text-gray-900">Memories</h1>
-		<p class="mt-2 text-sm text-gray-700">A list of all your photo albums and memories.</p>
+		<h1 class="font-serif text-3xl font-bold tracking-wide text-black uppercase">Memories</h1>
+		<p class="mt-2 text-sm text-gray-500">A list of all your photo albums and memories.</p>
 	</div>
 	<div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
 		<a
 			href="/admin/memories/new"
-			class="block rounded-md bg-black px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-gray-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+			class="block rounded-sm border border-black bg-black px-4 py-2 text-center font-serif text-sm font-medium tracking-wider text-white uppercase transition-colors hover:bg-gray-800"
 		>
 			Add Memory
 		</a>
@@ -56,7 +56,7 @@
 <div class="mt-8 flex flex-col">
 	<div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
 		<div class="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
-			<div class="ring-opacity-5 overflow-hidden shadow ring-1 ring-black md:rounded-lg">
+			<div class="overflow-hidden rounded-sm border border-gray-200 bg-white">
 				<table class="min-w-full divide-y divide-gray-300">
 					<thead class="bg-gray-50">
 						<tr>
@@ -98,10 +98,8 @@
 									<td
 										class="py-4 pr-3 pl-4 text-sm font-medium whitespace-nowrap text-gray-900 sm:pl-6"
 									>
-										<a
-											href="/memories/{memory.slug}"
-											target="_blank"
-											class="hover:text-indigo-600 hover:underline">{memory.title}</a
+										<a href="/memories/{memory.slug}" target="_blank" class="hover:underline"
+											>{memory.title}</a
 										>
 									</td>
 									<td class="px-3 py-4 text-sm whitespace-nowrap text-gray-500"
@@ -116,7 +114,7 @@
 									>
 										<a
 											href="/admin/memories/{memory.id}"
-											class="text-indigo-600 hover:text-indigo-900"
+											class="font-medium text-black hover:underline"
 											>Edit<span class="sr-only">, {memory.title}</span></a
 										>
 									</td>

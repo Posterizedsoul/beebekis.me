@@ -51,7 +51,7 @@
 		</div>
 	</div>
 {:else if authenticated && page.url.pathname !== '/admin/login'}
-	<div class="min-h-screen bg-gray-100 font-sans text-gray-900">
+	<div class="min-h-screen bg-[#fafafa] text-gray-900">
 		<AdminNav />
 		<main class="py-10">
 			<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

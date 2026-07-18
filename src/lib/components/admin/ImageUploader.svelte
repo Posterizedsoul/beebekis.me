@@ -29,6 +29,7 @@
 		progress = 0;
 
 		const uploadedUrls: string[] = [];
+		const uploadedThumbUrls: string[] = [];
 
 		try {
 			for (let i = 0; i < files.length; i++) {
@@ -106,12 +107,11 @@
 					}
 				}
 
-				// Store both URLs (main URL for now, components can access thumbnail later)
-				// For compatibility, we push the main URL but the image object in parent has thumbnailUrl
 				uploadedUrls.push(mainUrl);
+				uploadedThumbUrls.push(thumbnailUrl);
 			}
 
-			onUploadComplete(uploadedUrls);
+			onUploadComplete(uploadedUrls, uploadedThumbUrls);
 		} catch (err: any) {
 			console.error('Upload failed:', err);
 			error = 'Upload failed: ' + err.message;

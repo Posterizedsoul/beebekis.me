@@ -1,7 +1,7 @@
 import type { PageServerLoad } from './$types';
-import { error } from '@sveltejs/kit';
 import { db } from '$lib/firebase';
 import { collection, getDocs, query, orderBy, where } from 'firebase/firestore';
+import { withCache } from '$lib/server/requestCache';
 
 // Define the shape of the memoir object for the landing page
 interface MemoirSummary {
@@ -39,93 +39,88 @@ export const load: PageServerLoad = async () => {
 	// For this implementation, we'll try using the client SDK we initialized.
 
 	try {
-		console.log('Loading memories from Firestore...');
+		return await withCache('memories:list', async () => {
+			console.log('Loading memories from Firestore...');
 
-		// Fetch all published memories sorted by date
-		const q = query(
-			collection(db, 'memories'),
-			where('isPublished', '==', true),
-			orderBy('date', 'desc')
-		);
-		// NOTE: In server-side load, getting docs from client SDK might require
-		// some environment setup. If this fails, we might need to move this logic to +page.ts (client-side load)
-		// or use firebase-admin. Let's assume standard SDK works for now or user browser fetch in +page.ts is better?
-		// Actually, for SEO and initial load, server side is best.
-		// Let's stick with this. SvelteKit server runs on Node (or edge),
-		// and standard Firebase JS SDK works in Node.
+			// Fetch all published memories sorted by date
+			const q = query(
+				collection(db, 'memories'),
+				where('isPublished', '==', true),
+				orderBy('date', 'desc')
+			);
 
-		const querySnapshot = await getDocs(q);
+			const querySnapshot = await getDocs(q);
 
-		const memoirs: MemoirSummary[] = querySnapshot.docs.map((doc) => {
-			const data = doc.data();
+			const memoirs: MemoirSummary[] = querySnapshot.docs.map((doc) => {
+				const data = doc.data();
 
-			// Map Firestore data to our summary shape
-			// Firestore timestamps need conversion
-			const dateObj = data.date?.toDate ? data.date.toDate() : new Date(data.date);
-			const dateStr = dateObj.toISOString();
+				// Map Firestore data to our summary shape
+				// Firestore timestamps need conversion
+				const dateObj = data.date?.toDate ? data.date.toDate() : new Date(data.date);
+				const dateStr = dateObj.toISOString();
 
-			// Construct gallery previews
-			// We'll take the first 5 images from the images array/subcollection
-			// Assuming we saved them as an array in the document for simplicity during 'create'
-			let previews: any[] = [];
-			if (data.images && Array.isArray(data.images)) {
-				previews = data.images.slice(0, 5).map((img: any) => ({
-					src: img.url,
-					alt: img.altText || 'Memory image',
-					filename: img.filename || 'image' // Fallback
-				}));
-			}
+				// Construct gallery previews
+				// We'll take the first 5 images from the images array/subcollection
+				let previews: any[] = [];
+				if (data.images && Array.isArray(data.images)) {
+					previews = data.images.slice(0, 5).map((img: any) => ({
+						src: img.url,
+						alt: img.altText || 'Memory image',
+						filename: img.filename || 'image' // Fallback
+					}));
+				}
 
-			return {
-				slug: data.slug,
-				title: data.title,
-				date: dateStr,
-				description: data.description,
-				galleryPreviews: previews
+				return {
+					slug: data.slug,
+					title: data.title,
+					date: dateStr,
+					description: data.description,
+					galleryPreviews: previews
+				};
+			});
+
+			// Grouping logic (reused)
+			const groupedMemoirs: GroupedByYear = memoirs.reduce((acc, memoir) => {
+				const date = new Date(memoir.date);
+				const year = date.getFullYear();
+				const month = date.getMonth(); // 0-indexed month
+				const day = date.getDate();
+
+				if (!acc[year]) acc[year] = {};
+				if (!acc[year][month]) acc[year][month] = {};
+				if (!acc[year][month][day]) acc[year][month][day] = [];
+
+				acc[year][month][day].push(memoir);
+				return acc;
+			}, {} as GroupedByYear);
+
+			// Sorting keys logic (reused)
+			const sortedKeys: SortedKeys = {
+				years: Object.keys(groupedMemoirs)
+					.map(Number)
+					.sort((a, b) => b - a),
+				months: {},
+				days: {}
 			};
-		});
 
-		// Grouping logic (reused)
-		const groupedMemoirs: GroupedByYear = memoirs.reduce((acc, memoir) => {
-			const date = new Date(memoir.date);
-			const year = date.getFullYear();
-			const month = date.getMonth(); // 0-indexed month
-			const day = date.getDate();
-
-			if (!acc[year]) acc[year] = {};
-			if (!acc[year][month]) acc[year][month] = {};
-			if (!acc[year][month][day]) acc[year][month][day] = [];
-
-			acc[year][month][day].push(memoir);
-			return acc;
-		}, {} as GroupedByYear);
-
-		// Sorting keys logic (reused)
-		const sortedKeys: SortedKeys = {
-			years: Object.keys(groupedMemoirs)
-				.map(Number)
-				.sort((a, b) => b - a),
-			months: {},
-			days: {}
-		};
-
-		sortedKeys.years.forEach((year) => {
-			sortedKeys.months[year] = Object.keys(groupedMemoirs[year])
-				.map(Number)
-				.sort((a, b) => b - a);
-			sortedKeys.days[year] = {};
-			sortedKeys.months[year].forEach((month) => {
-				sortedKeys.days[year][month] = Object.keys(groupedMemoirs[year][month])
+			sortedKeys.years.forEach((year) => {
+				sortedKeys.months[year] = Object.keys(groupedMemoirs[year])
 					.map(Number)
 					.sort((a, b) => b - a);
+				sortedKeys.days[year] = {};
+				sortedKeys.months[year].forEach((month) => {
+					sortedKeys.days[year][month] = Object.keys(groupedMemoirs[year][month])
+						.map(Number)
+						.sort((a, b) => b - a);
+				});
 			});
-		});
 
-		console.log(`[Memories Loader] Successfully loaded ${memoirs.length} memories.`);
-		return {
-			groupedMemoirs,
-			sortedKeys
-		};
+			console.log(`[Memories Loader] Successfully loaded ${memoirs.length} memories.`);
+			return {
+				groupedMemoirs,
+				sortedKeys
+			};
+		});
 	} catch (err: any) {
 		console.error('[Memories Loader] Error loading memoirs:', err);
 		// Check for specific Firestore error codes

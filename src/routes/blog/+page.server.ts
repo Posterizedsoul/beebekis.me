@@ -1,7 +1,7 @@
 import type { PageServerLoad } from './$types';
-import { error } from '@sveltejs/kit';
 import { db } from '$lib/firebase';
 import { collection, getDocs, query, orderBy, where } from 'firebase/firestore';
+import { withCache } from '$lib/server/requestCache';
 
 interface PostMetadata {
 	title: string;
@@ -18,59 +18,57 @@ interface GroupedPosts {
 
 export const load: PageServerLoad = async () => {
 	try {
-		console.log('Loading blog posts from Firestore...');
+		return await withCache('blog:list', async () => {
+			console.log('Loading blog posts from Firestore...');
 
-		const q = query(
-			collection(db, 'blog_posts'),
-			where('isPublished', '==', true),
-			orderBy('date', 'desc')
-		);
+			const q = query(
+				collection(db, 'blog_posts'),
+				where('isPublished', '==', true),
+				orderBy('date', 'desc')
+			);
 
-		const querySnapshot = await getDocs(q);
-		const allTags = new Set<string>();
+			const querySnapshot = await getDocs(q);
+			const allTags = new Set<string>();
 
-		const posts: PostMetadata[] = querySnapshot.docs.map((doc) => {
-			const data = doc.data();
-			const dateObj = data.date?.toDate ? data.date.toDate() : new Date(data.date);
+			const posts: PostMetadata[] = querySnapshot.docs.map((doc) => {
+				const data = doc.data();
+				const dateObj = data.date?.toDate ? data.date.toDate() : new Date(data.date);
 
-			if (data.tags && Array.isArray(data.tags)) {
-				data.tags.forEach((tag: string) => allTags.add(tag));
-			}
+				if (data.tags && Array.isArray(data.tags)) {
+					data.tags.forEach((tag: string) => allTags.add(tag));
+				}
+
+				return {
+					slug: data.slug,
+					title: data.title,
+					date: dateObj.toISOString().split('T')[0],
+					description: data.description,
+					featuredImage: data.featuredImage, // Use direct URL from Firestore
+					tags: data.tags || []
+				};
+			});
+
+			// Group posts by year
+			const groupedPosts: GroupedPosts = posts.reduce((acc, post) => {
+				const year = new Date(post.date).getFullYear();
+				if (!acc[year]) {
+					acc[year] = [];
+				}
+				acc[year].push(post);
+				return acc;
+			}, {} as GroupedPosts);
+
+			const sortedYears = Object.keys(groupedPosts)
+				.map(Number)
+				.sort((a, b) => b - a);
 
 			return {
-				slug: data.slug,
-				title: data.title,
-				date: dateObj.toISOString().split('T')[0],
-				description: data.description,
-				featuredImage: data.featuredImage, // Use direct URL from Firestore
-				tags: data.tags || []
+				posts: posts, // Flat list
+				allTags: Array.from(allTags).sort(),
+				groupedPosts: groupedPosts,
+				sortedYears: sortedYears
 			};
 		});
-
-		// Use 'posts' key to match what the frontend expects (or update frontend to match)
-		// Previous logic returned 'posts' as a flat list AND 'groupedPosts'.
-		// Let's provide both to be safe or check the frontend usage.
-
-		// Group posts by year
-		const groupedPosts: GroupedPosts = posts.reduce((acc, post) => {
-			const year = new Date(post.date).getFullYear();
-			if (!acc[year]) {
-				acc[year] = [];
-			}
-			acc[year].push(post);
-			return acc;
-		}, {} as GroupedPosts);
-
-		const sortedYears = Object.keys(groupedPosts)
-			.map(Number)
-			.sort((a, b) => b - a);
-
-		return {
-			posts: posts, // Flat list
-			allTags: Array.from(allTags).sort(),
-			groupedPosts: groupedPosts,
-			sortedYears: sortedYears
-		};
 	} catch (err: any) {
 		console.error('Failed to load blog posts:', err);
 		if (err.code === 'permission-denied') {

@@ -2,6 +2,7 @@
 	import { db } from '$lib/firebase';
 	import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 	import { onMount } from 'svelte';
+	import AdminButton from '$lib/components/admin/AdminButton.svelte';
 
 	interface Project {
 		id: string;
@@ -39,25 +40,20 @@
 
 <div class="sm:flex sm:items-center">
 	<div class="sm:flex-auto">
-		<h1 class="text-2xl font-semibold text-gray-900">Projects</h1>
-		<p class="mt-2 text-sm text-gray-700">
+		<h1 class="font-serif text-3xl font-bold tracking-wide text-black uppercase">Projects</h1>
+		<p class="mt-2 text-sm text-gray-500">
 			Manage your portfolio projects with images and descriptions.
 		</p>
 	</div>
 	<div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
-		<a
-			href="/admin/projects/new"
-			class="block rounded-md bg-black px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-gray-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
-		>
-			Add Project
-		</a>
+		<AdminButton href="/admin/projects/new" variant="primary">Add Project</AdminButton>
 	</div>
 </div>
 
 <div class="mt-8 flex flex-col">
 	<div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
 		<div class="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
-			<div class="ring-opacity-5 overflow-hidden shadow ring-1 ring-black md:rounded-lg">
+			<div class="overflow-hidden rounded-sm border border-gray-200 bg-white">
 				<table class="min-w-full divide-y divide-gray-300">
 					<thead class="bg-gray-50">
 						<tr>
@@ -96,11 +92,7 @@
 									<td
 										class="py-4 pr-3 pl-4 text-sm font-medium whitespace-nowrap text-gray-900 sm:pl-6"
 									>
-										<a
-											href="/projects/{project.slug}"
-											target="_blank"
-											class="hover:text-indigo-600 hover:underline"
-										>
+										<a href="/projects/{project.slug}" target="_blank" class="hover:underline">
 											{project.title}
 										</a>
 									</td>
@@ -110,12 +102,12 @@
 									<td class="px-3 py-4 text-sm whitespace-nowrap text-gray-500">
 										{#if project.isPublished}
 											<span
-												class="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-green-600/20 ring-inset"
+												class="inline-flex items-center rounded-sm bg-black px-2 py-1 text-xs font-medium tracking-wider text-white uppercase"
 												>Published</span
 											>
 										{:else}
 											<span
-												class="inline-flex items-center rounded-md bg-yellow-50 px-2 py-1 text-xs font-medium text-yellow-800 ring-1 ring-yellow-600/20 ring-inset"
+												class="inline-flex items-center rounded-sm border border-gray-300 bg-white px-2 py-1 text-xs font-medium tracking-wider text-gray-600 uppercase"
 												>Draft</span
 											>
 										{/if}
@@ -125,7 +117,7 @@
 									>
 										<a
 											href="/admin/projects/{project.id}"
-											class="text-indigo-600 hover:text-indigo-900"
+											class="font-medium text-gray-900 hover:underline"
 											>Edit<span class="sr-only">, {project.title}</span></a
 										>
 									</td>
