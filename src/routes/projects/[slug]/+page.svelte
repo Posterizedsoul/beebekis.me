@@ -38,6 +38,12 @@
 		);
 		lightboxOpen = true;
 	}
+
+	function openGallery(i: number) {
+		lightboxImages = (data.images || []).map((img) => ({ url: img.url, alt: img.alt }));
+		lightboxIndex = i;
+		lightboxOpen = true;
+	}
 </script>
 
 <svelte:head>
@@ -129,6 +135,22 @@
 
 		{#if data.contentHtml}
 			<ProjectContent html={data.contentHtml} />
+		{/if}
+
+		<!-- Gallery -->
+		{#if data.images && data.images.length > 0}
+			<section class="mx-auto mt-16 max-w-4xl">
+				<h3 class="mb-4 font-serif text-sm font-semibold tracking-widest text-gray-900 uppercase">
+					Gallery
+				</h3>
+				<div class="gallery-strip">
+					{#each data.images as img, i (img.url)}
+						<button type="button" onclick={() => openGallery(i)} aria-label="View image">
+							<img src={img.url} alt={img.alt} loading="lazy" />
+						</button>
+					{/each}
+				</div>
+			</section>
 		{/if}
 	</div>
 </article>
@@ -244,6 +266,44 @@
 
 	.back-link:hover span::after {
 		width: 100%;
+	}
+
+	/* Memories-style collage strip for the gallery */
+	.gallery-strip {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 2px;
+		border-radius: 12px;
+		overflow: hidden;
+	}
+
+	.gallery-strip button {
+		flex: 1 1 200px;
+		min-width: 0;
+		height: 260px;
+		padding: 0;
+		border: none;
+		background: none;
+		cursor: pointer;
+	}
+
+	.gallery-strip img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		display: block;
+		transition: filter 0.25s ease;
+	}
+
+	.gallery-strip button:hover img {
+		filter: brightness(1.08);
+	}
+
+	@media (max-width: 640px) {
+		.gallery-strip button {
+			flex-basis: 130px;
+			height: 180px;
+		}
 	}
 
 	/* Reduced motion */

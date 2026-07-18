@@ -89,36 +89,39 @@
 		font-size: 0.9em;
 	}
 
-	/* Masonry layout for grouped images from editor */
+	/* Collage strip for grouped images: side-by-side slices, like the memories cards */
 	:global(.prose-content .image-gallery) {
-		column-count: 2;
-		column-gap: 1rem;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 2px;
 		margin: 2rem 0;
 		width: 100%;
-	}
-
-	@media (max-width: 640px) {
-		:global(.prose-content .image-gallery) {
-			column-count: 1;
-		}
+		border-radius: 12px;
+		overflow: hidden;
 	}
 
 	:global(.prose-content .image-gallery img) {
-		width: 100%;
-		height: auto;
-		margin: 0 0 1rem 0;
-		break-inside: avoid;
-		border-radius: 12px;
+		flex: 1 1 200px;
+		min-width: 0;
+		width: auto;
+		height: 340px;
+		margin: 0;
+		object-fit: cover;
+		border-radius: 0;
 		cursor: pointer;
-		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-		transition:
-			transform 0.2s,
-			box-shadow 0.2s;
+		box-shadow: none;
+		transition: filter 0.25s ease;
 	}
 
 	:global(.prose-content .image-gallery img:hover) {
-		transform: scale(1.02);
-		box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+		filter: brightness(1.08);
+	}
+
+	@media (max-width: 640px) {
+		:global(.prose-content .image-gallery img) {
+			flex-basis: 130px;
+			height: 220px;
+		}
 	}
 
 	/* Image group: a bordered "collection" card — gallery + caption shown together */
@@ -138,12 +141,7 @@
 
 	:global(.prose-content .image-group .image-gallery) {
 		margin: 0;
-	}
-
-	:global(.prose-content .image-group .image-gallery img) {
-		margin: 0 0 1rem;
 		border-radius: 10px;
-		box-shadow: none;
 	}
 
 	:global(.prose-content .image-group-caption) {

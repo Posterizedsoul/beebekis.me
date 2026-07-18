@@ -240,7 +240,7 @@
 	{#if galleryImages.length > 0}
 		<h2 class="mb-6 text-2xl font-semibold text-gray-700">Gallery</h2>
 		<div class="image-gallery">
-			{#each galleryImages as imageInfo, index (imageInfo.filename)}
+			{#each galleryImages as imageInfo, index (imageInfo.url)}
 				<div
 					class="gallery-item"
 					on:click={() => openLightbox(imageInfo, index)}
@@ -330,7 +330,7 @@
 					</button>
 				{/if}
 
-				{#each visibleThumbnails as thumbItem (thumbItem.filename)}
+				{#each visibleThumbnails as thumbItem (thumbItem.originalIndex)}
 					<div
 						class="thumbnail-item"
 						class:active={thumbItem.originalIndex === selectedImageIndex}

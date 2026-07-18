@@ -15,6 +15,8 @@ interface Project {
 	live?: string;
 	contentHtml?: string;
 	images?: { url: string; alt?: string; filename?: string; thumbUrl?: string }[];
+	galleryPreviews?: { src: string; alt: string; filename: string }[];
+	galleryImages?: { url: string; thumb: string; alt: string }[];
 }
 
 interface GroupedByYear {
@@ -41,11 +43,18 @@ export const load: PageServerLoad = async () => {
 				// Get preview images (first 5) - use the small thumbnail when available so the
 				// listing page doesn't ship full-size (1920px) images for a tiny preview strip
 				let galleryPreviews: { src: string; alt: string; filename: string }[] = [];
+				let galleryImages: { url: string; thumb: string; alt: string }[] = [];
 				if (data.images && Array.isArray(data.images)) {
 					galleryPreviews = data.images.slice(0, 5).map((img: any) => ({
 						src: img.thumbUrl || img.url,
 						alt: img.altText || 'Project image',
 						filename: img.filename || 'image'
+					}));
+					// Full gallery for the inline reader view (thumb for the strip, url for the lightbox)
+					galleryImages = data.images.map((img: any) => ({
+						url: img.url,
+						thumb: img.thumbUrl || img.url,
+						alt: img.altText || ''
 					}));
 				}
 
@@ -62,7 +71,8 @@ export const load: PageServerLoad = async () => {
 					// Full write-up (already HTML from TipTap) so the listing page can expand
 					// projects inline without a navigation round-trip
 					contentHtml: data.content || '',
-					galleryPreviews
+					galleryPreviews,
+					galleryImages
 				};
 			});
 

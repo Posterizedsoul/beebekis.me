@@ -822,27 +822,29 @@
 		z-index: 2;
 	}
 
-	/* Image gallery masonry for multiple images */
+	/* Collage strip for grouped images (matches the public memories-style rendering) */
 	:global(.image-gallery) {
-		column-count: 2;
-		column-gap: 0.5rem;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 2px;
 		margin: 1rem 0;
 		width: 100%;
+		border-radius: 8px;
+		overflow: hidden;
 	}
 	:global(.image-gallery img) {
-		width: 100%;
-		height: auto;
-		margin-bottom: 0.5rem;
-		break-inside: avoid;
+		flex: 1 1 140px;
+		min-width: 0;
+		width: auto;
+		height: 220px;
+		margin: 0;
 		display: block;
-		border-radius: 8px;
+		object-fit: cover;
+		border-radius: 0;
 		cursor: pointer;
-		transition:
-			transform 0.2s,
-			opacity 0.2s;
+		transition: opacity 0.2s;
 	}
 	:global(.image-gallery img:hover) {
-		transform: scale(1.02);
 		opacity: 0.9;
 	}
 
