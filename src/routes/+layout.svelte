@@ -13,9 +13,10 @@
 	const isAdmin = $derived(page.url.pathname.startsWith('/admin'));
 
 	// Site metadata (adjust as needed)
-	const siteTitle = 'Bibek Bhatta - Portfolio';
-	const siteDescription = 'Personal portfolio, blog, and memories of Bibek Bhatta.';
-	const siteUrl = PUBLIC_BASE_URL || 'https://your-default-domain.com'; // Fallback domain
+	const siteTitle = 'Bibek Bhatta — Mechanical Engineer & Roboticist';
+	const siteDescription =
+		'Bibek Bhatta — Mechanical Engineering undergraduate at Mississippi State University working on aerospace autonomy, UAV systems, robotics, and computer vision. Projects, writing, and résumé.';
+	const siteUrl = PUBLIC_BASE_URL || 'https://bibekbhatta.com';
 	const defaultImageUrl = `${siteUrl}/b.png`; // Assumes b.png is in static folder
 
 	// State for navbar visibility - Use $state
@@ -66,11 +67,9 @@
 
 	// Restore $effect for scroll lock on homepage
 	$effect(() => {
-		if (isHomePage) {
-			document.body.style.overflow = 'hidden';
-		} else {
-			document.body.style.overflow = 'auto';
-		}
+		// The homepage now scrolls to its intro section (needed for crawlable
+		// content), so no page is scroll-locked.
+		document.body.style.overflow = 'auto';
 
 		// Optional cleanup function
 		return () => {
