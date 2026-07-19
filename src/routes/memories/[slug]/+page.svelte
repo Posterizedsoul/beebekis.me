@@ -75,7 +75,6 @@
 	}
 </script>
 
-<svelte:window on:keydown={handleKeydown} />
 
 <svelte:head>
 	<title>{data.title || 'Memoir Gallery'}</title>
