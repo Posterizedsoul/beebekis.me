@@ -4,6 +4,7 @@
 	import { PUBLIC_BASE_URL } from '$env/static/public';
 	import { onMount, onDestroy } from 'svelte'; // Import onMount and onDestroy
 	import { browser } from '$app/environment'; // Import browser check
+	import { preloadData } from '$app/navigation';
 
 	let { children } = $props();
 
@@ -44,6 +45,16 @@
 		if (browser) {
 			window.addEventListener('scroll', handleScroll, { passive: true });
 			lastScrollY = window.scrollY; // Initialize
+
+			// Aggressively preload all main pages in the background
+			// so mobile navigation is 100% instant without network latency on tap
+			setTimeout(() => {
+				preloadData('/projects');
+				preloadData('/about');
+				preloadData('/diary');
+				preloadData('/blog');
+				preloadData('/memories');
+			}, 1000);
 		}
 	});
 

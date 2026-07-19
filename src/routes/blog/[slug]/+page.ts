@@ -1,11 +1,11 @@
-import type { PageServerLoad } from './$types';
+import type { PageLoad } from './$types';
 import { error } from '@sveltejs/kit';
 import { db } from '$lib/firebase';
 import { collection, getDocs, query, where, limit } from 'firebase/firestore';
 import { marked } from 'marked';
-import { withCache } from '$lib/server/requestCache';
+import { withCache } from '$lib/client/requestCache';
 
-export const load: PageServerLoad = async ({ params }) => {
+export const load: PageLoad = async ({ params }) => {
 	const { slug } = params;
 
 	try {

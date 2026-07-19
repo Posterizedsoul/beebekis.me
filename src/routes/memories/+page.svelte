@@ -106,7 +106,7 @@
 																		src={preview.src}
 																		alt=""
 																		class="absolute inset-0 h-full w-full object-cover transition-transform duration-300 ease-in-out group-hover:scale-105"
-																		loading="lazy"
+																		loading="lazy" decoding="async"
 																	/>
 																	{#if i < previews.length - 1}
 																		<div
@@ -177,9 +177,11 @@
 		text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
 	}
 
-	/* Ensure aspect ratio is maintained */
+	/* Ensure aspect ratio is maintained and optimize rendering */
 	.multi-image-card {
 		aspect-ratio: 16 / 9; /* Changed from 3/2 to 16/9 for a wider rectangle */
+		content-visibility: auto;
+		contain-intrinsic-size: 300px;
 	}
 
 	ul.grid,

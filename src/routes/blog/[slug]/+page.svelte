@@ -204,7 +204,7 @@
 <BackToTop />
 
 <!-- Edit button for logged-in users -->
-<AdminEditButton href="/admin/blog/{data.id}" label="Edit Post" />
+<AdminEditButton kind="blog" docId={data.id} label="Edit Post" />
 
 <style>
 	/* Styles from old layout */

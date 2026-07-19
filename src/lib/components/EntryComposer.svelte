@@ -10,11 +10,11 @@
 		Timestamp
 	} from 'firebase/firestore';
 	import { goto, invalidateAll } from '$app/navigation';
-	import { fly, fade } from 'svelte/transition';
 	import MarkdownEditor from '$lib/components/admin/MarkdownEditor.svelte';
 	import ImageUploader from '$lib/components/admin/ImageUploader.svelte';
 	import SortableImageGrid from '$lib/components/admin/SortableImageGrid.svelte';
 	import { X, SlidersHorizontal, Trash2 } from 'lucide-svelte';
+	import { portal } from '$lib/actions/portal';
 
 	type Kind = 'diary' | 'blog' | 'project' | 'memory';
 
@@ -72,6 +72,27 @@
 
 	const cfg = config[kind];
 	const isEdit = !!docId;
+
+	// Maps EntryComposer kind to the cache key prefix used by requestCache.ts
+	const cachePrefixes: Record<Kind, string> = {
+		diary: 'diary',
+		blog: 'blog',
+		project: 'projects',
+		memory: 'memories'
+	};
+
+	/** Bust the server-side in-memory cache so load functions fetch fresh data. */
+	async function revalidateCache() {
+		try {
+			await fetch('/api/revalidate', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ prefix: cachePrefixes[kind] })
+			});
+		} catch (e) {
+			console.warn('Cache revalidation failed (non-critical):', e);
+		}
+	}
 
 	// Common fields
 	let title = $state('');
@@ -194,9 +215,20 @@
 		if (!heroImage && urls.length > 0) heroImage = urls[0];
 	}
 
-	function requestClose() {
-		if (!isEdit && (title || content || memoryImages.length) && !saved) {
-			if (!confirm('Discard this unsaved entry?')) return;
+	function hasContent(): boolean {
+		const text = content.replace(/<[^>]*>/g, '').trim();
+		return !!(title.trim() || text || memoryImages.length || galleryImages.length);
+	}
+
+	// Closing a new entry with content saves it as a draft instead of losing it;
+	// drafts show up as pills next to the Add button.
+	async function requestClose() {
+		if (!isEdit && !saved && hasContent()) {
+			publishStatus = 'draft';
+			if (!title.trim()) title = 'Untitled draft';
+			if (!slug.trim()) slug = 'draft-' + Date.now();
+			await handleSubmit();
+			return;
 		}
 		onClose();
 	}
@@ -207,6 +239,7 @@
 		error = '';
 		try {
 			await deleteDoc(doc(db, cfg.collection, docId));
+			await revalidateCache();
 			await invalidateAll();
 			onClose();
 		} catch (err: unknown) {
@@ -289,13 +322,11 @@
 			}
 			saved = true;
 
-			if (publishStatus === 'published') {
-				// Per-slug server cache key: new slugs are always fresh
-				await goto(`${cfg.path}/${slug}`, { invalidateAll: true });
-			} else {
-				await invalidateAll();
-				setTimeout(onClose, 900);
-			}
+			// Bust the server-side cache before SvelteKit re-runs load functions
+			await revalidateCache();
+
+			await invalidateAll();
+			setTimeout(onClose, 900);
 		} catch (err: unknown) {
 			console.error('Error saving entry:', err);
 			error = 'Failed to save: ' + (err instanceof Error ? err.message : String(err));
@@ -305,149 +336,159 @@
 	}
 </script>
 
-<div class="composer fixed inset-0 z-[100] flex flex-col bg-white">
-	<!-- Header -->
-	<header
-		class="flex flex-shrink-0 items-center justify-between gap-4 border-b border-gray-200 bg-white px-4 py-3 sm:px-6"
+<!-- svelte-ignore a11y_no_static_element_interactions a11y_click_events_have_key_events -->
+<div use:portal class="overlay-backdrop fixed inset-0 z-[100]" onclick={requestClose}></div>
+
+<div
+	use:portal
+	class="pointer-events-none fixed inset-0 z-[101] flex items-center justify-center p-2 md:p-6"
+>
+	<div
+		class="overlay-panel pointer-events-auto relative flex h-[94vh] w-full max-w-5xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl"
 	>
-		<div class="flex min-w-0 items-center gap-3">
-			<button
-				type="button"
-				onclick={requestClose}
-				class="rounded-full p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-black"
-				aria-label="Close"
-			>
-				<X size={20} />
-			</button>
-			<span
-				class="truncate font-serif text-sm font-semibold tracking-widest text-gray-900 uppercase"
-				>{isEdit ? 'Edit' : 'New'} {cfg.label}</span
-			>
-		</div>
-
-		<div class="flex flex-shrink-0 items-center gap-2 sm:gap-3">
-			{#if saved && publishStatus !== 'published'}
-				<span class="text-sm text-gray-600">Saved ✓</span>
-			{/if}
-			{#if error}
-				<span class="max-w-52 truncate text-sm text-red-600" title={error}>{error}</span>
-			{/if}
-
-			<button
-				type="button"
-				onclick={() => (showDetails = true)}
-				class="flex items-center gap-2 rounded-sm border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 transition-colors hover:border-black hover:text-black"
-				title="Date, slug, description, images…"
-			>
-				<SlidersHorizontal size={15} />
-				<span class="hidden sm:inline">Details</span>
-			</button>
-
-			<select
-				bind:value={publishStatus}
-				class="rounded-sm border-gray-300 py-2 text-sm focus:border-black focus:ring-black"
-				aria-label="Publish status"
-			>
-				<option value="published">Publish</option>
-				<option value="draft">Draft</option>
-				{#if cfg.hasScheduled}
-					<option value="scheduled">Scheduled</option>
-				{/if}
-			</select>
-			{#if publishStatus === 'scheduled'}
-				<input
-					type="datetime-local"
-					bind:value={scheduledDateTime}
-					class="rounded-sm border-gray-300 py-2 text-sm focus:border-black focus:ring-black"
-				/>
-			{/if}
-
-			<button
-				type="button"
-				onclick={handleSubmit}
-				disabled={saving || loading}
-				class="rounded-sm border border-black bg-black px-5 py-2 font-serif text-sm font-medium tracking-wider text-white uppercase transition-colors hover:bg-gray-800 disabled:opacity-50"
-			>
-				{saving ? 'Saving...' : publishStatus === 'published' ? 'Publish' : 'Save'}
-			</button>
-
-			{#if isEdit}
+		<!-- Header -->
+		<header
+			class="flex flex-shrink-0 items-center justify-between gap-4 border-b border-gray-200 bg-white px-4 py-3 sm:px-6"
+		>
+			<div class="flex min-w-0 items-center gap-3">
 				<button
 					type="button"
-					onclick={handleDelete}
-					disabled={deleting}
-					class="rounded-full p-2 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
-					aria-label="Delete entry"
-					title="Delete entry"
+					onclick={requestClose}
+					class="rounded-full p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-black"
+					aria-label="Close"
 				>
-					<Trash2 size={18} />
+					<X size={20} />
 				</button>
-			{/if}
-		</div>
-	</header>
+				<span
+					class="truncate font-serif text-sm font-semibold tracking-widest text-gray-900 uppercase"
+					>{isEdit ? 'Edit' : 'New'} {cfg.label}</span
+				>
+			</div>
 
-	<!-- Body -->
-	<div class="flex-1 overflow-y-auto">
-		{#if loading}
-			<div class="flex h-full items-center justify-center text-gray-500">Loading…</div>
-		{:else}
-			<div class="mx-auto max-w-4xl px-6 py-10 sm:px-10 md:py-16">
-				<input
-					type="text"
-					bind:value={title}
-					placeholder={cfg.titlePlaceholder}
-					class="mb-8 w-full border-0 bg-transparent p-0 font-serif text-4xl font-bold text-gray-900 placeholder:text-gray-300 focus:ring-0 md:text-5xl"
-				/>
-
-				{#if kind === 'memory'}
-					<!-- Photo album flow -->
-					<div class="space-y-8">
-						<ImageUploader
-							multiple={true}
-							folder={`memories/${slug || 'temp'}`}
-							onUploadComplete={handleMemoryUpload}
-						/>
-						{#if memoryImages.length > 0}
-							<SortableImageGrid bind:images={memoryImages} />
-						{/if}
-					</div>
-				{:else}
-					<MarkdownEditor bind:value={content} placeholder={cfg.contentPlaceholder} />
+			<div class="flex flex-shrink-0 items-center gap-2 sm:gap-3">
+				{#if saved && publishStatus !== 'published'}
+					<span class="text-sm text-gray-600">Saved ✓</span>
+				{/if}
+				{#if error}
+					<span class="max-w-52 truncate text-sm text-red-600" title={error}>{error}</span>
 				{/if}
 
-				{#if kind === 'project'}
-					<div class="mt-12 border-t border-gray-100 pt-8">
-						<h3
-							class="mb-4 font-serif text-sm font-semibold tracking-widest text-gray-900 uppercase"
-						>
-							Project Gallery
-						</h3>
-						{#if galleryImages.length > 0}
-							<div class="mb-4 grid grid-cols-3 gap-3 sm:grid-cols-4">
-								{#each galleryImages as image, i (image.url)}
-									<div class="group relative aspect-square overflow-hidden rounded-lg">
-										<img src={image.url} alt="" class="h-full w-full object-cover" />
-										<button
-											type="button"
-											onclick={() => (galleryImages = galleryImages.filter((_, j) => j !== i))}
-											class="absolute top-1.5 right-1.5 rounded-full bg-black/70 p-1.5 text-white opacity-0 transition-opacity group-hover:opacity-100"
-											aria-label="Remove image"
-										>
-											<X size={12} />
-										</button>
-									</div>
-								{/each}
-							</div>
-						{/if}
-						<ImageUploader
-							folder="projects/gallery"
-							onUploadComplete={handleGalleryUpload}
-							multiple={true}
-						/>
-					</div>
+				<button
+					type="button"
+					onclick={() => (showDetails = true)}
+					class="flex items-center gap-2 rounded-sm border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 transition-colors hover:border-black hover:text-black"
+					title="Date, slug, description, images…"
+				>
+					<SlidersHorizontal size={15} />
+					<span class="hidden sm:inline">Details</span>
+				</button>
+
+				<select
+					bind:value={publishStatus}
+					class="rounded-sm border-gray-300 py-2 text-sm focus:border-black focus:ring-black"
+					aria-label="Publish status"
+				>
+					<option value="published">Publish</option>
+					<option value="draft">Draft</option>
+					{#if cfg.hasScheduled}
+						<option value="scheduled">Scheduled</option>
+					{/if}
+				</select>
+				{#if publishStatus === 'scheduled'}
+					<input
+						type="datetime-local"
+						bind:value={scheduledDateTime}
+						class="rounded-sm border-gray-300 py-2 text-sm focus:border-black focus:ring-black"
+					/>
+				{/if}
+
+				<button
+					type="button"
+					onclick={handleSubmit}
+					disabled={saving || loading}
+					class="rounded-sm border border-black bg-black px-5 py-2 font-serif text-sm font-medium tracking-wider text-white uppercase transition-colors hover:bg-gray-800 disabled:opacity-50"
+				>
+					{saving ? 'Saving...' : publishStatus === 'published' ? 'Publish' : 'Save'}
+				</button>
+
+				{#if isEdit}
+					<button
+						type="button"
+						onclick={handleDelete}
+						disabled={deleting}
+						class="rounded-full p-2 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
+						aria-label="Delete entry"
+						title="Delete entry"
+					>
+						<Trash2 size={18} />
+					</button>
 				{/if}
 			</div>
-		{/if}
+		</header>
+
+		<!-- Body -->
+		<div class="flex-1 overflow-y-auto">
+			{#if loading}
+				<div class="flex h-full items-center justify-center text-gray-500">Loading…</div>
+			{:else}
+				<div class="mx-auto max-w-4xl px-6 py-10 sm:px-10 md:py-16">
+					<input
+						type="text"
+						bind:value={title}
+						placeholder={cfg.titlePlaceholder}
+						class="mb-8 w-full border-0 bg-transparent p-0 font-serif text-4xl font-bold text-gray-900 placeholder:text-gray-300 focus:ring-0 md:text-5xl"
+					/>
+
+					{#if kind === 'memory'}
+						<!-- Photo album flow -->
+						<div class="space-y-8">
+							<ImageUploader
+								multiple={true}
+								folder={`memories/${slug || 'temp'}`}
+								onUploadComplete={handleMemoryUpload}
+							/>
+							{#if memoryImages.length > 0}
+								<SortableImageGrid bind:images={memoryImages} />
+							{/if}
+						</div>
+					{:else}
+						<MarkdownEditor bind:value={content} placeholder={cfg.contentPlaceholder} />
+					{/if}
+
+					{#if kind === 'project'}
+						<div class="mt-12 border-t border-gray-100 pt-8">
+							<h3
+								class="mb-4 font-serif text-sm font-semibold tracking-widest text-gray-900 uppercase"
+							>
+								Project Gallery
+							</h3>
+							{#if galleryImages.length > 0}
+								<div class="mb-4 grid grid-cols-3 gap-3 sm:grid-cols-4">
+									{#each galleryImages as image, i (image.url)}
+										<div class="group relative aspect-square overflow-hidden rounded-lg">
+											<img src={image.url} alt="" class="h-full w-full object-cover" />
+											<button
+												type="button"
+												onclick={() => (galleryImages = galleryImages.filter((_, j) => j !== i))}
+												class="absolute top-1.5 right-1.5 rounded-full bg-black/70 p-1.5 text-white opacity-0 transition-opacity group-hover:opacity-100"
+												aria-label="Remove image"
+											>
+												<X size={12} />
+											</button>
+										</div>
+									{/each}
+								</div>
+							{/if}
+							<ImageUploader
+								folder="projects/gallery"
+								onUploadComplete={handleGalleryUpload}
+								multiple={true}
+							/>
+						</div>
+					{/if}
+				</div>
+			{/if}
+		</div>
 	</div>
 </div>
 
@@ -455,13 +496,13 @@
 {#if showDetails}
 	<!-- svelte-ignore a11y_no_static_element_interactions a11y_click_events_have_key_events -->
 	<div
-		class="fixed inset-0 z-[110] bg-black/25"
-		transition:fade={{ duration: 150 }}
+		use:portal
+		class="drawer-backdrop fixed inset-0 z-[110]"
 		onclick={() => (showDetails = false)}
 	></div>
 	<aside
-		class="fixed top-0 right-0 bottom-0 z-[120] flex w-full max-w-md flex-col border-l border-gray-200 bg-white shadow-2xl"
-		transition:fly={{ x: 420, duration: 250, opacity: 1 }}
+		use:portal
+		class="drawer-panel fixed top-0 right-0 bottom-0 z-[120] flex w-full max-w-md flex-col border-l border-gray-200 bg-white shadow-2xl"
 	>
 		<div class="flex items-center justify-between border-b border-gray-200 px-6 py-4">
 			<h3 class="font-serif text-sm font-semibold tracking-widest text-gray-900 uppercase">
@@ -661,3 +702,63 @@
 		</div>
 	</aside>
 {/if}
+
+<style>
+	/* Pure CSS entry animations (svelte outros can hang teardown of fixed overlays) */
+	.overlay-backdrop {
+		background: rgba(0, 0, 0, 0.6);
+		backdrop-filter: blur(4px);
+		animation: overlay-fade 0.2s ease-out;
+	}
+
+	.overlay-panel {
+		animation: panel-pop 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+	}
+
+	.drawer-backdrop {
+		background: rgba(0, 0, 0, 0.25);
+		animation: overlay-fade 0.15s ease-out;
+	}
+
+	.drawer-panel {
+		animation: drawer-slide 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+	}
+
+	@keyframes overlay-fade {
+		from {
+			opacity: 0;
+		}
+		to {
+			opacity: 1;
+		}
+	}
+
+	@keyframes panel-pop {
+		from {
+			opacity: 0;
+			transform: scale(0.94);
+		}
+		to {
+			opacity: 1;
+			transform: scale(1);
+		}
+	}
+
+	@keyframes drawer-slide {
+		from {
+			transform: translateX(100%);
+		}
+		to {
+			transform: translateX(0);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.overlay-backdrop,
+		.overlay-panel,
+		.drawer-backdrop,
+		.drawer-panel {
+			animation: none;
+		}
+	}
+</style>

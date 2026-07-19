@@ -19,6 +19,7 @@
 
 <script lang="ts">
 	import { X, ChevronLeft, ChevronRight } from 'lucide-svelte';
+	import { fly } from 'svelte/transition';
 
 	let {
 		images,
@@ -27,13 +28,16 @@
 	}: { images: LightboxImage[]; startIndex?: number; onClose: () => void } = $props();
 
 	let index = $state(startIndex);
+	let direction = $state(1);
 	let current = $derived(images[index]);
 	let thumbsEl: HTMLElement | undefined = $state();
 
 	function prev() {
+		direction = -1;
 		index = (index - 1 + images.length) % images.length;
 	}
 	function next() {
+		direction = 1;
 		index = (index + 1) % images.length;
 	}
 
@@ -57,15 +61,29 @@
 	<!-- svelte-ignore a11y_no_static_element_interactions a11y_click_events_have_key_events -->
 	<div class="lightbox" onclick={onClose} role="dialog" aria-modal="true">
 		<!-- svelte-ignore a11y_no_static_element_interactions a11y_click_events_have_key_events -->
-		<div class="lightbox-stage" onclick={(e) => e.stopPropagation()}>
-			<!-- Image with the arrows hugging its edges -->
+		<div class="lightbox-stage">
 			<div class="lightbox-frame">
-				<img src={current.url} alt={current.alt || 'Image'} class="lightbox-img" />
+				<button type="button" class="lightbox-close" onclick={onClose} aria-label="Close">
+					<X size={28} />
+				</button>
+				<div class="lightbox-image-container">
+					{#key index}
+						<img 
+							src={current.url} 
+							alt={current.alt || 'Image'} 
+							class="lightbox-img" 
+							in:fly={{ x: direction * 150, duration: 400, opacity: 0 }}
+							out:fly={{ x: -direction * 150, duration: 400, opacity: 0 }}
+							onclick={(e) => e.stopPropagation()}
+						/>
+					{/key}
+				</div>
+
 				{#if images.length > 1}
 					<button
 						type="button"
 						class="lightbox-nav lightbox-prev"
-						onclick={prev}
+						onclick={(e) => { e.stopPropagation(); prev(); }}
 						aria-label="Previous image"
 					>
 						<ChevronLeft size={26} />
@@ -73,7 +91,7 @@
 					<button
 						type="button"
 						class="lightbox-nav lightbox-next"
-						onclick={next}
+						onclick={(e) => { e.stopPropagation(); next(); }}
 						aria-label="Next image"
 					>
 						<ChevronRight size={26} />
@@ -82,7 +100,8 @@
 			</div>
 
 			{#if current.caption || images.length > 1}
-				<div class="lightbox-bar">
+				<!-- svelte-ignore a11y_no_static_element_interactions a11y_click_events_have_key_events -->
+				<div class="lightbox-bar" onclick={(e) => e.stopPropagation()}>
 					{#if current.caption}
 						<span class="lightbox-caption">{current.caption}</span>
 					{/if}
@@ -93,14 +112,18 @@
 			{/if}
 
 			{#if images.length > 1}
-				<div class="lightbox-thumbs" bind:this={thumbsEl}>
+				<!-- svelte-ignore a11y_no_static_element_interactions a11y_click_events_have_key_events -->
+				<div class="lightbox-thumbs" bind:this={thumbsEl} onclick={(e) => e.stopPropagation()}>
 					{#each images as image, i (i)}
 						<button
 							type="button"
 							class="lightbox-thumb"
 							class:active={i === index}
 							data-thumb={i}
-							onclick={() => (index = i)}
+							onclick={() => {
+								direction = i > index ? 1 : -1;
+								index = i;
+							}}
 							aria-label="View image {i + 1}"
 						>
 							<img src={image.url} alt="" loading="lazy" />
@@ -109,10 +132,6 @@
 				</div>
 			{/if}
 		</div>
-
-		<button type="button" class="lightbox-close" onclick={onClose} aria-label="Close">
-			<X size={20} />
-		</button>
 	</div>
 {/if}
 
@@ -148,26 +167,32 @@
 
 	.lightbox-frame {
 		position: relative;
-		display: inline-block;
+		width: 92vw;
+		max-width: 1400px;
+		height: 82vh;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.lightbox-image-container {
+		position: relative;
+		width: 100%;
+		height: 100%;
+		overflow: hidden;
 	}
 
 	.lightbox-img {
-		max-width: min(92vw, 1400px);
-		max-height: 68vh;
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		margin: auto;
+		max-width: 100%;
+		max-height: 100%;
 		object-fit: contain;
 		border-radius: 8px;
-		animation: zoomIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-	}
-
-	@keyframes zoomIn {
-		from {
-			opacity: 0;
-			transform: scale(0.92);
-		}
-		to {
-			opacity: 1;
-			transform: scale(1);
-		}
 	}
 
 	.lightbox-bar {
@@ -200,20 +225,23 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: 2.75rem;
-		height: 2.75rem;
-		border: none;
+		width: 3rem;
+		height: 3rem;
+		border: 1px solid rgba(255, 255, 255, 0.2);
 		border-radius: 50%;
-		background: rgba(0, 0, 0, 0.45);
+		background: rgba(255, 255, 255, 0.1);
+		backdrop-filter: blur(4px);
 		color: #fff;
 		cursor: pointer;
 		transition:
 			background 0.2s,
+			border-color 0.2s,
 			transform 0.2s;
 	}
 
 	.lightbox-nav:hover {
-		background: rgba(0, 0, 0, 0.7);
+		background: rgba(255, 255, 255, 0.25);
+		border-color: rgba(255, 255, 255, 0.4);
 		transform: translateY(-50%) scale(1.06);
 	}
 
@@ -232,7 +260,11 @@
 		max-width: min(92vw, 1400px);
 		overflow-x: auto;
 		padding: 0.25rem 0.25rem 0.5rem;
-		scrollbar-width: thin;
+		scrollbar-width: none; /* Firefox */
+	}
+
+	.lightbox-thumbs::-webkit-scrollbar {
+		display: none; /* Chrome/Safari */
 	}
 
 	.lightbox-thumb {
@@ -269,20 +301,23 @@
 
 	.lightbox-close {
 		position: absolute;
-		top: 1rem;
-		right: 1rem;
+		top: -1rem;
+		right: -1rem;
 		padding: 0.6rem;
 		background: rgba(255, 255, 255, 0.12);
 		border: none;
 		border-radius: 50%;
-		color: #fff;
+		color: #ff4d4d;
 		cursor: pointer;
-		transition: background 0.2s;
+		transition: all 0.2s;
 		z-index: 10;
+		backdrop-filter: blur(4px);
 	}
 
 	.lightbox-close:hover {
-		background: rgba(255, 255, 255, 0.25);
+		background: rgba(255, 77, 77, 0.25);
+		color: #ff1a1a;
+		transform: scale(1.1);
 	}
 
 	@media (prefers-reduced-motion: reduce) {

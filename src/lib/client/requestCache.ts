@@ -1,5 +1,5 @@
-// ponytail: module-scope Map, per-server-instance only (lost on cold start) — good enough for
-// warm-instance reuse on Vercel; upgrade to a shared store (Redis/KV) if that stops being enough.
+// Client-side module-scope Map for caching Firebase data between navigations.
+// Lives for the duration of the browser session/tab.
 const cache = new Map<string, { data: unknown; timestamp: number }>();
 const DEFAULT_TTL = 5 * 60 * 1000; // 5 minutes
 

@@ -252,6 +252,12 @@
 		scroll-behavior: smooth;
 	}
 
+	/* Layout container for the item */
+	.timeline-item {
+		content-visibility: auto;
+		contain-intrinsic-size: 40px;
+	}
+
 	.timeline-collapsed .timeline-item,
 	.timeline-collapsed .year-separator-horizontal {
 		height: 48px;

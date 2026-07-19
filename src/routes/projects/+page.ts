@@ -1,7 +1,7 @@
-import type { PageServerLoad } from './$types';
+import type { PageLoad } from './$types';
 import { db } from '$lib/firebase';
 import { collection, getDocs, query, orderBy, where } from 'firebase/firestore';
-import { withCache } from '$lib/server/requestCache';
+import { withCache } from '$lib/client/requestCache';
 
 interface Project {
 	id: string;
@@ -23,7 +23,7 @@ interface GroupedByYear {
 	[year: number]: Project[];
 }
 
-export const load: PageServerLoad = async () => {
+export const load: PageLoad = async () => {
 	try {
 		return await withCache('projects:list', async () => {
 			console.log('Loading projects from Firestore...');

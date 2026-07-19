@@ -1,18 +1,61 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import { fade, scale } from 'svelte/transition';
 	import AdminAddButton from '$lib/components/AdminAddButton.svelte';
 	import ProjectContent from '$lib/components/ProjectContent.svelte';
 	import ImageLightbox, {
 		collectImages,
 		type LightboxImage
 	} from '$lib/components/ImageLightbox.svelte';
-	import { Github, ExternalLink, ArrowLeft, X } from 'lucide-svelte';
+	import { Github, ExternalLink, ArrowLeft, X, ChevronDown } from 'lucide-svelte';
+	import { auth } from '$lib/firebase';
 
 	let { data }: { data: PageData } = $props();
 
 	let selectedSlug: string | null = $state(null);
 	let selected = $derived(data.projects?.find((p) => p.slug === selectedSlug) ?? null);
+	let readerScroller: HTMLElement | undefined = $state();
+	let railEl: HTMLElement | undefined = $state();
+	let railHasMore = $state(false);
+
+	function updateRailMore() {
+		railHasMore = !!railEl && railEl.scrollHeight - railEl.scrollTop - railEl.clientHeight > 8;
+	}
+
+	// Re-check the "more below" hint whenever the reader opens or switches
+	$effect(() => {
+		void selectedSlug;
+		setTimeout(() => {
+			updateRailMore();
+			updateBlob();
+		}, 80);
+	});
+
+	// For the sliding blob animation in the rail
+	let activeRailRef: HTMLElement | null = $state(null);
+	let blobTop = $state(0);
+	let blobHeight = $state(0);
+
+	function updateBlob() {
+		if (activeRailRef) {
+			blobTop = activeRailRef.offsetTop;
+			blobHeight = activeRailRef.offsetHeight;
+		}
+	}
+
+	function setActiveRailRef(node: HTMLElement, isActive: boolean) {
+		if (isActive) {
+			activeRailRef = node;
+			updateBlob();
+		}
+		return {
+			update(newIsActive: boolean) {
+				if (newIsActive) {
+					activeRailRef = node;
+					updateBlob();
+				}
+			}
+		};
+	}
 
 	let lightboxOpen = $state(false);
 	let lightboxImages: LightboxImage[] = $state([]);
@@ -37,9 +80,44 @@
 		selectedSlug = null;
 	}
 
+	let isLoggedIn = $state(false);
+	
+	$effect(() => {
+		const unsubscribe = auth.onAuthStateChanged((user) => {
+			isLoggedIn = !!user;
+		});
+		return unsubscribe;
+	});
+
+	// For inline editor
+	let composerOpen = $state(false);
+	let editingId = $state<string | null>(null);
+	let Composer: any = $state(null);
+
+	async function openEditor(id: string) {
+		editingId = id;
+		if (!Composer) {
+			const mod = await import('$lib/components/EntryComposer.svelte');
+			Composer = mod.default;
+		}
+		composerOpen = true;
+	}
+
+	function handleEditorClose() {
+		composerOpen = false;
+		editingId = null;
+		closeReader();
+	}
+
+	// Reset the panel's scroll position when switching projects
+	$effect(() => {
+		void selectedSlug;
+		if (readerScroller) readerScroller.scrollTop = 0;
+	});
+
 	// Lock page scroll while the reader panel is open
 	$effect(() => {
-		if (!selected) return;
+		if (!selectedSlug) return;
 		const prev = document.body.style.overflow;
 		document.body.style.overflow = 'hidden';
 		return () => {
@@ -48,7 +126,7 @@
 	});
 
 	function handleKeydown(e: KeyboardEvent) {
-		if (e.key === 'Escape' && selected && !lightboxOpen) closeReader();
+		if (e.key === 'Escape' && selectedSlug && !lightboxOpen) closeReader();
 	}
 
 	function handleContentClick(e: MouseEvent) {
@@ -82,7 +160,7 @@
 
 <!-- Large side text -->
 <div
-	class="pointer-events-none fixed top-0 left-0 z-10 hidden h-screen flex-col items-center justify-center pl-10 md:pl-20 lg:flex"
+	class="pointer-events-none fixed top-0 left-0 z-10 hidden h-screen flex-col items-center justify-center pl-10 md:pl-20 xl:flex"
 >
 	{#each 'PROJECTS' as letter, i (i)}
 		<span class="block text-7xl leading-none font-bold tracking-tighter text-gray-300 xl:text-8xl"
@@ -117,7 +195,7 @@
 												src={preview.src}
 												alt=""
 												class="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-												loading="lazy"
+												loading="lazy" decoding="async"
 											/>
 											{#if i < previews.length - 1}
 												<div class="absolute top-0 right-0 bottom-0 z-10 w-px bg-white/30"></div>
@@ -147,7 +225,7 @@
 									src={project.featuredImage}
 									alt={project.title}
 									class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-									loading="lazy"
+									loading="lazy" decoding="async"
 								/>
 								<div
 									class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"
@@ -215,166 +293,225 @@
 <!-- ============ Reader overlay (Prime-style expand) ============ -->
 {#if selected}
 	<!-- svelte-ignore a11y_no_static_element_interactions a11y_click_events_have_key_events -->
-	<div
-		class="fixed inset-0 z-[80] bg-black/60 backdrop-blur-sm"
-		transition:fade={{ duration: 200 }}
-		onclick={closeReader}
-	></div>
+	<div class="overlay-backdrop fixed inset-0 z-[80]" onclick={closeReader}></div>
 
-	<div class="pointer-events-none fixed inset-0 z-[85] flex items-center justify-center p-3 md:p-8">
+	<div
+		class="pointer-events-none fixed inset-0 z-[85] flex items-center justify-center gap-4 p-3 md:p-8"
+	>
+		<!-- Spacer mirrors the rail so the panel sits dead-center -->
+		<div class="hidden w-64 flex-shrink-0 lg:block" aria-hidden="true"></div>
+
 		<div
-			class="pointer-events-auto relative flex h-[88vh] w-full max-w-6xl overflow-hidden rounded-xl bg-white shadow-2xl"
-			transition:scale={{ start: 0.9, duration: 280, opacity: 0 }}
+			class="overlay-panel pointer-events-auto relative flex h-[90vh] w-full max-w-7xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl"
 		>
 			<!-- Close -->
 			<button
 				type="button"
 				onclick={closeReader}
-				class="absolute top-3 right-3 z-20 rounded-full bg-white/90 p-2 text-gray-600 shadow-md backdrop-blur transition-colors hover:bg-gray-100 hover:text-black"
+				class="absolute top-3 right-3 z-20 rounded-full cursor-pointer bg-white/90 p-1.5 text-red-500 shadow-md backdrop-blur transition-all hover:bg-red-100 hover:text-red-600 hover:scale-110"
 				aria-label="Close"
 			>
-				<X size={18} />
+				<X size={28} />
 			</button>
 
-			<!-- Main reading column (scrolls internally) -->
-			{#key selectedSlug}
-				<div class="min-w-0 flex-1 overflow-y-auto" in:fade={{ duration: 180 }}>
-					<div class="px-6 py-8 md:px-10 md:py-10">
-						<!-- Mobile project switcher -->
-						<div class="mb-6 flex items-center gap-2 overflow-x-auto pb-2 lg:hidden">
-							{#each data.projects as p (p.slug)}
+			<!-- Main reading column -->
+			<div class="no-scrollbar min-w-0 flex-1 overflow-y-auto" bind:this={readerScroller}>
+				<!-- Hero: images in the back, title in front (like the cards) -->
+				{#if selected.galleryImages && selected.galleryImages.length > 0}
+					<div class="relative">
+						<div class="flex h-80 md:h-96 lg:h-[32rem]">
+							{#each selected.galleryImages.slice(0, 4) as img, i (img.url)}
 								<button
 									type="button"
-									onclick={() => (selectedSlug = p.slug)}
-									class="flex-shrink-0 rounded-full border px-3 py-1.5 text-sm transition-colors {p.slug ===
-									selectedSlug
-										? 'border-black bg-black text-white'
-										: 'border-gray-300 text-gray-600'}"
+									onclick={() => openGallery(i)}
+									class="relative h-full flex-1 overflow-hidden"
+									aria-label="View image"
 								>
-									{p.title}
+									<img
+										src={img.thumb}
+										alt={img.alt}
+										class="absolute inset-0 h-full w-full object-cover"
+									/>
 								</button>
 							{/each}
 						</div>
-
-						<!-- Header -->
-						<header class="mb-8 border-b border-gray-200 pb-8">
+						<div
+							class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent"
+						></div>
+						<div class="pointer-events-none absolute right-0 bottom-0 left-0 p-6 md:p-8">
 							<h1
-								class="pr-10 font-serif text-3xl font-bold tracking-wide text-black uppercase md:text-4xl lg:text-5xl"
+								class="text-shadow font-serif text-3xl font-bold tracking-wide text-white uppercase md:text-4xl"
 							>
 								{selected.title}
 							</h1>
-							<p class="mt-3 text-sm text-gray-500">{formatDate(selected.date)}</p>
+							<p class="text-shadow mt-2 text-sm text-gray-200">{formatDate(selected.date)}</p>
+						</div>
+					</div>
+				{:else if selected.featuredImage}
+					<div class="relative">
+						<img
+							src={selected.featuredImage}
+							alt={selected.title}
+							class="h-80 w-full object-cover md:h-96 lg:h-[32rem]"
+						/>
+						<div
+							class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent"
+						></div>
+						<div class="pointer-events-none absolute right-0 bottom-0 left-0 p-6 md:p-8">
+							<h1
+								class="text-shadow font-serif text-3xl font-bold tracking-wide text-white uppercase md:text-4xl"
+							>
+								{selected.title}
+							</h1>
+							<p class="text-shadow mt-2 text-sm text-gray-200">{formatDate(selected.date)}</p>
+						</div>
+					</div>
+				{/if}
 
-							{#if selected.description}
-								<p class="mt-4 text-lg leading-relaxed text-gray-700">{selected.description}</p>
-							{/if}
-
-							{#if selected.technologies && selected.technologies.length > 0}
-								<div class="mt-5 flex flex-wrap items-center gap-2">
-									{#each selected.technologies as tech (tech)}
-										<span
-											class="rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-sm text-gray-600"
-										>
-											{tech}
-										</span>
-									{/each}
-								</div>
-							{/if}
-
-							{#if selected.github || selected.live}
-								<div class="mt-6 flex flex-wrap gap-3">
-									{#if selected.github}
-										<a
-											href={selected.github}
-											target="_blank"
-											rel="noopener noreferrer"
-											class="inline-flex items-center gap-2 rounded-sm border border-black bg-black px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-800"
-										>
-											<Github size={16} /> Code
-										</a>
-									{/if}
-									{#if selected.live}
-										<a
-											href={selected.live}
-											target="_blank"
-											rel="noopener noreferrer"
-											class="inline-flex items-center gap-2 rounded-sm border border-black bg-white px-4 py-2 text-sm font-medium text-black transition-colors hover:bg-gray-100"
-										>
-											<ExternalLink size={16} /> Live Demo
-										</a>
-									{/if}
-								</div>
-							{/if}
-						</header>
-
-						<!-- Write-up -->
-						{#if selected.contentHtml}
-							<!-- svelte-ignore a11y_no_static_element_interactions a11y_click_events_have_key_events -->
-							<div onclick={handleContentClick}>
-								<ProjectContent html={selected.contentHtml} />
-							</div>
-						{:else}
-							<p class="text-gray-500 italic">No write-up yet.</p>
-						{/if}
-
-						<!-- Gallery -->
-						{#if selected.galleryImages && selected.galleryImages.length > 0}
-							<section class="mt-12">
-								<h3
-									class="mb-4 font-serif text-sm font-semibold tracking-widest text-gray-900 uppercase"
-								>
-									Gallery
-								</h3>
-								<div class="gallery-strip">
-									{#each selected.galleryImages as img, i (img.url)}
-										<button type="button" onclick={() => openGallery(i)} aria-label="View image">
-											<img src={img.thumb} alt={img.alt} loading="lazy" />
-										</button>
-									{/each}
-								</div>
-							</section>
-						{/if}
-
-						<!-- Footer -->
-						<footer class="mt-12 flex items-center justify-between border-t border-gray-200 pt-6">
+				<div class="px-6 py-4 md:px-10 md:py-6">
+					<!-- Mobile project switcher -->
+					<div class="mb-4 flex items-center gap-2 overflow-x-auto pb-2 lg:hidden">
+						{#each data.projects as p (p.slug)}
 							<button
 								type="button"
-								onclick={closeReader}
-								class="inline-flex items-center gap-2 text-sm font-medium text-gray-500 transition-colors hover:text-black"
+								onclick={() => (selectedSlug = p.slug)}
+								class="flex-shrink-0 rounded-full border px-3 py-1.5 text-sm transition-colors {p.slug ===
+								selectedSlug
+									? 'border-black bg-black text-white'
+									: 'border-gray-300 text-gray-600'}"
 							>
-								<ArrowLeft size={15} /> All Projects
+								{p.title}
 							</button>
+						{/each}
+					</div>
+
+					<!-- Header (title moves here when there is no image to carry it) -->
+					<header
+						class="mb-4 border-b border-gray-200 pb-4 {selected.galleryImages?.length ||
+						selected.featuredImage
+							? ''
+							: 'pr-10'}"
+					>
+						{#if !(selected.galleryImages && selected.galleryImages.length > 0) && !selected.featuredImage}
+							<h1
+								class="font-serif text-3xl font-bold tracking-wide text-black uppercase md:text-4xl"
+							>
+								{selected.title}
+							</h1>
+							<p class="mt-2 mb-4 text-sm text-gray-500">{formatDate(selected.date)}</p>
+						{/if}
+
+						{#if selected.description}
+							<p class="text-lg leading-relaxed text-gray-700">{selected.description}</p>
+						{/if}
+
+						<div class="mt-4 flex flex-wrap items-center gap-2">
+							{#if selected.technologies && selected.technologies.length > 0}
+								{#each selected.technologies as tech (tech)}
+									<span
+										class="rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-sm text-gray-600"
+									>
+										{tech}
+									</span>
+								{/each}
+							{/if}
+							{#if selected.github}
+								<a
+									href={selected.github}
+									target="_blank"
+									rel="noopener noreferrer"
+									class="inline-flex items-center gap-2 rounded-sm border border-black bg-black px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-gray-800"
+								>
+									<Github size={15} /> Code
+								</a>
+							{/if}
+							{#if selected.live}
+								<a
+									href={selected.live}
+									target="_blank"
+									rel="noopener noreferrer"
+									class="inline-flex items-center gap-2 rounded-sm border border-black bg-white px-4 py-1.5 text-sm font-medium text-black transition-colors hover:bg-gray-100"
+								>
+									<ExternalLink size={15} /> Live Demo
+								</a>
+							{/if}
+						</div>
+					</header>
+
+					<div class="mb-6 flex items-center justify-between border-b border-gray-200 pb-4">
+						<button
+							type="button"
+							onclick={closeReader}
+							class="inline-flex items-center gap-2 cursor-pointer text-sm font-medium text-gray-500 transition-colors hover:text-black hover:underline"
+						>
+							<ArrowLeft size={15} /> All Projects
+						</button>
+						<div class="flex items-center gap-4">
+							{#if isLoggedIn && selected.id}
+								<button
+									type="button"
+									onclick={() => openEditor(selected.id)}
+									class="group relative inline-block pb-1 cursor-pointer text-sm font-medium text-gray-500 transition-colors hover:text-black"
+								>
+									<span>✏️ Edit</span>
+									<span class="absolute bottom-0 left-0 block h-[1.5px] w-full origin-left scale-x-0 transform bg-black transition-transform duration-300 ease-out group-hover:scale-x-100"></span>
+								</button>
+							{/if}
 							<a
 								href="/projects/{selected.slug}"
-								class="text-sm font-medium text-gray-500 transition-colors hover:text-black hover:underline"
+								class="text-sm font-medium cursor-pointer text-gray-500 transition-colors hover:text-black hover:underline"
 							>
 								Open full page ↗
 							</a>
-						</footer>
+						</div>
 					</div>
-				</div>
-			{/key}
 
-			<!-- Thumbnail rail: other projects, one click away -->
+					<!-- Write-up -->
+					{#if selected.contentHtml}
+						<!-- svelte-ignore a11y_no_static_element_interactions a11y_click_events_have_key_events -->
+						<div onclick={handleContentClick}>
+							<ProjectContent html={selected.contentHtml} />
+						</div>
+					{:else}
+						<p class="text-gray-500 italic">No write-up yet.</p>
+					{/if}
+				</div>
+			</div>
+		</div>
+
+		<!-- Floating rail of other projects, on the side of the panel -->
+		<div class="relative hidden w-64 flex-shrink-0 lg:block">
 			<aside
-				class="hidden w-56 flex-shrink-0 overflow-y-auto border-l border-gray-100 bg-gray-50/60 p-4 lg:block"
+				bind:this={railEl}
+				onscroll={updateRailMore}
+				class="no-scrollbar pointer-events-auto max-h-[90vh] overflow-y-auto"
 			>
-				<p class="mb-3 font-serif text-xs font-semibold tracking-widest text-gray-500 uppercase">
+				<p
+					class="text-shadow mb-3 font-serif text-xs font-semibold tracking-widest text-white/80 uppercase"
+				>
 					Projects
 				</p>
-				<nav class="space-y-3">
-					{#each data.projects as p (p.slug)}
+				<nav class="relative space-y-3 pr-1 z-0">
+					<!-- Active sliding blob (ring style for image cards) -->
+					<div
+						class="absolute left-0 top-0 w-[calc(100%-0.25rem)] rounded-lg ring-2 ring-white shadow-xl pointer-events-none z-10"
+						style="transform: translateY({blobTop}px); height: {blobHeight}px; opacity: {blobHeight > 0 ? 1 : 0}; transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), height 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s; will-change: transform, height;"
+					></div>
+
+					{#each data.projects as p, i (p.slug)}
+						{@const isActive = p.slug === selectedSlug}
 						{@const thumb = p.galleryPreviews?.[0]?.src || p.featuredImage}
 						<button
 							type="button"
+							use:setActiveRailRef={isActive}
 							onclick={() => (selectedSlug = p.slug)}
-							class="group relative block w-full overflow-hidden rounded-lg text-left transition-all {p.slug ===
-							selectedSlug
-								? 'ring-2 ring-black'
-								: 'opacity-75 hover:opacity-100 hover:shadow-md'}"
+							style="animation-delay: {i * 50}ms"
+							class="rail-item group relative z-0 block cursor-pointer w-full overflow-hidden rounded-lg text-left shadow-lg transition-opacity duration-300 {isActive
+								? 'opacity-100 shadow-none'
+								: 'opacity-70 hover:opacity-100'}"
 						>
 							{#if thumb}
-								<img src={thumb} alt="" class="h-20 w-full object-cover" loading="lazy" />
+								<img src={thumb} alt="" class="h-16 w-full object-cover" loading="lazy" decoding="async" />
 								<div class="absolute inset-0 bg-gradient-to-t from-black/75 to-black/10"></div>
 								<span
 									class="text-shadow absolute right-2 bottom-1.5 left-2 truncate text-xs font-semibold tracking-wide text-white uppercase"
@@ -383,7 +520,7 @@
 								</span>
 							{:else}
 								<span
-									class="flex h-20 w-full items-end rounded-lg border border-gray-200 bg-white p-2 text-xs font-semibold tracking-wide text-gray-700 uppercase"
+									class="flex h-16 w-full items-end rounded-lg bg-white p-2 text-xs font-semibold tracking-wide text-gray-700 uppercase"
 								>
 									{p.title}
 								</span>
@@ -392,6 +529,13 @@
 					{/each}
 				</nav>
 			</aside>
+
+			<!-- More entries below -->
+			{#if railHasMore}
+				<div class="pointer-events-none absolute right-0 -bottom-8 left-0 flex justify-center">
+					<ChevronDown size={20} class="animate-bounce text-white/90 drop-shadow" />
+				</div>
+			{/if}
 		</div>
 	</div>
 {/if}
@@ -404,46 +548,97 @@
 	/>
 {/if}
 
+<!-- Inline editor (lazy-loaded) -->
+{#if composerOpen && Composer}
+	<svelte:component this={Composer} kind="project" docId={editingId} onClose={handleEditorClose} />
+{/if}
+
 <style>
 	.text-shadow {
 		text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 	}
 
-	/* Memories-style collage strip for the gallery */
-	.gallery-strip {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 2px;
-		border-radius: 12px;
-		overflow: hidden;
+	/* Prime-style expand: pure CSS entry animations (reliable teardown, instant close) */
+	.overlay-backdrop {
+		background: rgba(0, 0, 0, 0.6);
+		animation: overlay-fade 0.2s ease-out;
 	}
 
-	.gallery-strip button {
-		flex: 1 1 200px;
-		min-width: 0;
-		height: 260px;
-		padding: 0;
-		border: none;
-		background: none;
-		cursor: pointer;
+	@media (min-width: 768px) {
+		.overlay-backdrop {
+			backdrop-filter: blur(4px);
+		}
 	}
 
-	.gallery-strip img {
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-		display: block;
-		transition: filter 0.25s ease;
+	.overlay-panel {
+		animation: panel-pop 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 	}
 
-	.gallery-strip button:hover img {
-		filter: brightness(1.08);
+	@keyframes overlay-fade {
+		from {
+			opacity: 0;
+		}
+		to {
+			opacity: 1;
+		}
 	}
 
-	@media (max-width: 640px) {
-		.gallery-strip button {
-			flex-basis: 130px;
-			height: 180px;
+	@keyframes panel-pop {
+		from {
+			opacity: 0;
+			transform: scale(0.92);
+		}
+		to {
+			opacity: 1;
+			transform: scale(1);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.overlay-backdrop,
+		.overlay-panel {
+			animation: none;
+		}
+	}
+
+	/* Scroll without visible scrollbars inside the popup */
+	.no-scrollbar {
+		scrollbar-width: none;
+	}
+
+	.no-scrollbar::-webkit-scrollbar {
+		display: none;
+	}
+
+	/* Rail pills settle in one after another, and lift on hover */
+	.rail-item {
+		animation: rail-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+		transition:
+			transform 0.2s ease,
+			opacity 0.2s ease,
+			box-shadow 0.2s ease;
+	}
+
+	.rail-item:hover {
+		transform: translateX(-4px) scale(1.03);
+		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+	}
+
+	@keyframes rail-in {
+		from {
+			opacity: 0;
+			transform: translateX(24px);
+		}
+		to {
+			opacity: 1;
+			transform: translateX(0);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.rail-item {
+			animation: none;
+			transition: none;
 		}
 	}
 </style>

@@ -146,7 +146,7 @@
 				<div class="gallery-strip">
 					{#each data.images as img, i (img.url)}
 						<button type="button" onclick={() => openGallery(i)} aria-label="View image">
-							<img src={img.url} alt={img.alt} loading="lazy" />
+							<img src={img.url} alt={img.alt} loading="lazy" decoding="async" />
 						</button>
 					{/each}
 				</div>
@@ -165,7 +165,7 @@
 {/if}
 
 <!-- Edit button for logged-in users -->
-<AdminEditButton href="/admin/projects/{data.id}" label="Edit Project" />
+<AdminEditButton kind="project" docId={data.id} label="Edit Project" />
 
 <style>
 	/* ===== Page Layout ===== */
@@ -203,16 +203,32 @@
 		color: #475569;
 	}
 
+	.overlay-backdrop {
+		background: rgba(0, 0, 0, 0.6);
+		animation: overlay-fade 0.2s ease-out;
+	}
+
+	@media (min-width: 768px) {
+		.overlay-backdrop {
+			backdrop-filter: blur(4px);
+		}
+	}
+
 	.tech-badge {
 		padding: 0.25rem 0.75rem;
 		background: rgba(255, 255, 255, 0.2);
-		backdrop-filter: blur(4px);
 		border: 1px solid rgba(255, 255, 255, 0.3);
 		border-radius: 9999px;
 		font-size: 0.75rem;
 		font-weight: 500;
 		color: #fff;
 		text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+	}
+
+	@media (min-width: 768px) {
+		.tech-badge {
+			backdrop-filter: blur(4px);
+		}
 	}
 
 	.links {

@@ -51,4 +51,4 @@
 {/if}
 
 <!-- Edit button for logged-in users -->
-<AdminEditButton href="/admin/diary/{data.id}" label="Edit Entry" />
+<AdminEditButton kind="diary" docId={data.id} label="Edit Entry" />

@@ -9,14 +9,24 @@
 <style>
 	.prose-content {
 		max-width: 56rem;
+		width: 100%;
 		margin: 0 auto;
 		font-size: 1.0625rem;
 		line-height: 1.8;
 		color: #374151;
+		overflow-x: auto;
+	}
+
+	/* Enforce wrapping on any inline flex containers from TipTap */
+	:global(.prose-content [style*="display: flex"]) {
+		flex-wrap: wrap !important;
 	}
 
 	:global(.prose-content p) {
 		margin-bottom: 1.5rem;
+		/* Ensure a row of inline images wraps if there are no spaces between them */
+		white-space: normal;
+		word-break: break-word;
 	}
 
 	:global(.prose-content h2) {

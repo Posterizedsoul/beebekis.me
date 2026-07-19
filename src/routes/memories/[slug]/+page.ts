@@ -1,11 +1,11 @@
-import type { PageServerLoad } from './$types';
+import type { PageLoad } from './$types';
 import { error } from '@sveltejs/kit';
 import { db } from '$lib/firebase';
 import { collection, getDocs, query, where, limit } from 'firebase/firestore';
-import { compile } from 'mdsvex';
-import { withCache } from '$lib/server/requestCache';
+import { marked } from 'marked';
+import { withCache } from '$lib/client/requestCache';
 
-export const load: PageServerLoad = async ({ params }) => {
+export const load: PageLoad = async ({ params }) => {
 	const { slug } = params;
 
 	try {
@@ -33,8 +33,11 @@ export const load: PageServerLoad = async ({ params }) => {
 			// Memories might not always have content text, just images
 			let contentHtml = '';
 			if (data.content) {
-				const compiled = await compile(data.content);
-				contentHtml = compiled?.code || '';
+				try {
+					contentHtml = await marked.parse(data.content, { breaks: true, gfm: true });
+				} catch (e) {
+					console.error(`[Memory Loader] Error parsing markdown for ${slug}:`, e);
+				}
 			}
 
 			// Normalize images array

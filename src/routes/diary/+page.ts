@@ -1,4 +1,4 @@
-import type { PageServerLoad } from './$types';
+import type { PageLoad } from './$types';
 
 // Define the shape of diary entry metadata
 interface DiaryEntry {
@@ -15,7 +15,7 @@ interface GroupedDiaries {
 }
 
 // Reuse data already loaded by +layout.server.ts to avoid duplicate Firestore queries
-export const load: PageServerLoad = async ({ parent }) => {
+export const load: PageLoad = async ({ parent }) => {
 	// Get data from parent layout (already fetched from Firestore)
 	const { sortedEntries } = await parent();
 
