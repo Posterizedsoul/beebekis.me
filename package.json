@@ -59,16 +59,11 @@
 		"@tiptap/extension-underline": "^3.14.0",
 		"@tiptap/pm": "^3.14.0",
 		"@tiptap/starter-kit": "^3.14.0",
-		"@types/turndown": "^5.0.6",
 		"browser-image-compression": "^2.0.2",
-		"date-fns": "^4.1.0",
 		"dotenv": "^16.5.0",
 		"firebase": "^12.7.0",
-		"firebase-admin": "^13.6.0",
 		"lucide-svelte": "^0.501.0",
 		"shiki": "^3.2.2",
-		"sortablejs": "^1.15.6",
-		"tiptap-markdown": "^0.9.0",
-		"turndown": "^7.2.2"
+		"sortablejs": "^1.15.6"
 	}
 }

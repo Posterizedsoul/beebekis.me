@@ -3,6 +3,7 @@
 	import { signInWithEmailAndPassword } from 'firebase/auth';
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
+	import { setAdminHint } from '$lib/adminHint';
 
 	// No pre-filled credentials for security
 	let email = $state('');
@@ -26,6 +27,8 @@
 
 		try {
 			await signInWithEmailAndPassword(auth, email, password);
+			// Let public pages know to load Firebase for the admin controls
+			setAdminHint(true);
 		} catch (err: any) {
 			console.error(err);
 			// Handle known error codes

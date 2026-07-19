@@ -142,6 +142,8 @@
 		name="description"
 		content="A chronological collection of thoughts and updates from Bibek Bhatta."
 	/>
+	<!-- Personal diary: kept out of search -->
+	<meta name="robots" content="noindex, nofollow" />
 </svelte:head>
 
 <div
@@ -240,7 +242,7 @@
 			<button
 				type="button"
 				on:click={closeReader}
-				class="absolute top-3 right-3 z-20 rounded-full cursor-pointer bg-white/90 p-2 text-gray-600 shadow-md backdrop-blur transition-colors hover:bg-gray-100 hover:text-black"
+				class="absolute top-3 right-3 z-20 cursor-pointer rounded-full bg-white/90 p-2 text-gray-600 shadow-md backdrop-blur transition-colors hover:bg-gray-100 hover:text-black"
 				aria-label="Close"
 			>
 				<X size={18} />
@@ -254,7 +256,8 @@
 							src={selected.featuredImage}
 							alt={selected.title}
 							class="h-56 w-full object-cover md:h-72"
-							loading="lazy" decoding="async"
+							loading="lazy"
+							decoding="async"
 						/>
 						<div
 							class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent"
@@ -296,15 +299,17 @@
 								<button
 									type="button"
 									on:click={() => openEditor(selected.id)}
-									class="group relative inline-block pb-1 cursor-pointer text-sm font-medium text-gray-500 transition-colors hover:text-black"
+									class="group relative inline-block cursor-pointer pb-1 text-sm font-medium text-gray-500 transition-colors hover:text-black"
 								>
 									<span>✏️ Edit</span>
-									<span class="absolute bottom-0 left-0 block h-[1.5px] w-full origin-left scale-x-0 transform bg-black transition-transform duration-300 ease-out group-hover:scale-x-100"></span>
+									<span
+										class="absolute bottom-0 left-0 block h-[1.5px] w-full origin-left scale-x-0 transform bg-black transition-transform duration-300 ease-out group-hover:scale-x-100"
+									></span>
 								</button>
 							{/if}
 							<a
 								href="/diary/{selected.slug}"
-								class="text-sm font-medium cursor-pointer text-gray-500 transition-colors hover:text-black hover:underline"
+								class="cursor-pointer text-sm font-medium text-gray-500 transition-colors hover:text-black hover:underline"
 							>
 								Open full page ↗
 							</a>
@@ -332,11 +337,14 @@
 				>
 					Entries
 				</p>
-				<nav class="relative space-y-2 pr-1 z-0">
+				<nav class="relative z-0 space-y-2 pr-1">
 					<!-- Active sliding blob -->
 					<div
-						class="absolute left-0 top-0 w-[calc(100%-0.25rem)] rounded-md border-l-4 border-yellow-400 bg-gray-800 shadow-lg pointer-events-none z-0"
-						style="transform: translateY({blobTop}px); height: {blobHeight}px; opacity: {blobHeight > 0 ? 1 : 0}; transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), height 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s; will-change: transform, height;"
+						class="pointer-events-none absolute top-0 left-0 z-0 w-[calc(100%-0.25rem)] rounded-md border-l-4 border-yellow-400 bg-gray-800 shadow-lg"
+						style="transform: translateY({blobTop}px); height: {blobHeight}px; opacity: {blobHeight >
+						0
+							? 1
+							: 0}; transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), height 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s; will-change: transform, height;"
 					></div>
 
 					{#each entries as entry, i (entry.slug)}
@@ -346,18 +354,16 @@
 							use:setActiveRailRef={isActive}
 							on:click={() => selectEntry(entry.slug)}
 							style="animation-delay: {i * 45}ms"
-							class="rail-item diary-pill relative z-10 block cursor-pointer w-full rounded-md px-3 py-2 text-left transition-colors duration-300 {isActive
-								? 'text-white border border-transparent shadow-none'
+							class="rail-item diary-pill relative z-10 block w-full cursor-pointer rounded-md px-3 py-2 text-left transition-colors duration-300 {isActive
+								? 'border border-transparent text-white shadow-none'
 								: 'border border-gray-200 bg-white/95 text-gray-700 opacity-80 shadow-sm hover:bg-gray-100 hover:opacity-100'}"
 						>
-							<span class="block text-xs font-semibold {isActive ? 'text-gray-300' : 'text-gray-500'}">
+							<span
+								class="block text-xs font-semibold {isActive ? 'text-gray-300' : 'text-gray-500'}"
+							>
 								{formatShortDate(entry.date)}, {getYear(entry.date)}
 							</span>
-							<span
-								class="block truncate text-xs {isActive
-									? 'text-white'
-									: 'text-gray-700'}"
-							>
+							<span class="block truncate text-xs {isActive ? 'text-white' : 'text-gray-700'}">
 								{entry.title}
 							</span>
 						</button>

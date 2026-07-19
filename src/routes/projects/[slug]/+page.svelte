@@ -7,8 +7,31 @@
 		collectImages,
 		type LightboxImage
 	} from '$lib/components/ImageLightbox.svelte';
+	import { PUBLIC_BASE_URL } from '$env/static/public';
+	import { page } from '$app/state';
 
 	let { data }: { data: PageData } = $props();
+
+	const baseUrl = (PUBLIC_BASE_URL || 'https://bibekbhatta.com').replace(/\/$/, '');
+	const projectUrl = `${baseUrl}${page.url.pathname}`;
+	const projectDescription = $derived(
+		data.metadata.description || `${data.metadata.title} — a project by Bibek Bhatta.`
+	);
+	const projectImage = $derived(
+		data.metadata.featuredImage ||
+			(data.images && data.images.length > 0 ? data.images[0].url : `${baseUrl}/b.png`)
+	);
+	const projectSchema = $derived({
+		'@context': 'https://schema.org',
+		'@type': 'CreativeWork',
+		name: data.metadata.title,
+		description: projectDescription,
+		url: projectUrl,
+		image: projectImage,
+		dateCreated: data.metadata.date ? new Date(data.metadata.date).toISOString() : undefined,
+		keywords: (data.metadata.technologies || []).join(', ') || undefined,
+		author: { '@type': 'Person', name: 'Bibek Bhatta', url: baseUrl }
+	});
 
 	let lightboxOpen = $state(false);
 	let lightboxImages: LightboxImage[] = $state([]);
@@ -47,11 +70,22 @@
 </script>
 
 <svelte:head>
-	<title>{data.metadata.title} - Projects</title>
-	<meta
-		name="description"
-		content={data.metadata.description || `Project: ${data.metadata.title}`}
-	/>
+	<title>{data.metadata.title} — Projects · Bibek Bhatta</title>
+	<meta name="description" content={projectDescription} />
+	<link rel="canonical" href={projectUrl} />
+
+	<meta property="og:type" content="article" />
+	<meta property="og:url" content={projectUrl} />
+	<meta property="og:title" content={data.metadata.title} />
+	<meta property="og:description" content={projectDescription} />
+	<meta property="og:image" content={projectImage} />
+
+	<meta property="twitter:card" content="summary_large_image" />
+	<meta property="twitter:title" content={data.metadata.title} />
+	<meta property="twitter:description" content={projectDescription} />
+	<meta property="twitter:image" content={projectImage} />
+
+	{@html `<script type="application/ld+json">${JSON.stringify(projectSchema)}<\/script>`}
 </svelte:head>
 
 <article class="project-page">

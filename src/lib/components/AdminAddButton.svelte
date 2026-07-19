@@ -1,7 +1,6 @@
 <script lang="ts">
-	import { auth, db } from '$lib/firebase';
-	import { collection, query, where, getDocs } from 'firebase/firestore';
 	import { onMount } from 'svelte';
+	import { isAdminHinted } from '$lib/adminHint';
 
 	let { kind, label = 'Add' }: { kind: 'diary' | 'blog' | 'project' | 'memory'; label?: string } =
 		$props();
@@ -21,15 +20,25 @@
 	let Composer = $state<typeof import('$lib/components/EntryComposer.svelte').default | null>(null);
 
 	onMount(() => {
-		const unsubscribe = auth.onAuthStateChanged((user: unknown) => {
-			isLoggedIn = !!user;
-			if (user) loadDrafts();
+		// Skip Firebase entirely for anonymous visitors — the SDK never loads on
+		// public pages unless this browser has logged in as the owner.
+		if (!isAdminHinted()) return;
+		let unsub: (() => void) | undefined;
+		import('$lib/firebase').then(({ auth }) => {
+			unsub = auth.onAuthStateChanged((user: unknown) => {
+				isLoggedIn = !!user;
+				if (user) loadDrafts();
+			});
 		});
-		return unsubscribe;
+		return () => unsub?.();
 	});
 
 	async function loadDrafts() {
 		try {
+			const [{ db }, { collection, query, where, getDocs }] = await Promise.all([
+				import('$lib/firebase'),
+				import('firebase/firestore')
+			]);
 			const snap = await getDocs(
 				query(collection(db, collections[kind]), where('isPublished', '==', false))
 			);

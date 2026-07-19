@@ -33,7 +33,7 @@
 	const galleryImages = allImages;
 
 	// Construct URLs and descriptions for meta tags
-	const baseUrl = PUBLIC_BASE_URL || 'https://www.beebekis.me'; // Use env variable or fallback
+	const baseUrl = PUBLIC_BASE_URL || 'https://bibekbhatta.com'; // Use env variable or fallback
 	const memoryUrl = `${baseUrl}${page.url.pathname}`;
 	const memoryDescription = data.description || `A gallery of memories: ${data.title}`;
 	const memoryImageUrl = heroImage || coverImage || `${baseUrl}/b.png`;

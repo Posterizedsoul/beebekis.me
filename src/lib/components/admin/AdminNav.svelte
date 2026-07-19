@@ -3,6 +3,7 @@
 	import { auth } from '$lib/firebase';
 	import { signOut } from 'firebase/auth';
 	import { goto } from '$app/navigation';
+	import { setAdminHint } from '$lib/adminHint';
 
 	let isOpen = $state(false);
 
@@ -21,6 +22,7 @@
 	async function handleLogout() {
 		try {
 			await signOut(auth);
+			setAdminHint(false);
 			goto('/admin/login');
 		} catch (error) {
 			console.error('Logout failed:', error);

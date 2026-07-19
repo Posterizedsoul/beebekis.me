@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /diary
+
+Sitemap: https://bibekbhatta.com/sitemap.xml

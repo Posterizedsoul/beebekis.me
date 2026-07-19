@@ -30,6 +30,8 @@
 	{#if metadata.description}
 		<meta name="description" content={metadata.description} />
 	{/if}
+	<!-- Personal diary: kept out of search -->
+	<meta name="robots" content="noindex, nofollow" />
 </svelte:head>
 
 <header class="entry-header mb-5 pt-1 text-center md:mb-6">

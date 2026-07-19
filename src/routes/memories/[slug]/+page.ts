@@ -69,5 +69,5 @@ export const load: PageLoad = async ({ params }) => {
 
 // Disable ISR for this page so updated memories appear immediately
 export const config = {
-	isr: false
+	isr: { expiration: 300 }
 };

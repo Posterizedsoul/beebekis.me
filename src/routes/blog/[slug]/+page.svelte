@@ -24,7 +24,7 @@
 	const contentHtml = data.contentHtml;
 
 	// Construct URLs and descriptions for meta tags
-	const baseUrl = PUBLIC_BASE_URL || 'https://www.beebekis.me'; // Use env variable or fallback
+	const baseUrl = PUBLIC_BASE_URL || 'https://bibekbhatta.com'; // Use env variable or fallback
 	const postUrl = `${baseUrl}${page.url.pathname}`; // Construct full URL for this post
 	const postDescription = metadata.excerpt || 'Read this blog post by Bibek Bhatta.'; // Use excerpt or fallback
 
@@ -32,6 +32,28 @@
 	// Firestore URLs are absolute (https://...), so we don't need to prepend baseUrl usually
 	// But if it was a local path, we might. For now assume absolute if from Firestore.
 	const absoluteImageUrl = featuredImage || `${baseUrl}/b.png`;
+
+	// BlogPosting structured data for rich results in search
+	const lastEditedDate = Array.isArray(metadata.edited)
+		? metadata.edited[metadata.edited.length - 1]
+		: metadata.edited;
+	const blogSchema = {
+		'@context': 'https://schema.org',
+		'@type': 'BlogPosting',
+		headline: metadata.title,
+		description: postDescription,
+		image: absoluteImageUrl,
+		url: postUrl,
+		mainEntityOfPage: postUrl,
+		datePublished: metadata.date ? new Date(metadata.date).toISOString() : undefined,
+		dateModified: lastEditedDate
+			? new Date(lastEditedDate).toISOString()
+			: metadata.date
+				? new Date(metadata.date).toISOString()
+				: undefined,
+		author: { '@type': 'Person', name: 'Bibek Bhatta', url: baseUrl },
+		publisher: { '@type': 'Person', name: 'Bibek Bhatta', url: baseUrl }
+	};
 
 	// Helper function to format date (copied from old layout)
 	function formatDate(dateString: string | undefined): string {
@@ -91,7 +113,8 @@
 
 	<!-- Link to your canonical URL -->
 	<link rel="canonical" href={postUrl} key="canonical" />
-	<!-- Add other meta tags like Open Graph if needed -->
+
+	{@html `<script type="application/ld+json">${JSON.stringify(blogSchema)}<\/script>`}
 </svelte:head>
 
 <!-- Post Header - Moved outside the max-width container -->

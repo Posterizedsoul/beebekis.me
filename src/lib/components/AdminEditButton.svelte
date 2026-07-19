@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { auth } from '$lib/firebase';
 	import { invalidateAll } from '$app/navigation';
 	import { onMount } from 'svelte';
+	import { isAdminHinted } from '$lib/adminHint';
 
 	type Kind = 'diary' | 'blog' | 'project' | 'memory';
 
@@ -12,10 +12,15 @@
 	let Composer = $state<typeof import('$lib/components/EntryComposer.svelte').default | null>(null);
 
 	onMount(() => {
-		const unsubscribe = auth.onAuthStateChanged((user) => {
-			isLoggedIn = !!user;
+		// Anonymous visitors never load Firebase just to hide this button.
+		if (!isAdminHinted()) return;
+		let unsub: (() => void) | undefined;
+		import('$lib/firebase').then(({ auth }) => {
+			unsub = auth.onAuthStateChanged((user: unknown) => {
+				isLoggedIn = !!user;
+			});
 		});
-		return unsubscribe;
+		return () => unsub?.();
 	});
 
 	async function openComposer() {

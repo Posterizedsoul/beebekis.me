@@ -2,6 +2,39 @@
 	import { onMount } from 'svelte';
 	import backgroundImg from '$lib/assets/background.png?enhanced';
 
+	// Person structured data so a name search surfaces the site with rich info
+	const personSchema = {
+		'@context': 'https://schema.org',
+		'@type': 'Person',
+		name: 'Bibek Bhatta',
+		alternateName: 'Beebek Bhatta',
+		url: 'https://bibekbhatta.com',
+		image: 'https://bibekbhatta.com/b.png',
+		jobTitle: 'Mechanical Engineer',
+		description:
+			'Mechanical Engineering undergraduate focused on aerospace autonomy and robotics — CAD, embedded computer vision, and autonomous control.',
+		affiliation: {
+			'@type': 'CollegeOrUniversity',
+			name: 'Mississippi State University'
+		},
+		knowsAbout: [
+			'Mechanical Engineering',
+			'Robotics',
+			'UAV Systems',
+			'Computer Vision',
+			'CAD',
+			'Autonomous Control',
+			'3D Printing'
+		],
+		sameAs: [
+			'https://github.com/beebekisme',
+			'https://github.com/Posterizedsoul',
+			'https://www.linkedin.com/in/beebekisme/',
+			'https://www.instagram.com/beebekisme/',
+			'https://www.facebook.com/BeebekBhatt/'
+		]
+	};
+
 	let mouseX = $state(0);
 	let mouseY = $state(0);
 	let targetX = $state(0);
@@ -31,6 +64,16 @@
 		};
 	});
 </script>
+
+<svelte:head>
+	<title>Bibek Bhatta — Mechanical Engineer & Roboticist</title>
+	<meta
+		name="description"
+		content="Bibek Bhatta — Mechanical Engineering undergraduate focused on aerospace autonomy and robotics. Projects in UAV systems, CAD, computer vision, and autonomous control."
+	/>
+	<link rel="canonical" href="https://bibekbhatta.com/" />
+	{@html `<script type="application/ld+json">${JSON.stringify(personSchema)}<\/script>`}
+</svelte:head>
 
 <div class="hero" onmousemove={handleMouseMove} role="banner">
 	<!-- Blurred background layer -->

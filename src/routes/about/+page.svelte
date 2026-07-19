@@ -15,8 +15,19 @@
 </script>
 
 <svelte:head>
-	<title>About Me - Bibek Bhatta</title>
-	<meta name="description" content="Learn more about Bibek Bhatta, a Mechanical Engineer." />
+	<title>About Bibek Bhatta — Mechanical Engineer & Roboticist</title>
+	<meta
+		name="description"
+		content="About Bibek Bhatta — Mechanical Engineering undergraduate at Mississippi State University working on aerospace autonomy, UAV systems, robotics, and computer vision."
+	/>
+	<link rel="canonical" href="https://bibekbhatta.com/about" />
+	<meta property="og:type" content="profile" />
+	<meta property="og:url" content="https://bibekbhatta.com/about" />
+	<meta property="og:title" content="About Bibek Bhatta — Mechanical Engineer & Roboticist" />
+	<meta
+		property="og:description"
+		content="Mechanical Engineering undergraduate working on aerospace autonomy, UAV systems, robotics, and computer vision."
+	/>
 </svelte:head>
 
 <svelte:window on:keydown={handleKeydown} />

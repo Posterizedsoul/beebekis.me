@@ -90,5 +90,5 @@ export const load: PageLoad = async () => {
 
 // Disable ISR for this page so new posts appear immediately
 export const config = {
-	isr: false
+	isr: { expiration: 300 }
 };

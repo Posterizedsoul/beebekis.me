@@ -69,5 +69,5 @@ export const load: LayoutLoad = async () => {
 
 // Disable ISR for diary pages so new entries appear immediately
 export const config = {
-	isr: false
+	isr: { expiration: 300 }
 };

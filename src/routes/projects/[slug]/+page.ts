@@ -70,5 +70,5 @@ export const load: PageLoad = async ({ params }) => {
 };
 
 export const config = {
-	isr: false
+	isr: { expiration: 300 }
 };

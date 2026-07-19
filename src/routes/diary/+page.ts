@@ -40,5 +40,5 @@ export const load: PageLoad = async ({ parent }) => {
 
 // Disable ISR for this page so new entries appear immediately
 export const config = {
-	isr: false
+	isr: { expiration: 300 }
 };
