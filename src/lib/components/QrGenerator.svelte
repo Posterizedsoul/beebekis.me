@@ -1,6 +1,7 @@
 <script lang="ts">
 	import QRCode from 'qrcode';
 	import { PUBLIC_BASE_URL } from '$env/static/public';
+	import { browser } from '$app/environment';
 
 	type Level = 'L' | 'M' | 'Q' | 'H';
 
@@ -17,7 +18,19 @@
 		tab = 'analytics';
 	}
 
-	const DEFAULT_BASE = (PUBLIC_BASE_URL || 'https://www.bibekbhatta.com').replace(/\/$/, '');
+	// Prefer the origin actually being browsed: PUBLIC_BASE_URL can drift out of
+	// date on the deployment, and a printed QR pointing at a stale domain is not
+	// something you can take back. Falls back to the env var in dev, where the
+	// origin is localhost and useless on paper.
+	function defaultBase(): string {
+		if (browser) {
+			const origin = window.location.origin;
+			if (!/localhost|127\.0\.0\.1|\[::1\]/.test(origin)) return origin.replace(/\/$/, '');
+		}
+		return (PUBLIC_BASE_URL || 'https://www.bibekbhatta.com').replace(/\/$/, '');
+	}
+
+	const DEFAULT_BASE = defaultBase();
 
 	// Destination
 	let baseUrl = $state(DEFAULT_BASE);
