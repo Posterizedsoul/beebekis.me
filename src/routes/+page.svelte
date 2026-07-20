@@ -76,7 +76,7 @@
 </script>
 
 <svelte:head>
-	<title>Bibek Bhatta — Mechanical Engineer & Roboticist</title>
+	<title>Bibek Bhatta — Mechanical Engineer</title>
 	<meta
 		name="description"
 		content="Bibek Bhatta — Mechanical Engineering undergraduate focused on aerospace autonomy and robotics. Projects in UAV systems, CAD, computer vision, and autonomous control."
@@ -115,7 +115,7 @@
      ~15 words, which is why it had nothing to rank on. -->
 <section id="intro" class="intro">
 	<div class="intro-inner">
-		<h2 class="intro-heading">Mechanical Engineer &amp; Roboticist</h2>
+		<h2 class="intro-heading">Mechanical Engineer</h2>
 		<p class="intro-lead">
 			I'm <strong>Bibek Bhatta</strong>, a Mechanical Engineering undergraduate at
 			<strong>Mississippi State University</strong> working at the intersection of aerospace autonomy

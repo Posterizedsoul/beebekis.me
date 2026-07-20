@@ -29,7 +29,7 @@
 	const isAdmin = $derived(page.url.pathname.startsWith('/admin'));
 
 	// Site metadata (adjust as needed)
-	const siteTitle = 'Bibek Bhatta — Mechanical Engineer & Roboticist';
+	const siteTitle = 'Bibek Bhatta — Mechanical Engineer';
 	const siteDescription =
 		'Bibek Bhatta — Mechanical Engineering undergraduate at Mississippi State University working on aerospace autonomy, UAV systems, robotics, and computer vision. Projects, writing, and résumé.';
 	const siteUrl = PUBLIC_BASE_URL || 'https://bibekbhatta.com';

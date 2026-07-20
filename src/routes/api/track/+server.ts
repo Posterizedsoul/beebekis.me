@@ -68,6 +68,37 @@ function deviceClass(userAgent: string): 'mobile' | 'tablet' | 'desktop' {
 	return 'desktop';
 }
 
+/** Coarse browser family — deliberately not a version string. */
+function browserName(ua: string): string {
+	if (/Edg\//i.test(ua)) return 'Edge';
+	if (/OPR\/|Opera/i.test(ua)) return 'Opera';
+	if (/Chrome\//i.test(ua) && !/Chromium/i.test(ua)) return 'Chrome';
+	if (/Firefox\//i.test(ua)) return 'Firefox';
+	if (/Safari\//i.test(ua) && !/Chrome/i.test(ua)) return 'Safari';
+	if (/SamsungBrowser/i.test(ua)) return 'Samsung Internet';
+	return 'Other';
+}
+
+/** Coarse OS family — deliberately not a version string. */
+function osName(ua: string): string {
+	if (/Windows NT/i.test(ua)) return 'Windows';
+	if (/iPhone|iPad|iPod/i.test(ua)) return 'iOS';
+	if (/Android/i.test(ua)) return 'Android';
+	if (/Mac OS X/i.test(ua)) return 'macOS';
+	if (/Linux/i.test(ua)) return 'Linux';
+	return 'Other';
+}
+
+/** Primary language tag only, e.g. "en" from "en-US,en;q=0.9". */
+function primaryLanguage(header: string): string {
+	const first = header.split(',')[0]?.trim() ?? '';
+	return first
+		.split('-')[0]
+		.toLowerCase()
+		.replace(/[^a-z]/g, '')
+		.slice(0, 8);
+}
+
 const BOT_PATTERN = /bot|crawler|spider|crawling|preview|headless|lighthouse|monitor/i;
 
 export const POST: RequestHandler = async ({ request, url, getClientAddress }) => {
@@ -133,6 +164,28 @@ export const POST: RequestHandler = async ({ request, url, getClientAddress }) =
 	// Not configured yet — accept and drop so the site never errors on it.
 	if (!db) return new Response(null, { status: 204 });
 
+	// Location comes from Vercel's edge geolocation headers, derived from the IP
+	// at the CDN. The IP itself is never read into the document — only these
+	// coarse fields — so no address is ever stored.
+	const h = request.headers;
+	const country = clean(h.get('x-vercel-ip-country'), 4).toUpperCase();
+	const region = clean(h.get('x-vercel-ip-country-region'), 8).toUpperCase();
+	let city = '';
+	try {
+		city = clean(decodeURIComponent(h.get('x-vercel-ip-city') ?? ''), 60);
+	} catch {
+		city = clean(h.get('x-vercel-ip-city'), 60);
+	}
+	const timezone = clean(h.get('x-vercel-ip-timezone'), 40);
+	const language = primaryLanguage(h.get('accept-language') ?? '');
+
+	// Bucketed viewport, never an exact pixel pair (which narrows toward a
+	// fingerprint). Only the width band is kept.
+	const rawScreen = clean(payload.screen, 20);
+	const screenWidth = Number.parseInt(rawScreen.split('x')[0] ?? '0', 10) || 0;
+	const screenBucket =
+		screenWidth === 0 ? '' : screenWidth < 768 ? 'small' : screenWidth < 1280 ? 'medium' : 'large';
+
 	try {
 		await db.collection('analytics_events').add({
 			path,
@@ -141,6 +194,14 @@ export const POST: RequestHandler = async ({ request, url, getClientAddress }) =
 			utmCampaign: cleanTag(payload.utmCampaign),
 			referrerHost,
 			device: deviceClass(userAgent),
+			browser: browserName(userAgent),
+			os: osName(userAgent),
+			country,
+			region,
+			city,
+			timezone,
+			language,
+			screen: screenBucket,
 			ts: new Date()
 		});
 	} catch (err) {

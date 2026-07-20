@@ -8,8 +8,21 @@
 		utmCampaign: string;
 		referrerHost: string;
 		device: string;
+		browser: string;
+		os: string;
+		country: string;
+		region: string;
+		city: string;
+		timezone: string;
+		language: string;
 		ts: Date;
 	};
+
+	// ISO country code -> flag emoji, so the location list reads at a glance
+	function flag(code: string): string {
+		if (!/^[A-Z]{2}$/.test(code)) return '';
+		return String.fromCodePoint(...[...code].map((c) => 0x1f1a5 + c.charCodeAt(0)));
+	}
 
 	let loading = $state(true);
 	let error = $state('');
@@ -47,6 +60,13 @@
 					utmCampaign: v.utmCampaign ?? '',
 					referrerHost: v.referrerHost ?? '',
 					device: v.device ?? '',
+					browser: v.browser ?? '',
+					os: v.os ?? '',
+					country: v.country ?? '',
+					region: v.region ?? '',
+					city: v.city ?? '',
+					timezone: v.timezone ?? '',
+					language: v.language ?? '',
 					ts: v.ts?.toDate ? v.ts.toDate() : new Date(v.ts)
 				};
 			});
@@ -84,6 +104,13 @@
 	const byPath = $derived(tally(events, (e) => e.path).slice(0, 8));
 	const byReferrer = $derived(tally(events, (e) => e.referrerHost).slice(0, 6));
 	const byDevice = $derived(tally(events, (e) => e.device));
+	const byCountry = $derived(tally(events, (e) => e.country).slice(0, 8));
+	const byCity = $derived(
+		tally(events, (e) => (e.city ? `${e.city}${e.region ? ', ' + e.region : ''}` : '')).slice(0, 8)
+	);
+	const byBrowser = $derived(tally(events, (e) => e.browser).slice(0, 6));
+	const byOs = $derived(tally(events, (e) => e.os).slice(0, 6));
+	const byLanguage = $derived(tally(events, (e) => e.language).slice(0, 6));
 
 	// Simple daily sparkline over the selected window
 	const daily = $derived.by(() => {
@@ -234,9 +261,65 @@
 			</div>
 		</div>
 
+		<!-- Location -->
+		<div class="grid gap-4 sm:grid-cols-2">
+			<div class="rounded-sm border border-gray-200 p-4">
+				<span class="mb-3 block text-xs tracking-wide text-gray-500 uppercase">Countries</span>
+				{#if byCountry.length === 0}
+					<p class="text-sm text-gray-500">No location data yet.</p>
+				{:else}
+					<ul class="space-y-1.5">
+						{#each byCountry as [code, count] (code)}
+							<li class="flex justify-between gap-3 text-sm">
+								<span class="truncate text-gray-700">{flag(code)} {code}</span>
+								<span class="font-medium text-gray-900">{count}</span>
+							</li>
+						{/each}
+					</ul>
+				{/if}
+			</div>
+			<div class="rounded-sm border border-gray-200 p-4">
+				<span class="mb-3 block text-xs tracking-wide text-gray-500 uppercase">Cities</span>
+				{#if byCity.length === 0}
+					<p class="text-sm text-gray-500">No location data yet.</p>
+				{:else}
+					<ul class="space-y-1.5">
+						{#each byCity as [place, count] (place)}
+							<li class="flex justify-between gap-3 text-sm">
+								<span class="truncate text-gray-700">{place}</span>
+								<span class="font-medium text-gray-900">{count}</span>
+							</li>
+						{/each}
+					</ul>
+				{/if}
+			</div>
+		</div>
+
+		<!-- Tech -->
+		<div class="grid gap-4 sm:grid-cols-3">
+			{#each [['Browser', byBrowser], ['OS', byOs], ['Language', byLanguage]] as [label, rows] (label)}
+				<div class="rounded-sm border border-gray-200 p-4">
+					<span class="mb-3 block text-xs tracking-wide text-gray-500 uppercase">{label}</span>
+					{#if (rows as [string, number][]).length === 0}
+						<p class="text-sm text-gray-500">—</p>
+					{:else}
+						<ul class="space-y-1.5">
+							{#each rows as [name, count] (name)}
+								<li class="flex justify-between gap-3 text-sm">
+									<span class="truncate text-gray-700">{name}</span>
+									<span class="font-medium text-gray-900">{count}</span>
+								</li>
+							{/each}
+						</ul>
+					{/if}
+				</div>
+			{/each}
+		</div>
+
 		<p class="text-xs text-gray-400">
-			No IP addresses, cookies, or fingerprints are stored — only path, UTM tags, referrer host and
-			device class. Visitors sending Do Not Track are not recorded.
+			No IP addresses, cookies, or fingerprints are stored. Location is derived at the CDN edge and
+			kept coarse (country / region / city), and the viewport is bucketed rather than exact. Your
+			own visits are excluded while signed in, and visitors sending Do Not Track are never recorded.
 		</p>
 	{/if}
 </div>

@@ -5,8 +5,14 @@
  * one), no cookie, no localStorage, no fingerprint. Honours Do Not Track and
  * Global Privacy Control, and never reports the admin area.
  */
+import { isAdminHinted } from '$lib/adminHint';
+
 export function trackView(pathname: string, search: string): void {
 	if (typeof window === 'undefined') return;
+
+	// Don't count the owner's own visits. Uses the same localStorage hint set at
+	// login, so this costs nothing (no Firebase load) on a normal visit.
+	if (isAdminHinted()) return;
 
 	// Respect explicit opt-outs.
 	const nav = navigator as Navigator & {
@@ -25,7 +31,10 @@ export function trackView(pathname: string, search: string): void {
 		utmSource: params.get('utm_source') ?? '',
 		utmMedium: params.get('utm_medium') ?? '',
 		utmCampaign: params.get('utm_campaign') ?? '',
-		referrer: document.referrer ?? ''
+		referrer: document.referrer ?? '',
+		// Coarse viewport bucket — useful for judging whether a QR scan came
+		// from a phone in hand vs a desktop follow-up. Not a fingerprint.
+		screen: `${window.screen?.width ?? 0}x${window.screen?.height ?? 0}`
 	});
 
 	try {
