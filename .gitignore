@@ -16,3 +16,9 @@ Thumbs.db
 # Vite
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Firebase service account keys — full admin access, never commit
+*firebase-adminsdk*.json
+*serviceaccount*.json
+*service-account*.json
+serviceAccountKey.json
