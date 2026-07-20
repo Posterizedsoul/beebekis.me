@@ -105,10 +105,6 @@
 			<span class="name-bottom">Bhatta</span>
 		</h1>
 	</div>
-
-	<a class="scroll-cue" href="/about" aria-label="Read more about Bibek Bhatta">
-		<span></span>
-	</a>
 </div>
 
 <style>
@@ -185,48 +181,6 @@
 		left: 50%;
 		transform: translate(-50%, -50%);
 		z-index: 2;
-	}
-
-	/* Subtle cue that there is more below */
-	.scroll-cue {
-		position: absolute;
-		bottom: 2rem;
-		left: 50%;
-		transform: translateX(-50%);
-		z-index: 3;
-		display: block;
-		width: 1.5rem;
-		height: 2.4rem;
-		border: 2px solid rgba(31, 41, 55, 0.35);
-		border-radius: 1rem;
-	}
-
-	.scroll-cue span {
-		display: block;
-		width: 3px;
-		height: 7px;
-		margin: 0.45rem auto 0;
-		border-radius: 2px;
-		background: rgba(31, 41, 55, 0.55);
-		animation: cue 1.8s ease-in-out infinite;
-	}
-
-	@keyframes cue {
-		0%,
-		100% {
-			transform: translateY(0);
-			opacity: 0.8;
-		}
-		50% {
-			transform: translateY(0.7rem);
-			opacity: 0.2;
-		}
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.scroll-cue span {
-			animation: none;
-		}
 	}
 
 	.name {
