@@ -106,49 +106,16 @@
 		</h1>
 	</div>
 
-	<a class="scroll-cue" href="#intro" aria-label="Scroll to introduction">
+	<a class="scroll-cue" href="/about" aria-label="Read more about Bibek Bhatta">
 		<span></span>
 	</a>
 </div>
 
-<!-- Real, crawlable content: without this the homepage gave search engines
-     ~15 words, which is why it had nothing to rank on. -->
-<section id="intro" class="intro">
-	<div class="intro-inner">
-		<h2 class="intro-heading">Mechanical Engineer</h2>
-		<p class="intro-lead">
-			I'm <strong>Bibek Bhatta</strong>, a Mechanical Engineering undergraduate at
-			<strong>Mississippi State University</strong> working at the intersection of aerospace autonomy
-			and robotics. I design complete mechatronic systems — from CAD and 3D-printed hardware to embedded
-			computer vision and autonomous flight control.
-		</p>
-		<p class="intro-body">
-			My current work includes an autonomous <strong>VTOL medical-delivery UAV</strong> (a tri-EDF
-			tiltrotor running PX4 with GPS waypoint navigation and A* path planning), a
-			<strong>multi-illumination imaging rig</strong> grading guitar tonewood for a CNN quality-control
-			model, and a standardized library of 3D-printable mechatronic subsystems — cycloidal and planetary
-			gearboxes, lead-screw stages, and custom motor controllers — built as Design Lead for the MSU Robotics
-			Club's NASA ISAM entry.
-		</p>
-
-		<ul class="focus-list">
-			<li>CAD &amp; CAE — SolidWorks, Onshape, CFD, FEA, GD&amp;T</li>
-			<li>Robotics &amp; UAV systems — PX4, Pixhawk, autonomous control</li>
-			<li>Computer vision &amp; ML — Python, PyTorch, OpenCV, NVIDIA Jetson</li>
-			<li>Design for manufacturing — FDM 3D printing, drivetrain design</li>
-		</ul>
-
-		<nav class="intro-links" aria-label="Explore this site">
-			<a href="/projects">View my projects →</a>
-			<a href="/blog">Read the blog →</a>
-			<a href="/about">About &amp; résumé →</a>
-		</nav>
-	</div>
-</section>
-
 <style>
 	.hero {
-		position: relative;
+		position: fixed;
+		top: 0;
+		left: 0;
 		width: 100%;
 		height: 100vh;
 		overflow: hidden;
@@ -211,10 +178,10 @@
 		transform-origin: center;
 	}
 
-	/* Name content - centered within the hero */
+	/* Name content - positioned at true viewport center */
 	.content {
-		position: absolute;
-		top: 50%;
+		position: fixed;
+		top: 50vh;
 		left: 50%;
 		transform: translate(-50%, -50%);
 		z-index: 2;
@@ -254,97 +221,6 @@
 			transform: translateY(0.7rem);
 			opacity: 0.2;
 		}
-	}
-
-	/* ===== Intro / SEO content ===== */
-	.intro {
-		background: #fff;
-		padding: 6rem 1.5rem 7rem;
-		border-top: 1px solid #f1f1f1;
-	}
-
-	.intro-inner {
-		max-width: 46rem;
-		margin: 0 auto;
-	}
-
-	.intro-heading {
-		font-family: 'Noto Serif', serif;
-		font-size: clamp(1.75rem, 4vw, 2.75rem);
-		font-weight: 700;
-		text-transform: uppercase;
-		letter-spacing: 0.02em;
-		color: #111;
-		margin: 0 0 2rem;
-	}
-
-	.intro-lead {
-		font-size: 1.25rem;
-		line-height: 1.7;
-		color: #374151;
-		margin: 0 0 1.5rem;
-	}
-
-	.intro-body {
-		font-size: 1.0625rem;
-		line-height: 1.8;
-		color: #4b5563;
-		margin: 0 0 2.5rem;
-	}
-
-	.intro-lead strong,
-	.intro-body strong {
-		color: #111;
-		font-weight: 600;
-	}
-
-	.focus-list {
-		list-style: none;
-		padding: 0;
-		margin: 0 0 3rem;
-		display: grid;
-		gap: 0.75rem;
-	}
-
-	.focus-list li {
-		font-size: 0.9375rem;
-		color: #4b5563;
-		padding-left: 1.25rem;
-		position: relative;
-	}
-
-	.focus-list li::before {
-		content: '';
-		position: absolute;
-		left: 0;
-		top: 0.6em;
-		width: 6px;
-		height: 6px;
-		background: #111;
-		border-radius: 50%;
-	}
-
-	.intro-links {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 1.5rem;
-		padding-top: 2rem;
-		border-top: 1px solid #f1f1f1;
-	}
-
-	.intro-links a {
-		font-family: 'Noto Serif', serif;
-		font-size: 0.9375rem;
-		font-weight: 600;
-		letter-spacing: 0.03em;
-		text-transform: uppercase;
-		color: #6b7280;
-		text-decoration: none;
-		transition: color 0.2s ease;
-	}
-
-	.intro-links a:hover {
-		color: #000;
 	}
 
 	@media (prefers-reduced-motion: reduce) {

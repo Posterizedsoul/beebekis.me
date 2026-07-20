@@ -32,9 +32,10 @@
 
 	const DEFAULT_BASE = defaultBase();
 
-	// Destination
+	// Destination — /about is the best landing page for a scanned code: it
+	// carries the written intro, the résumé, and the contact links.
 	let baseUrl = $state(DEFAULT_BASE);
-	let path = $state('/');
+	let path = $state('/about');
 
 	// UTM campaign tagging (what Vercel Analytics filters on)
 	let utmSource = $state('resume');
@@ -53,8 +54,8 @@
 	let error = $state('');
 
 	const presets = [
-		{ label: 'Résumé / CV', path: '/', source: 'resume' },
-		{ label: 'Business card', path: '/', source: 'business_card' },
+		{ label: 'Résumé / CV', path: '/about', source: 'resume' },
+		{ label: 'Business card', path: '/about', source: 'business_card' },
 		{ label: 'Poster / project', path: '/projects', source: 'poster' }
 	];
 

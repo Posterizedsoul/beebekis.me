@@ -9,7 +9,8 @@ const BASE = (PUBLIC_BASE_URL || 'https://bibekbhatta.com').replace(/\/$/, '');
 // content (projects, blog) should surface in search.
 const STATIC_ROUTES = [
 	{ path: '/', priority: '1.0', changefreq: 'monthly' },
-	{ path: '/about', priority: '0.9', changefreq: 'monthly' },
+	// Carries the written intro and résumé, and is the QR landing page
+	{ path: '/about', priority: '1.0', changefreq: 'monthly' },
 	{ path: '/projects', priority: '0.9', changefreq: 'weekly' },
 	{ path: '/blog', priority: '0.8', changefreq: 'weekly' }
 ];

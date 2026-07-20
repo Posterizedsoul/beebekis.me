@@ -83,9 +83,9 @@
 
 	// Restore $effect for scroll lock on homepage
 	$effect(() => {
-		// The homepage now scrolls to its intro section (needed for crawlable
-		// content), so no page is scroll-locked.
-		document.body.style.overflow = 'auto';
+		// The homepage is a single non-scrolling piece; the written intro lives
+		// on /about, so nothing is hidden from readers or crawlers.
+		document.body.style.overflow = isHomePage ? 'hidden' : 'auto';
 
 		// Optional cleanup function
 		return () => {
