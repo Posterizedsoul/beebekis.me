@@ -114,7 +114,7 @@
 	let galleryImages: { url: string; filename: string; thumbUrl?: string }[] = $state([]);
 
 	// Memory
-	let memoryImages: { url: string; altText: string }[] = $state([]);
+	let memoryImages: { url: string; thumbUrl?: string; altText: string }[] = $state([]);
 	let coverImage = $state('');
 	let heroImage = $state('');
 
@@ -209,8 +209,14 @@
 		});
 	}
 
-	function handleMemoryUpload(urls: string[]) {
-		memoryImages = [...memoryImages, ...urls.map((url) => ({ url, altText: '' }))];
+	function handleMemoryUpload(urls: string[], thumbUrls?: string[]) {
+		// Keep the 300px thumbnail the uploader already generated. It was being
+		// discarded, which forced every grid and card to render full-size
+		// originals.
+		memoryImages = [
+			...memoryImages,
+			...urls.map((url, i) => ({ url, thumbUrl: thumbUrls?.[i] ?? '', altText: '' }))
+		];
 		if (!coverImage && urls.length > 0) coverImage = urls[0];
 		if (!heroImage && urls.length > 0) heroImage = urls[0];
 	}

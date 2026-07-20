@@ -51,16 +51,22 @@
 					animation: 150,
 					handle: '.drag-handle',
 					onEnd: (evt: any) => {
-						if (evt.oldIndex !== undefined && evt.newIndex !== undefined) {
-							const oldActualIndex = images.indexOf(visibleImages[evt.oldIndex]);
-							const newActualIndex = images.indexOf(visibleImages[evt.newIndex]);
+						const { oldIndex, newIndex, item, from } = evt;
+						if (oldIndex == null || newIndex == null || oldIndex === newIndex) return;
 
-							if (oldActualIndex !== -1 && newActualIndex !== -1) {
-								const item = images.splice(oldActualIndex, 1)[0];
-								images.splice(newActualIndex, 0, item);
-								images = [...images];
-							}
-						}
+						// Sortable has already moved the node, but the {#each} is keyed, so
+						// Svelte will move it again when the array updates — the two fight
+						// and the tile visibly jumps. Put the DOM back the way Svelte last
+						// rendered it and let the state change be the single source of truth.
+						item.remove();
+						from.insertBefore(item, from.children[oldIndex] ?? null);
+
+						// visibleImages is a prefix slice, so DOM indices map straight onto
+						// the images array — no O(n) indexOf lookups needed.
+						const next = [...images];
+						const [moved] = next.splice(oldIndex, 1);
+						next.splice(newIndex, 0, moved);
+						images = next;
 					}
 				});
 			}
@@ -96,11 +102,15 @@
 			tabindex="0"
 			onkeydown={(e) => e.key === 'Enter' && openLightbox(image.url)}
 		>
+			<!-- Prefer the 300px thumbnail: rendering the full 1920px original into
+			     a ~150px tile is what makes large albums freeze the browser. -->
 			<img
-				src={image.url}
+				src={image.thumbUrl || image.url}
 				alt={image.altText || 'Preview'}
 				loading="lazy"
 				decoding="async"
+				width="300"
+				height="300"
 				class="h-full w-full cursor-pointer object-cover"
 			/>
 
@@ -115,7 +125,7 @@
 			>
 				<button
 					type="button"
-					onclick={() => handleRemove(images.indexOf(image))}
+					onclick={() => handleRemove(index)}
 					class="rounded-full bg-red-600 p-1 text-white shadow-sm hover:bg-red-700 focus:outline-none"
 					title="Remove image"
 					aria-label="Remove image"
@@ -191,17 +201,30 @@
 {/if}
 
 <style>
-	.image-grid {
-		contain: layout style;
-		will-change: contents;
-	}
+	/*
+	 * These used to carry `will-change: contents` on the grid plus
+	 * `will-change: transform` on every tile AND every image, which promoted
+	 * each one to its own GPU layer — well over a hundred layers on a large
+	 * album, which is what made dragging stutter and the tab freeze.
+	 * will-change is a last-resort hint, not a general speed-up; Sortable
+	 * already promotes just the element being dragged.
+	 *
+	 * `content-visibility: auto` instead lets the browser skip rendering tiles
+	 * that are scrolled out of view. contain-intrinsic-size reserves their box
+	 * so the scrollbar stays stable.
+	 */
 	.image-grid > div {
-		contain: layout style paint;
-		will-change: transform;
+		contain: layout paint style;
+		content-visibility: auto;
+		contain-intrinsic-size: 150px;
 	}
-	.image-grid img {
-		will-change: transform;
-		transform: translateZ(0);
+
+	/* The tile being dragged is exempt: skipping its rendering mid-drag would
+	   make it flicker. */
+	.image-grid > div:global(.sortable-chosen),
+	.image-grid > div:global(.sortable-ghost),
+	.image-grid > div:global(.sortable-drag) {
+		content-visibility: visible;
 	}
 
 	/* Lightbox styles */
