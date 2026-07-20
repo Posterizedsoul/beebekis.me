@@ -6,6 +6,17 @@
 
 	let { showHeading = true }: { showHeading?: boolean } = $props();
 
+	let tab: 'generate' | 'analytics' = $state('generate');
+	// Analytics panel is lazy — its Firestore query only runs if opened
+	let Analytics = $state<typeof import('$lib/components/QrAnalytics.svelte').default | null>(null);
+
+	async function showAnalytics() {
+		if (!Analytics) {
+			Analytics = (await import('$lib/components/QrAnalytics.svelte')).default;
+		}
+		tab = 'analytics';
+	}
+
 	const DEFAULT_BASE = (PUBLIC_BASE_URL || 'https://www.bibekbhatta.com').replace(/\/$/, '');
 
 	// Destination
@@ -131,236 +142,272 @@
 		</div>
 	{/if}
 
-	<div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
-		<!-- Controls -->
-		<div class="space-y-6">
-			<!-- Presets -->
-			<div>
-				<span class="mb-2 block text-xs font-medium tracking-wide text-gray-500 uppercase"
-					>Presets</span
-				>
-				<div class="flex flex-wrap gap-2">
-					{#each presets as p (p.label)}
+	<!-- Tabs -->
+	<div class="flex gap-1 border-b border-gray-200">
+		<button
+			type="button"
+			onclick={() => (tab = 'generate')}
+			class="-mb-px border-b-2 px-4 py-2 font-serif text-sm font-medium tracking-wider uppercase transition-colors {tab ===
+			'generate'
+				? 'border-black text-black'
+				: 'border-transparent text-gray-500 hover:text-black'}"
+		>
+			Generate
+		</button>
+		<button
+			type="button"
+			onclick={showAnalytics}
+			class="-mb-px border-b-2 px-4 py-2 font-serif text-sm font-medium tracking-wider uppercase transition-colors {tab ===
+			'analytics'
+				? 'border-black text-black'
+				: 'border-transparent text-gray-500 hover:text-black'}"
+		>
+			Analytics
+		</button>
+	</div>
+
+	{#if tab === 'analytics'}
+		{#if Analytics}
+			<Analytics />
+		{:else}
+			<p class="py-10 text-center text-sm text-gray-500">Loading…</p>
+		{/if}
+	{:else}
+		<div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
+			<!-- Controls -->
+			<div class="space-y-6">
+				<!-- Presets -->
+				<div>
+					<span class="mb-2 block text-xs font-medium tracking-wide text-gray-500 uppercase"
+						>Presets</span
+					>
+					<div class="flex flex-wrap gap-2">
+						{#each presets as p (p.label)}
+							<button
+								type="button"
+								onclick={() => applyPreset(p)}
+								class="rounded-sm border px-3 py-1.5 text-sm transition-colors {utmSource ===
+								p.source
+									? 'border-black bg-black text-white'
+									: 'border-gray-300 text-gray-700 hover:border-black hover:text-black'}"
+							>
+								{p.label}
+							</button>
+						{/each}
+					</div>
+				</div>
+
+				<!-- Destination -->
+				<fieldset class="space-y-4 rounded-sm border border-gray-200 p-4">
+					<legend class="px-1 text-xs font-medium tracking-wide text-gray-500 uppercase"
+						>Destination</legend
+					>
+					<div class="grid gap-4 sm:grid-cols-2">
+						<div>
+							<label for="baseUrl" class="block text-xs font-medium text-gray-500">Base URL</label>
+							<input
+								id="baseUrl"
+								type="text"
+								bind:value={baseUrl}
+								class="mt-1 block w-full rounded-sm border-gray-300 py-2 text-sm focus:border-black focus:ring-black"
+							/>
+						</div>
+						<div>
+							<label for="path" class="block text-xs font-medium text-gray-500">Path</label>
+							<input
+								id="path"
+								type="text"
+								bind:value={path}
+								placeholder="/projects"
+								class="mt-1 block w-full rounded-sm border-gray-300 py-2 text-sm focus:border-black focus:ring-black"
+							/>
+						</div>
+					</div>
+				</fieldset>
+
+				<!-- UTM -->
+				<fieldset class="space-y-4 rounded-sm border border-gray-200 p-4">
+					<legend class="px-1 text-xs font-medium tracking-wide text-gray-500 uppercase"
+						>Campaign tracking</legend
+					>
+					<label class="flex items-center gap-2 text-sm text-gray-700">
+						<input
+							type="checkbox"
+							bind:checked={useUtm}
+							class="h-4 w-4 rounded-sm border-gray-300 text-black focus:ring-black"
+						/>
+						Add UTM parameters (needed to tell sources apart in Analytics)
+					</label>
+
+					{#if useUtm}
+						<div class="grid gap-4 sm:grid-cols-3">
+							<div>
+								<label for="utmSource" class="block text-xs font-medium text-gray-500">Source</label
+								>
+								<input
+									id="utmSource"
+									type="text"
+									bind:value={utmSource}
+									class="mt-1 block w-full rounded-sm border-gray-300 py-2 text-sm focus:border-black focus:ring-black"
+								/>
+							</div>
+							<div>
+								<label for="utmMedium" class="block text-xs font-medium text-gray-500">Medium</label
+								>
+								<input
+									id="utmMedium"
+									type="text"
+									bind:value={utmMedium}
+									class="mt-1 block w-full rounded-sm border-gray-300 py-2 text-sm focus:border-black focus:ring-black"
+								/>
+							</div>
+							<div>
+								<label for="utmCampaign" class="block text-xs font-medium text-gray-500"
+									>Campaign</label
+								>
+								<input
+									id="utmCampaign"
+									type="text"
+									bind:value={utmCampaign}
+									class="mt-1 block w-full rounded-sm border-gray-300 py-2 text-sm focus:border-black focus:ring-black"
+								/>
+							</div>
+						</div>
+					{/if}
+				</fieldset>
+
+				<!-- Appearance -->
+				<fieldset class="space-y-4 rounded-sm border border-gray-200 p-4">
+					<legend class="px-1 text-xs font-medium tracking-wide text-gray-500 uppercase"
+						>Appearance</legend
+					>
+					<div class="grid gap-4 sm:grid-cols-2">
+						<div>
+							<label for="size" class="block text-xs font-medium text-gray-500">
+								PNG size — {size}px
+							</label>
+							<input
+								id="size"
+								type="range"
+								min="200"
+								max="2000"
+								step="100"
+								bind:value={size}
+								class="mt-2 block w-full accent-black"
+							/>
+						</div>
+						<div>
+							<label for="margin" class="block text-xs font-medium text-gray-500">
+								Quiet zone — {margin}
+							</label>
+							<input
+								id="margin"
+								type="range"
+								min="0"
+								max="8"
+								step="1"
+								bind:value={margin}
+								class="mt-2 block w-full accent-black"
+							/>
+						</div>
+						<div>
+							<label for="level" class="block text-xs font-medium text-gray-500"
+								>Error correction</label
+							>
+							<select
+								id="level"
+								bind:value={level}
+								class="mt-1 block w-full rounded-sm border-gray-300 py-2 text-sm focus:border-black focus:ring-black"
+							>
+								<option value="L">L — 7% (smallest code)</option>
+								<option value="M">M — 15%</option>
+								<option value="Q">Q — 25%</option>
+								<option value="H">H — 30% (best for print/logo)</option>
+							</select>
+						</div>
+						<div class="flex gap-4">
+							<div>
+								<label for="dark" class="block text-xs font-medium text-gray-500">Foreground</label>
+								<input
+									id="dark"
+									type="color"
+									bind:value={dark}
+									class="mt-1 h-9 w-16 cursor-pointer rounded-sm border border-gray-300"
+								/>
+							</div>
+							<div>
+								<label for="light" class="block text-xs font-medium text-gray-500">Background</label
+								>
+								<input
+									id="light"
+									type="color"
+									bind:value={light}
+									class="mt-1 h-9 w-16 cursor-pointer rounded-sm border border-gray-300"
+								/>
+							</div>
+						</div>
+					</div>
+					<p class="text-xs text-gray-400">
+						Keep strong contrast (dark on light). Very light foregrounds or dark backgrounds often
+						fail to scan.
+					</p>
+				</fieldset>
+			</div>
+
+			<!-- Preview -->
+			<div class="lg:sticky lg:top-24 lg:self-start">
+				<div class="rounded-sm border border-gray-200 p-4">
+					<span class="mb-3 block text-xs font-medium tracking-wide text-gray-500 uppercase"
+						>Preview</span
+					>
+
+					{#if error}
+						<p class="rounded-sm bg-red-50 p-3 text-xs text-red-600">{error}</p>
+					{:else if pngDataUrl}
+						<img
+							src={pngDataUrl}
+							alt="QR code preview"
+							class="mx-auto block w-full max-w-[240px] rounded-sm"
+						/>
+					{/if}
+
+					<div class="mt-4 rounded-sm bg-gray-50 p-3">
+						<span class="block text-xs font-medium text-gray-500">Encoded URL</span>
+						<p class="mt-1 font-mono text-[11px] leading-relaxed break-all text-gray-700">
+							{finalUrl}
+						</p>
 						<button
 							type="button"
-							onclick={() => applyPreset(p)}
-							class="rounded-sm border px-3 py-1.5 text-sm transition-colors {utmSource === p.source
-								? 'border-black bg-black text-white'
-								: 'border-gray-300 text-gray-700 hover:border-black hover:text-black'}"
+							onclick={copyUrl}
+							class="mt-2 text-xs font-medium text-gray-500 transition-colors hover:text-black"
 						>
-							{p.label}
+							{copied ? 'Copied ✓' : 'Copy link'}
 						</button>
-					{/each}
-				</div>
-			</div>
+					</div>
 
-			<!-- Destination -->
-			<fieldset class="space-y-4 rounded-sm border border-gray-200 p-4">
-				<legend class="px-1 text-xs font-medium tracking-wide text-gray-500 uppercase"
-					>Destination</legend
-				>
-				<div class="grid gap-4 sm:grid-cols-2">
-					<div>
-						<label for="baseUrl" class="block text-xs font-medium text-gray-500">Base URL</label>
-						<input
-							id="baseUrl"
-							type="text"
-							bind:value={baseUrl}
-							class="mt-1 block w-full rounded-sm border-gray-300 py-2 text-sm focus:border-black focus:ring-black"
-						/>
-					</div>
-					<div>
-						<label for="path" class="block text-xs font-medium text-gray-500">Path</label>
-						<input
-							id="path"
-							type="text"
-							bind:value={path}
-							placeholder="/projects"
-							class="mt-1 block w-full rounded-sm border-gray-300 py-2 text-sm focus:border-black focus:ring-black"
-						/>
-					</div>
-				</div>
-			</fieldset>
-
-			<!-- UTM -->
-			<fieldset class="space-y-4 rounded-sm border border-gray-200 p-4">
-				<legend class="px-1 text-xs font-medium tracking-wide text-gray-500 uppercase"
-					>Campaign tracking</legend
-				>
-				<label class="flex items-center gap-2 text-sm text-gray-700">
-					<input
-						type="checkbox"
-						bind:checked={useUtm}
-						class="h-4 w-4 rounded-sm border-gray-300 text-black focus:ring-black"
-					/>
-					Add UTM parameters (needed to tell sources apart in Analytics)
-				</label>
-
-				{#if useUtm}
-					<div class="grid gap-4 sm:grid-cols-3">
-						<div>
-							<label for="utmSource" class="block text-xs font-medium text-gray-500">Source</label>
-							<input
-								id="utmSource"
-								type="text"
-								bind:value={utmSource}
-								class="mt-1 block w-full rounded-sm border-gray-300 py-2 text-sm focus:border-black focus:ring-black"
-							/>
-						</div>
-						<div>
-							<label for="utmMedium" class="block text-xs font-medium text-gray-500">Medium</label>
-							<input
-								id="utmMedium"
-								type="text"
-								bind:value={utmMedium}
-								class="mt-1 block w-full rounded-sm border-gray-300 py-2 text-sm focus:border-black focus:ring-black"
-							/>
-						</div>
-						<div>
-							<label for="utmCampaign" class="block text-xs font-medium text-gray-500"
-								>Campaign</label
-							>
-							<input
-								id="utmCampaign"
-								type="text"
-								bind:value={utmCampaign}
-								class="mt-1 block w-full rounded-sm border-gray-300 py-2 text-sm focus:border-black focus:ring-black"
-							/>
-						</div>
-					</div>
-				{/if}
-			</fieldset>
-
-			<!-- Appearance -->
-			<fieldset class="space-y-4 rounded-sm border border-gray-200 p-4">
-				<legend class="px-1 text-xs font-medium tracking-wide text-gray-500 uppercase"
-					>Appearance</legend
-				>
-				<div class="grid gap-4 sm:grid-cols-2">
-					<div>
-						<label for="size" class="block text-xs font-medium text-gray-500">
-							PNG size — {size}px
-						</label>
-						<input
-							id="size"
-							type="range"
-							min="200"
-							max="2000"
-							step="100"
-							bind:value={size}
-							class="mt-2 block w-full accent-black"
-						/>
-					</div>
-					<div>
-						<label for="margin" class="block text-xs font-medium text-gray-500">
-							Quiet zone — {margin}
-						</label>
-						<input
-							id="margin"
-							type="range"
-							min="0"
-							max="8"
-							step="1"
-							bind:value={margin}
-							class="mt-2 block w-full accent-black"
-						/>
-					</div>
-					<div>
-						<label for="level" class="block text-xs font-medium text-gray-500"
-							>Error correction</label
+					<div class="mt-4 flex flex-col gap-2">
+						<button
+							type="button"
+							onclick={downloadPng}
+							class="rounded-sm border border-black bg-black px-4 py-2 font-serif text-sm font-medium tracking-wider text-white uppercase transition-colors hover:bg-gray-800"
 						>
-						<select
-							id="level"
-							bind:value={level}
-							class="mt-1 block w-full rounded-sm border-gray-300 py-2 text-sm focus:border-black focus:ring-black"
+							Download PNG
+						</button>
+						<button
+							type="button"
+							onclick={downloadSvg}
+							class="rounded-sm border border-black bg-white px-4 py-2 font-serif text-sm font-medium tracking-wider text-black uppercase transition-colors hover:bg-gray-100"
 						>
-							<option value="L">L — 7% (smallest code)</option>
-							<option value="M">M — 15%</option>
-							<option value="Q">Q — 25%</option>
-							<option value="H">H — 30% (best for print/logo)</option>
-						</select>
+							Download SVG (print)
+						</button>
 					</div>
-					<div class="flex gap-4">
-						<div>
-							<label for="dark" class="block text-xs font-medium text-gray-500">Foreground</label>
-							<input
-								id="dark"
-								type="color"
-								bind:value={dark}
-								class="mt-1 h-9 w-16 cursor-pointer rounded-sm border border-gray-300"
-							/>
-						</div>
-						<div>
-							<label for="light" class="block text-xs font-medium text-gray-500">Background</label>
-							<input
-								id="light"
-								type="color"
-								bind:value={light}
-								class="mt-1 h-9 w-16 cursor-pointer rounded-sm border border-gray-300"
-							/>
-						</div>
-					</div>
-				</div>
-				<p class="text-xs text-gray-400">
-					Keep strong contrast (dark on light). Very light foregrounds or dark backgrounds often
-					fail to scan.
-				</p>
-			</fieldset>
-		</div>
 
-		<!-- Preview -->
-		<div class="lg:sticky lg:top-24 lg:self-start">
-			<div class="rounded-sm border border-gray-200 p-4">
-				<span class="mb-3 block text-xs font-medium tracking-wide text-gray-500 uppercase"
-					>Preview</span
-				>
-
-				{#if error}
-					<p class="rounded-sm bg-red-50 p-3 text-xs text-red-600">{error}</p>
-				{:else if pngDataUrl}
-					<img
-						src={pngDataUrl}
-						alt="QR code preview"
-						class="mx-auto block w-full max-w-[240px] rounded-sm"
-					/>
-				{/if}
-
-				<div class="mt-4 rounded-sm bg-gray-50 p-3">
-					<span class="block text-xs font-medium text-gray-500">Encoded URL</span>
-					<p class="mt-1 font-mono text-[11px] leading-relaxed break-all text-gray-700">
-						{finalUrl}
+					<p class="mt-3 text-xs text-gray-400">
+						Use SVG for résumés and print — it stays sharp at any size. Test the printed code on a
+						couple of phones before ordering a batch.
 					</p>
-					<button
-						type="button"
-						onclick={copyUrl}
-						class="mt-2 text-xs font-medium text-gray-500 transition-colors hover:text-black"
-					>
-						{copied ? 'Copied ✓' : 'Copy link'}
-					</button>
 				</div>
-
-				<div class="mt-4 flex flex-col gap-2">
-					<button
-						type="button"
-						onclick={downloadPng}
-						class="rounded-sm border border-black bg-black px-4 py-2 font-serif text-sm font-medium tracking-wider text-white uppercase transition-colors hover:bg-gray-800"
-					>
-						Download PNG
-					</button>
-					<button
-						type="button"
-						onclick={downloadSvg}
-						class="rounded-sm border border-black bg-white px-4 py-2 font-serif text-sm font-medium tracking-wider text-black uppercase transition-colors hover:bg-gray-100"
-					>
-						Download SVG (print)
-					</button>
-				</div>
-
-				<p class="mt-3 text-xs text-gray-400">
-					Use SVG for résumés and print — it stays sharp at any size. Test the printed code on a
-					couple of phones before ordering a batch.
-				</p>
 			</div>
 		</div>
-	</div>
+	{/if}
 </div>

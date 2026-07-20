@@ -7,11 +7,22 @@
 	import { preloadData } from '$app/navigation';
 	import { injectAnalytics } from '@vercel/analytics/sveltekit';
 	import AdminQrButton from '$lib/components/AdminQrButton.svelte';
+	import { trackView } from '$lib/trackView';
 
 	// Vercel Web Analytics — powers the QR/UTM campaign tracking
 	injectAnalytics({ mode: dev ? 'development' : 'production' });
 
 	let { children } = $props();
+
+	// Record each page view (client-side navigations included) via the
+	// server-only ingest endpoint.
+	let lastTracked = '';
+	$effect(() => {
+		const key = page.url.pathname + page.url.search;
+		if (!browser || key === lastTracked) return;
+		lastTracked = key;
+		trackView(page.url.pathname, page.url.search);
+	});
 
 	// Reactive check: true if the current path is the homepage '/'
 	const isHomePage = $derived(page.url.pathname === '/');

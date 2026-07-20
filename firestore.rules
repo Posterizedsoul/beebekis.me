@@ -33,6 +33,17 @@ service cloud.firestore {
       allow write: if isOwner();
     }
 
+    // Analytics events.
+    // Writes are denied to EVERY client — including an authenticated owner —
+    // so the public Firebase config in the browser bundle grants no write
+    // access at all. The only writer is the server via the Admin SDK (which
+    // bypasses these rules) behind the validated /api/track endpoint.
+    // The owner may read them to render the dashboard.
+    match /analytics_events/{eventId} {
+      allow read: if isOwner();
+      allow write: if false;
+    }
+
     // Deny everything else by default.
     match /{document=**} {
       allow read, write: if false;

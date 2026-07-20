@@ -64,6 +64,7 @@
 		"browser-image-compression": "^2.0.2",
 		"dotenv": "^16.5.0",
 		"firebase": "^12.7.0",
+		"firebase-admin": "^14.2.0",
 		"lucide-svelte": "^0.501.0",
 		"qrcode": "^1.5.4",
 		"shiki": "^3.2.2",
