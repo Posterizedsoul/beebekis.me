@@ -12,7 +12,8 @@
 		{ href: '/admin/memories', label: 'Memories' },
 		{ href: '/admin/diary', label: 'Diary' },
 		{ href: '/admin/blog', label: 'Blog' },
-		{ href: '/admin/projects', label: 'Projects' }
+		{ href: '/admin/projects', label: 'Projects' },
+		{ href: '/admin/qr', label: 'QR' }
 	];
 
 	function toggleMenu() {

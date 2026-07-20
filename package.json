@@ -24,6 +24,7 @@
 		"@tailwindcss/typography": "^0.5.15",
 		"@tailwindcss/vite": "^4.0.0",
 		"@types/marked": "^6.0.0",
+		"@types/qrcode": "^1.5.6",
 		"eslint": "^9.18.0",
 		"eslint-config-prettier": "^10.0.1",
 		"eslint-plugin-svelte": "^3.0.0",
@@ -59,10 +60,12 @@
 		"@tiptap/extension-underline": "^3.14.0",
 		"@tiptap/pm": "^3.14.0",
 		"@tiptap/starter-kit": "^3.14.0",
+		"@vercel/analytics": "^2.0.1",
 		"browser-image-compression": "^2.0.2",
 		"dotenv": "^16.5.0",
 		"firebase": "^12.7.0",
 		"lucide-svelte": "^0.501.0",
+		"qrcode": "^1.5.4",
 		"shiki": "^3.2.2",
 		"sortablejs": "^1.15.6"
 	}

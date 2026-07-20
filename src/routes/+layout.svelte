@@ -3,8 +3,13 @@
 	import { page } from '$app/state';
 	import { PUBLIC_BASE_URL } from '$env/static/public';
 	import { onMount, onDestroy } from 'svelte'; // Import onMount and onDestroy
-	import { browser } from '$app/environment'; // Import browser check
+	import { browser, dev } from '$app/environment'; // Import browser check
 	import { preloadData } from '$app/navigation';
+	import { injectAnalytics } from '@vercel/analytics/sveltekit';
+	import AdminQrButton from '$lib/components/AdminQrButton.svelte';
+
+	// Vercel Web Analytics — powers the QR/UTM campaign tracking
+	injectAnalytics({ mode: dev ? 'development' : 'production' });
 
 	let { children } = $props();
 
@@ -230,4 +235,9 @@
 	<main class="{isAdmin ? '' : 'pt-16'} text-gray-800">
 		{@render children()}
 	</main>
+
+	<!-- Owner-only QR generator; the admin panel has its own page for it -->
+	{#if !isAdmin}
+		<AdminQrButton />
+	{/if}
 </div>
